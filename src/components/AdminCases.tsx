@@ -1,5 +1,8 @@
 'use client';
 
+import { useState } from 'react';
+import CaseDetailsModal from '@/components/CaseDetailsModal';
+
 const cases = [
   { id: 1, company: 'Ресторант "Столова"', industry: 'HoReCa', problem: 'Губи 30% персонал всяка година', status: 'analyzed', date: '2026-06-05' },
   { id: 2, company: 'Fashion BG', industry: 'E-commerce', problem: '15% грешки в поръчки', status: 'completed', date: '2026-06-04' },
@@ -13,6 +16,8 @@ const statusColors: Record<string, string> = {
 const statusLabels: Record<string, string> = { analyzed: 'Анализиран', completed: 'Завършен' };
 
 export default function AdminCases() {
+  const [selectedCase, setSelectedCase] = useState<number | null>(null);
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold">Казуси ({cases.length})</h2>
@@ -30,12 +35,13 @@ export default function AdminCases() {
               </div>
               <div className="flex items-center gap-3">
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${statusColors[c.status]}`}>{statusLabels[c.status]}</span>
-                <button className="px-3 py-1.5 bg-vancore-bronze/10 text-vancore-bronze rounded-lg text-xs hover:bg-vancore-bronze/20 transition-colors">Преглед</button>
+                <button onClick={() => setSelectedCase(c.id)} className="px-3 py-1.5 bg-vancore-bronze/10 text-vancore-bronze rounded-lg text-xs hover:bg-vancore-bronze/20 transition-colors">Преглед</button>
               </div>
             </div>
           </div>
         ))}
       </div>
+      {selectedCase && <CaseDetailsModal case={cases.find(c => c.id === selectedCase)!} onClose={() => setSelectedCase(null)} />}
     </div>
   );
 }

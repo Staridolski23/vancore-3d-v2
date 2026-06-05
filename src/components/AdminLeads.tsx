@@ -1,5 +1,8 @@
 'use client';
 
+import { useState } from 'react';
+import LeadDetailsModal from '@/components/LeadDetailsModal';
+
 const leads = [
   { id: 1, name: 'Иван Петров', company: 'Ресторант "Столова"', email: 'ivan@stolova.bg', budget: '1,000-3,000 EUR', status: 'new', date: '2026-06-05' },
   { id: 2, name: 'Мария Георгиева', company: 'E-commerce "Fashion BG"', email: 'maria@fashion.bg', budget: '3,000-10,000 EUR', status: 'contacted', date: '2026-06-04' },
@@ -15,17 +18,17 @@ const statusColors: Record<string, string> = {
 const statusLabels: Record<string, string> = { new: 'Нов', contacted: 'Свързан', qualified: 'Квалифициран' };
 
 export default function AdminLeads() {
+  const [selectedLead, setSelectedLead] = useState<number | null>(null);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Лийдове ({leads.length})</h2>
-        <div className="flex gap-2">
-          <select className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-vancore-muted">
-            <option>Всички</option>
-            <option>Нови</option>
-            <option>Свързани</option>
-          </select>
-        </div>
+        <select className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-vancore-muted">
+          <option>Всички</option>
+          <option>Нови</option>
+          <option>Свързани</option>
+        </select>
       </div>
 
       <div className="space-y-3">
@@ -42,12 +45,14 @@ export default function AdminLeads() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs px-3 py-1 rounded-full bg-vancore-bronze/10 text-vancore-bronze border border-vancore-bronze/20">{lead.budget}</span>
-                <button className="px-3 py-1.5 bg-vancore-bronze/10 text-vancore-bronze rounded-lg text-xs hover:bg-vancore-bronze/20 transition-colors">Детайли</button>
+                <button onClick={() => setSelectedLead(lead.id)} className="px-3 py-1.5 bg-vancore-bronze/10 text-vancore-bronze rounded-lg text-xs hover:bg-vancore-bronze/20 transition-colors">Детайли</button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {selectedLead && <LeadDetailsModal lead={leads.find(l => l.id === selectedLead)!} onClose={() => setSelectedLead(null)} />}
     </div>
   );
 }
