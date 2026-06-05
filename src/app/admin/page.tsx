@@ -1,11 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import AdminStats from '@/components/AdminStats';
+import AdminLeads from '@/components/AdminLeads';
+import AdminCases from '@/components/AdminCases';
+import AdminSessions from '@/components/AdminSessions';
+
+type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions';
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [view, setView] = useState<AdminView>('dashboard');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,6 +20,17 @@ export default function AdminPage() {
     else if (email === 'momchil@vancore.ai' && password === 'vancore2026') setIsLoggedIn(true);
     else alert('Невалиден логин');
   };
+
+  const handleStatsClick = (section: string) => {
+    setView(section as AdminView);
+  };
+
+  const navigation = [
+    { id: 'dashboard', label: 'Табло', icon: '🏠' },
+    { id: 'leads', label: 'Лийдове', icon: '👥' },
+    { id: 'cases', label: 'Казуси', icon: '📋' },
+    { id: 'sessions', label: 'AI Сесии', icon: '💬' },
+  ];
 
   if (!isLoggedIn) {
     return (
@@ -34,19 +52,31 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-vancore-dark">
       <header className="sticky top-0 z-50 glass border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg bg-gradient-to-br from-vancore-bronze to-vancore-gold flex items-center justify-center text-vancore-dark text-xs font-bold">V</div><span className="font-bold text-sm tracking-wider">VAN<span className="text-vancore-bronze">CORE</span> Admin</span></div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-vancore-bronze to-vancore-gold flex items-center justify-center text-vancore-dark text-xs font-bold">V</div>
+            <span className="font-bold text-sm tracking-wider">VAN<span className="text-vancore-bronze">CORE</span> Admin</span>
+          </div>
           <button onClick={() => setIsLoggedIn(false)} className="text-xs text-vancore-muted hover:text-vancore-bronze">Изход</button>
         </div>
       </header>
+
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold mb-6">Админ панел</h1>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[ { label: 'Активни лидове', value: '12' }, { label: 'Нови тази седмица', value: '3' }, { label: 'AI чат сесии', value: '47' }, { label: 'Използвани казуси', value: '89' } ].map((stat, i) => (
-            <div key={i} className="glass rounded-2xl p-4 border border-white/5"><div className="text-xs text-vancore-muted mb-1">{stat.label}</div><div className="text-2xl font-bold text-vancore-bronze">{stat.value}</div></div>
+        <nav className="flex flex-wrap gap-2 mb-8">
+          {navigation.map((item) => (
+            <button key={item.id} onClick={() => setView(item.id as AdminView)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${view === item.id ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'glass text-vancore-muted hover:text-vancore-light'}`}>
+              <span className="mr-2">{item.icon}</span>{item.label}
+            </button>
           ))}
+        </nav>
+
+        <div className="space-y-6">
+          {view === 'dashboard' && <AdminStats onSelectSection={handleStatsClick} />}
+          {view === 'leads' && <AdminLeads />}
+          {view === 'cases' && <AdminCases />}
+          {view === 'sessions' && <AdminSessions />}
         </div>
       </div>
     </div>
