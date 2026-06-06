@@ -3,6 +3,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ThreeScene from '@/components/ThreeScene';
+import ChatBot from '@/components/ChatBot';
 
 export const metadata: Metadata = {
   title: 'VANCORE — AI-подпомогнат бизнес анализ',
@@ -21,6 +22,7 @@ export default function RootLayout({
           {children}
           <Footer />
         </div>
+        <ChatBot />
       </body>
     </html>
   );

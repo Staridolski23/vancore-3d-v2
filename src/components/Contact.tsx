@@ -2,9 +2,41 @@
 
 import { useState } from 'react';
 
+const API_URL = 'https://unengaged-awning-briskly.ngrok-free.dev/api';
+
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '', budget: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSending(true);
+
+    try {
+      const res = await fetch(`${API_URL}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender_name: formData.name,
+          sender_email: formData.email,
+          subject: 'Входящо запитване от сайта',
+          message: formData.message,
+          type: 'contact',
+        }),
+      });
+
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        alert('Грешка при изпращане. Моля, опитайте отново.');
+      }
+    } catch (err) {
+      alert('Грешка при изпращане. Моля, опитайте отново.');
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <section id="контакт" className="relative py-32">
@@ -32,7 +64,9 @@ export default function Contact() {
                 <div><label className="block text-sm font-semibold mb-2">Вашето име</label><input required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-vancore-bronze/40" placeholder="Име Фамилия" /></div>
                 <div><label className="block text-sm font-semibold mb-2">Имейл</label><input required type="email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-vancore-bronze/40" placeholder="your@email.com" /></div>
                 <div><label className="block text-sm font-semibold mb-2">Опишете вашия проблем</label><textarea required rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-vancore-bronze/40 resize-none" placeholder="Опишете накратко проблема..." /></div>
-                <button type="submit" className="w-full px-6 py-4 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-bold rounded-xl hover:shadow-lg hover:shadow-vancore-bronze/20 transition-all">Изпрати запитване</button>
+                <button type="submit" disabled={sending} className="w-full px-6 py-4 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-bold rounded-xl hover:shadow-lg hover:shadow-vancore-bronze/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  {sending ? 'Изпращане...' : 'Изпрати запитване'}
+                </button>
               </form>
             )}
           </div>
