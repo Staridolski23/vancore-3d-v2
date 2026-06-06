@@ -45,13 +45,25 @@ export default function ChatBot() {
       const res = await fetch(`${API_URL}/chat/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: userMsg.text, messages_count: 4 }),
+        body: JSON.stringify({ topic: userMsg.text, messages_count: messages.length + 1 }),
       });
-
       if (res.ok) {
         const data = await res.json();
         setSessionId(data.id);
       }
+
+      // Also save as incoming message
+      await fetch(`${API_URL}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender_name: 'AI Chat User',
+          sender_email: 'chat@vancore.ai',
+          subject: `AI Chat: ${userMsg.text.slice(0, 50)}`,
+          message: userMsg.text,
+          type: 'ai_chat',
+        }),
+      });
 
       const aiResponse = await getAIResponse(userMsg.text);
       setMessages(prev => [...prev, { from: 'ai', text: aiResponse, time: new Date().toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' }) }]);
