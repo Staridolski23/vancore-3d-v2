@@ -6,8 +6,9 @@ import AdminLeads from '@/components/AdminLeads';
 import AdminCases from '@/components/AdminCases';
 import AdminSessions from '@/components/AdminSessions';
 import AdminInbox from '@/components/AdminInbox';
+import AdminAnalysis from '@/components/AdminAnalysis';
 
-type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox';
+type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'analysis';
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -32,6 +33,7 @@ export default function AdminPage() {
     { id: 'cases', label: 'Казуси', icon: '📋' },
     { id: 'sessions', label: 'AI Сесии', icon: '💬' },
     { id: 'inbox', label: 'Входящи', icon: '📥' },
+    { id: 'analysis', label: 'Анализ', icon: '📊' },
   ];
 
   if (!isLoggedIn) {
@@ -80,6 +82,7 @@ export default function AdminPage() {
           {view === 'cases' && <AdminCases />}
           {view === 'sessions' && <AdminSessions />}
           {view === 'inbox' && <AdminInbox />}
+          {view === 'analysis' && <AdminAnalysis />}
         </div>
       </div>
     </div>
