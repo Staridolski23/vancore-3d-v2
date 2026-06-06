@@ -6,6 +6,8 @@ import Methodology from '@/components/Methodology';
 import ChatDemo from '@/components/ChatDemo';
 import Services from '@/components/Services';
 import Team from '@/components/Team';
+import PublicTrustCounter from '@/components/PublicTrustCounter';
+import ClientPortal from '@/components/ClientPortal';
 import Contact from '@/components/Contact';
 
 export default function Home() {
@@ -17,6 +19,8 @@ export default function Home() {
       <ChatDemo />
       <Services />
       <Team />
+      <PublicTrustCounter />
+      <ClientPortal />
       <Contact />
     </main>
   );
