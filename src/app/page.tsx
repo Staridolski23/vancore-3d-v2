@@ -7,8 +7,8 @@ import ChatDemo from '@/components/ChatDemo';
 import Services from '@/components/Services';
 import Team from '@/components/Team';
 import PublicTrustCounter from '@/components/PublicTrustCounter';
-import ClientPortal from '@/components/ClientPortal';
 import Contact from '@/components/Contact';
+import ClientPortal from '@/components/ClientPortal';
 
 export default function Home() {
   return (
@@ -20,7 +20,11 @@ export default function Home() {
       <Services />
       <Team />
       <PublicTrustCounter />
-      <ClientPortal />
+      <section id="client-portal" className="relative py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <ClientPortal />
+        </div>
+      </section>
       <Contact />
     </main>
   );

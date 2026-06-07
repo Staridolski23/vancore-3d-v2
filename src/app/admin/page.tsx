@@ -6,9 +6,9 @@ import AdminLeads from '@/components/AdminLeads';
 import AdminCases from '@/components/AdminCases';
 import AdminSessions from '@/components/AdminSessions';
 import AdminInbox from '@/components/AdminInbox';
-import AdminAnalysis from '@/components/AdminAnalysis';
+import AdminCalendar from '@/components/AdminCalendar';
 
-type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'analysis';
+type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'calendar';
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -19,21 +19,17 @@ export default function AdminPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (email === 'janet@vancore.ai' && password === 'vancore2026') setIsLoggedIn(true);
-    else if (email === 'momchil@vancore.ai' && password === 'vancore2026') setIsLoggedIn(true);
+    else if (email === 'momchil.staridolski@vancoresys.com' && password === 'vancore2026') setIsLoggedIn(true);
     else alert('Невалиден логин');
   };
 
-  const handleStatsClick = (section: string) => {
-    setView(section as AdminView);
-  };
-
-  const navigation = [
+  const navigation: { id: AdminView; label: string; icon: string }[] = [
     { id: 'dashboard', label: 'Табло', icon: '🏠' },
     { id: 'leads', label: 'Лийдове', icon: '👥' },
     { id: 'cases', label: 'Казуси', icon: '📋' },
     { id: 'sessions', label: 'AI Сесии', icon: '💬' },
     { id: 'inbox', label: 'Входящи', icon: '📥' },
-    { id: 'analysis', label: 'Анализ', icon: '📊' },
+    { id: 'calendar', label: 'Календар', icon: '📅' },
   ];
 
   if (!isLoggedIn) {
@@ -46,8 +42,14 @@ export default function AdminPage() {
             <p className="text-vancore-muted text-sm mt-1">Само за екип</p>
           </div>
           <form onSubmit={handleLogin} className="glass rounded-2xl p-6 border border-vancore-bronze/20 space-y-4">
-            <div><label className="block text-xs text-vancore-muted mb-2">Вход с email</label><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40" /></div>
-            <div><label className="block text-xs text-vancore-muted mb-2">Парола</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40" /></div>
+            <div>
+              <label className="block text-xs text-vancore-muted mb-2">Имейл</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40" />
+            </div>
+            <div>
+              <label className="block text-xs text-vancore-muted mb-2">Парола</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40" />
+            </div>
             <button type="submit" className="w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold">Вход</button>
           </form>
         </div>
@@ -70,19 +72,19 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <nav className="flex flex-wrap gap-2 mb-8">
           {navigation.map((item) => (
-            <button key={item.id} onClick={() => setView(item.id as AdminView)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${view === item.id ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'glass text-vancore-muted hover:text-vancore-light'}`}>
+            <button key={item.id} onClick={() => setView(item.id)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${view === item.id ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'glass text-vancore-muted hover:text-vancore-light'}`}>
               <span className="mr-2">{item.icon}</span>{item.label}
             </button>
           ))}
         </nav>
 
         <div className="space-y-6">
-          {view === 'dashboard' && <AdminStats onSelectSection={handleStatsClick} />}
+          {view === 'dashboard' && <AdminStats />}
           {view === 'leads' && <AdminLeads />}
           {view === 'cases' && <AdminCases />}
           {view === 'sessions' && <AdminSessions />}
           {view === 'inbox' && <AdminInbox />}
-          {view === 'analysis' && <AdminAnalysis />}
+          {view === 'calendar' && <AdminCalendar />}
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ export default function Hero() {
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8">
           <span className="w-2 h-2 rounded-full bg-vancore-bronze animate-pulse" />
-          <span className="text-xs text-vancore-bronze tracking-widest uppercase">AI-подпомогнат бизнес анализ</span>
+          <span className="text-xs text-vancore-bronze tracking-widest uppercase">Стратегически бизнес анализ</span>
         </div>
 
         <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6">
