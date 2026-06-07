@@ -5,10 +5,11 @@ import { useState, useEffect } from 'react';
 const navLinks = [
   { href: '#проблеми', label: 'Проблеми' },
   { href: '#методология', label: 'Методология' },
-  { href: '#анализ', label: 'AI Анализ' },
+  { href: '#анализ', label: 'Анализ' },
   { href: '#услуги', label: 'Услуги' },
   { href: '#екип', label: 'Екип' },
   { href: '#контакт', label: 'Контакт' },
+  { href: '/client-portal', label: 'Портал' },
 ];
 
 export default function Header() {

@@ -7,8 +7,10 @@ import AdminCases from '@/components/AdminCases';
 import AdminSessions from '@/components/AdminSessions';
 import AdminInbox from '@/components/AdminInbox';
 import AdminCalendar from '@/components/AdminCalendar';
+import AdminAnalysis from '@/components/AdminAnalysis';
+import AdminActivityLog from '@/components/AdminActivityLog';
 
-type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'calendar';
+type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'calendar' | 'analysis' | 'activity';
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
