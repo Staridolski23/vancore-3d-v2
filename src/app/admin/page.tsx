@@ -32,6 +32,8 @@ export default function AdminPage() {
     { id: 'sessions', label: 'AI Сесии', icon: '💬' },
     { id: 'inbox', label: 'Входящи', icon: '📥' },
     { id: 'calendar', label: 'Календар', icon: '📅' },
+    { id: 'analysis', label: 'Анализ', icon: '📊' },
+    { id: 'activity', label: 'Дейности', icon: '📋' },
   ];
 
   if (!isLoggedIn) {
@@ -87,6 +89,8 @@ export default function AdminPage() {
           {view === 'sessions' && <AdminSessions />}
           {view === 'inbox' && <AdminInbox />}
           {view === 'calendar' && <AdminCalendar />}
+          {view === 'analysis' && <AdminAnalysis />}
+          {view === 'activity' && <AdminActivityLog />}
         </div>
       </div>
     </div>

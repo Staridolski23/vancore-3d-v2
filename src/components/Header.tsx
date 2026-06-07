@@ -9,7 +9,6 @@ const navLinks = [
   { href: '#услуги', label: 'Услуги' },
   { href: '#екип', label: 'Екип' },
   { href: '#контакт', label: 'Контакт' },
-  { href: '/client-portal', label: 'Портал' },
 ];
 
 export default function Header() {
@@ -29,7 +28,7 @@ export default function Header() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-3 group">
+        <a href="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-vancore-bronze to-vancore-gold flex items-center justify-center font-bold text-vancore-dark text-lg group-hover:scale-110 transition-transform">V</div>
           <span className="text-xl font-bold tracking-wider">VAN<span className="gradient-text">CORE</span></span>
         </a>
@@ -40,7 +39,16 @@ export default function Header() {
               {link.label}
             </a>
           ))}
-          <a href="#анализ" className="px-5 py-2.5 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold text-sm rounded-full hover:shadow-lg hover:shadow-vancore-bronze/20 transition-all duration-300">
+          <a
+            href="/client-portal"
+            className="px-5 py-2.5 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold text-sm rounded-full hover:shadow-lg hover:shadow-vancore-bronze/20 transition-all duration-300"
+          >
+            Клиентски портал
+          </a>
+          <a
+            href="#анализ"
+            className="px-5 py-2.5 border border-vancore-bronze/30 text-vancore-bronze font-semibold text-sm rounded-full hover:bg-vancore-bronze/10 transition-all duration-300"
+          >
             Безплатен анализ
           </a>
         </nav>
@@ -59,7 +67,18 @@ export default function Header() {
               {link.label}
             </a>
           ))}
-          <a href="#анализ" className="px-5 py-3 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold text-center rounded-full mt-2" onClick={() => setMobileOpen(false)}>
+          <a
+            href="/client-portal"
+            className="px-5 py-3 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold text-center rounded-full"
+            onClick={() => setMobileOpen(false)}
+          >
+            Клиентски портал
+          </a>
+          <a
+            href="#анализ"
+            className="px-5 py-3 border border-vancore-bronze/30 text-vancore-bronze font-semibold text-center rounded-full"
+            onClick={() => setMobileOpen(false)}
+          >
             Безплатен анализ
           </a>
         </div>
