@@ -17,13 +17,30 @@ export default function ClientPortal() {
   const [confirmed, setConfirmed] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!date) return;
-    setLoading(true);
-    fetch(`${API_URL}/calendar?date=${date}`)
-      .then((res) => res.json())
-      .then((data) => setSlots(data.slots || []))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    if (!date) {
+      setSlots([]);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/calendar?date=${date}`);
+        const text = await res.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch {}
+        if (!cancelled) setSlots(Array.isArray(data?.slots) ? data.slots : []);
+      } catch (err) {
+        if (!cancelled) {
+          setSlots([]);
+          console.error(err);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
   }, [date]);
 
   const book = async () => {
