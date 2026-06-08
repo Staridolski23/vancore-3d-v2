@@ -26,8 +26,8 @@ export default function AdminPage() {
       adminUsers = JSON.parse(process.env.NEXT_PUBLIC_ADMIN_USERS || '[]');
     } catch {}
     const fallbackAdmins = [
-      { email: 'zhanet.topalova@vancoresys.com', secret: 'vancore2026' },
-      { email: 'momchil.staridolski@vancoresys.com', secret: 'vancore2026' },
+      { email: 'admin@vancoresys.com', secret: 'vancore2026' },
+      { email: 'support@vancoresys.com', secret: 'vancore2026' },
     ];
     const matched =
       adminUsers.find((user) => user.email === email && user.secret === adminSecret) ||
