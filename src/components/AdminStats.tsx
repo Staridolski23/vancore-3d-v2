@@ -1,26 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { API_URL } from '@/lib/api';
 
-const API_URL = 'https://unengaged-awning-briskly.ngrok-free.dev/api';
+type Stats = { leads: number; leads_week: number; sessions: number; cases: number; users: number };
 
-export default function AdminStats({ onSelectSection }: { onSelectSection?: (section: string) => void }) {
-  const [stats, setStats] = useState({
-    leads: 0,
-    leads_week: 0,
-    sessions: 0,
-    cases: 0,
-    users: 0,
-  });
+export default function AdminStats() {
+  const [stats, setStats] = useState<Stats>({ leads: 0, leads_week: 0, sessions: 0, cases: 0, users: 0 });
+  const [loading, setLoading] = useState(true);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch(`${API_URL}/stats`)
-      .then(res => res.json())
-      .then(data => setStats(data))
-      .catch(console.error);
-  }, []);
+  useEffect(() => { fetchStats(); }, []);
 
-  const items = [
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`${API_URL}/stats`);
+      const data = await res.json();
+      setStats(data);
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  const cards: { id: string; label: string; value: string; icon: string }[] = [
     { id: 'leads', label: 'Лийдове', value: String(stats.leads), icon: '👥' },
     { id: 'week', label: 'Нови тази седмица', value: String(stats.leads_week), icon: '📅' },
     { id: 'sessions', label: 'AI сесии', value: String(stats.sessions), icon: '💬' },
@@ -30,21 +31,21 @@ export default function AdminStats({ onSelectSection }: { onSelectSection?: (sec
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Статистики</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {items.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onSelectSection && onSelectSection(item.id)}
-            className="glass rounded-2xl p-4 border border-white/5 hover:border-vancore-bronze/30 transition-all duration-300 text-left group"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-vancore-muted group-hover:text-vancore-bronze transition-colors">{item.label}</span>
-              <span className="text-xl">{item.icon}</span>
-            </div>
-            <div className="text-2xl font-bold text-vancore-gold">{item.value}</div>
-          </button>
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center py-12 text-vancore-muted">Зареждане...</div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {cards.map((card) => (
+            <button key={card.id} onClick={() => setSelectedSection(card.id)} className="glass rounded-2xl p-4 border border-white/5 hover:border-vancore-bronze/30 transition-all duration-300 text-left group">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-vancore-muted group-hover:text-vancore-bronze transition-colors">{card.label}</span>
+                <span className="text-xl">{card.icon}</span>
+              </div>
+              <div className="text-2xl font-bold text-vancore-gold">{card.value}</div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

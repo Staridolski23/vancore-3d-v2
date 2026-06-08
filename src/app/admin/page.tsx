@@ -20,8 +20,10 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'janet@vancore.ai' && password === 'vancore2026') setIsLoggedIn(true);
-    else if (email === 'momchil.staridolski@vancoresys.com' && password === 'vancore2026') setIsLoggedIn(true);
+    const adminSecret = process.env.NEXT_PUBLIC_ADMIN_SECRET || '';
+    const adminUsers = JSON.parse(process.env.NEXT_PUBLIC_ADMIN_USERS || '[]');
+    const matched = adminUsers.find((user: { email: string; secret: string }) => user.email === email && user.secret === adminSecret);
+    if (matched) setIsLoggedIn(true);
     else alert('Невалиден логин');
   };
 

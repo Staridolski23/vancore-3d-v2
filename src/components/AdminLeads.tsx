@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-const API_URL = 'https://unengaged-awning-briskly.ngrok-free.dev/api';
+import { API_URL } from '@/lib/api';
 
 type Lead = {
   id: string;

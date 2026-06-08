@@ -1,46 +1,35 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-const API_URL = 'https://unengaged-awning-briskly.ngrok-free.dev/api';
+import { API_URL } from '@/lib/api';
 
 export default function PublicTrustCounter() {
-  const [count, setCount] = useState(0);
-  
+  const [count, setCount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     fetch(`${API_URL}/stats`)
-      .then(res => res.json())
-      .then(data => {
-        const total = (data.leads || 0) + (data.cases || 0) + (data.users || 0);
-        animateCounter(total);
+      .then((res) => res.json())
+      .then((data) => {
+        setCount(Number(data?.users || 0));
+        setLoading(false);
       })
-      .catch(() => {
-        animateCounter(14); // fallback
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
       });
   }, []);
 
-  const animateCounter = (target: number) => {
-    let current = 0;
-    const step = () => {
-      current += 1;
-      if (current > target) return;
-      setCount(current);
-      setTimeout(step, 80);
-    };
-    step();
-  };
-
   return (
-    <section className="relative py-20 border-y border-white/5 bg-white/[0.02]">
-      <div className="max-w-6xl mx-auto px-6 text-center">
-        <p className="text-sm text-vancore-bronze tracking-widest uppercase mb-4">Доверие</p>
-        <div className="flex items-end justify-center gap-3">
-          <span className="text-6xl md:text-7xl font-black text-vancore-gold leading-none">
-            {count}+
-          </span>
-          <span className="text-xl md:text-2xl text-vancore-muted mb-2">бизнеса се довериха на VANCORE</span>
+    <section className='relative py-16'>
+      <div className='relative z-10 max-w-7xl mx-auto px-6 text-center'>
+        <div className='glass rounded-3xl p-10 border border-white/5'>
+          <h2 className='text-3xl md:text-5xl font-black mb-4'>
+            <span className='text-vancore-gold'>{loading ? '...' : count ?? 0}</span>
+            <span className='text-vancore-muted'> бизнеса се довериха на VANCORE</span>
+          </h2>
+          <p className='text-sm text-vancore-muted'>Броят се обновява в реално време спрямо новите запитвания в CRM</p>
         </div>
-        <p className="text-xs text-vancore-muted mt-4">Броят се обновява в реално време спрямо новите запитвания в CRM</p>
       </div>
     </section>
   );

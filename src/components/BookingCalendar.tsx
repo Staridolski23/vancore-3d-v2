@@ -1,161 +1,85 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-const API_URL = 'https://unengaged-awning-briskly.ngrok-free.dev/api';
-
-type Slot = {
-  time: string;
-  available: boolean;
-};
+import { API_URL } from '@/lib/api';
 
 export default function BookingCalendar() {
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [slots, setSlots] = useState<Slot[]>([]);
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [slots, setSlots] = useState<string[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [booking, setBooking] = useState(false);
-  const [booked, setBooked] = useState(false);
-  const [user, setUser] = useState<{ id: string; email: string; company?: string } | null>(null);
-  const [notes, setNotes] = useState('');
+  const [confirmed, setConfirmed] = useState<string | null>(null);
 
   useEffect(() => {
-    checkUser();
-  }, []);
-
-  useEffect(() => {
-    if (selectedDate) loadSlots();
-  }, [selectedDate]);
-
-  const checkUser = async () => {
-    try {
-      const res = await fetch(`${API_URL}/auth/me`, { credentials: 'include' });
-      if (res.ok) setUser(await res.json());
-    } catch (e) {
-      // not logged in
-    }
-  };
-
-  const loadSlots = async () => {
+    if (!date) return;
     setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/meetings/available?date=${selectedDate}`);
-      const available = await res.json();
-      // Generate all slots and mark unavailable
-      const allSlots: Slot[] = [];
-      for (let h = 9; h < 18; h++) {
-        for (let m = 0; m < 60; m += 30) {
-          const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-          allSlots.push({ time, available: available.includes(time) });
-        }
-      }
-      setSlots(allSlots);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetch(`${API_URL}/calendar?date=${date}`)
+      .then((res) => res.json())
+      .then((data) => setSlots(data.slots || []))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [date]);
 
-  const bookSlot = async (time: string) => {
-    if (!user) {
-      alert('Моля, влезте в профила си, за да запазите среща.');
-      return;
-    }
-    setBooking(true);
+  const bookSlot = async (slot: string) => {
+    const name = prompt('Име и фамилия:');
+    if (!name) return;
+    const email = prompt('Имейл:');
+    if (!email) return;
+
     try {
-      await fetch(`${API_URL}/meetings`, {
+      const res = await fetch(`${API_URL}/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          user_email: user.email,
-          user_name: user.email,
-          company: user.company || '',
-          date: selectedDate,
-          time,
-          notes
-        }),
+        body: JSON.stringify({ date, slot, name, email }),
       });
-      setBooked(true);
-      loadSlots();
-      setTimeout(() => setBooked(false), 3000);
-    } catch (e) {
-      alert('Грешка при запазване. Опитайте отново.');
-    } finally {
-      setBooking(false);
+      if (!res.ok) throw new Error('failed');
+      setConfirmed(slot);
+    } catch (err) {
+      alert('Неуспешно запазване. Опитайте отново.');
+      console.error(err);
     }
   };
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 30);
-
   return (
-    <div className="glass rounded-3xl border border-white/5 p-6 md:p-8 max-w-4xl mx-auto space-y-6">
-      <div className="text-center">
-        <h3 className="text-2xl font-bold mb-2">Запазване на безплатна консултация</h3>
-        <p className="text-sm text-vancore-muted">Изберете дата и час. Заетите timeslot-ове не могат да се запазват.</p>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div>
-          <label className="block text-xs text-vancore-muted mb-1">Дата</label>
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold">Запазване на час</h2>
+      <div className="glass rounded-2xl p-5 border border-white/5 space-y-4">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-vancore-muted">Изберете дата</label>
           <input
             type="date"
-            min={tomorrow.toISOString().split('T')[0]}
-            max={maxDate.toISOString().split('T')[0]}
-            value={selectedDate}
-            onChange={(e) => {
-              setSelectedDate(e.target.value);
-              setBooked(false);
-            }}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-vancore-light"
           />
         </div>
-        {booked && <span className="text-xs text-green-400 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20">✅ Срещата е запазена успешно!</span>}
-      </div>
 
-      {!user && (
-        <p className="text-xs text-vancore-muted text-center">⚠️ Не сте влезли. <a href="/client-portal" className="text-vancore-gold underline">Влезте</a> или се регистрирайте, за да запазите среща.</p>
-      )}
-
-      <div>
-        <label className="block text-xs text-vancore-muted mb-2">Налични часове за {selectedDate}</label>
         {loading ? (
-          <div className="text-sm text-vancore-muted py-4 text-center">Зареждане на часове...</div>
+          <div className="text-sm text-vancore-muted">Зареждане...</div>
         ) : (
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {slots.map((slot) => (
               <button
-                key={slot.time}
-                disabled={!slot.available || booking}
-                onClick={() => slot.available && bookSlot(slot.time)}
-                className={`py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                  slot.available
-                    ? 'bg-vancore-bronze/10 text-vancore-gold border border-vancore-bronze/20 hover:bg-vancore-bronze/20'
-                    : 'bg-white/5 text-vancore-muted line-through cursor-not-allowed opacity-50'
-                }`}
+                key={slot}
+                onClick={() => setSelectedSlot(slot)}
+                className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${selectedSlot === slot ? 'border-vancore-bronze bg-vancore-bronze/10 text-vancore-light' : 'border-white/10 text-vancore-muted hover:border-vancore-bronze/40'}`}
               >
-                {slot.time}
+                {slot}
               </button>
             ))}
+            {slots.length === 0 && <div className="text-xs text-vancore-muted">Няма свободни часове.</div>}
           </div>
         )}
-      </div>
 
-      <div>
-        <label className="block text-xs text-vancore-muted mb-1">Допълнителни бележки (опционално)</label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          placeholder="Опишете какво искате да обсъдим..."
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40"
-        />
+        {selectedSlot && !confirmed && (
+          <button onClick={() => bookSlot(selectedSlot)} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold">
+            Запази {selectedSlot}
+          </button>
+        )}
+        {confirmed && (
+          <div className="text-xs text-green-400">✅ Часа {confirmed} е запазен.</div>
+        )}
       </div>
-
-      <p className="text-[10px] text-vancore-muted text-center">Консултацията е безплатна и продължава 30 минути. Ще ви изпратим имейл потвърждение.</p>
     </div>
   );
 }
