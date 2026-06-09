@@ -27,9 +27,9 @@ export default function ClientPortal() {
         setLoading(true);
         const res = await fetch(`${API_URL}/calendar?date=${date}`);
         const text = await res.text();
-        let data = {};
+        let data: { slots?: string[] } = {};
         try { data = JSON.parse(text); } catch {}
-        if (!cancelled) setSlots(Array.isArray(data?.slots) ? data.slots : []);
+        if (!cancelled) setSlots(Array.isArray(data.slots) ? data.slots : []);
       } catch (err) {
         if (!cancelled) {
           setSlots([]);
