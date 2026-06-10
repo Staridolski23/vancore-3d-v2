@@ -27,7 +27,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<Messages>(MESSAGES[locale]);
 
   const toggle = () =>
-    setLocaleState((prev) => (prev === 'bg' ? 'en' : 'bg'));
+    setLocaleState((prev) => {
+      const next = prev === 'bg' ? 'en' : 'bg';
+      setMessages(MESSAGES[next]);
+      return next;
+    });
 
   const setLocale = (next: Locale) => {
     setLocaleState(next);
