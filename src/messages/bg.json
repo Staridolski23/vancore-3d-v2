@@ -28,7 +28,16 @@
     "title.accent": "губи пари",
     "title.suffix": "всеки ден",
     "subtitle": "80% от бизнес проблемите са универсални. Ето най-честите счупени звена, които откриваме.",
-    "solutionLabel": "Решение: VANCORE анализира всички аспекти на вашия бизнес и идентифицира точните точки на загуба."
+    "solutionLabel": "Решение: VANCORE анализира всички аспекти на вашия бизнес и идентифицира точните точки на загуба.",
+    "horeca.title": "HORECA",
+    "ecommerce.title": "E-commerce",
+    "sme.title": "SME",
+    "it.title": "IT"
+  },
+  "levels": {
+    "critical": "КРИТИЧНО",
+    "high": "ВИСОКО",
+    "medium": "СРЕДНО"
   },
   "services": {
     "title": "10 аспекта на {highlight}вашия бизнес{/highlight}",

@@ -23,12 +23,21 @@
     }
   },
   "industries": {
-    "badge": "Problems We Solve",
+    "badge": "Problems we solve",
     "title.prefix": "Your business",
     "title.accent": "loses money",
     "title.suffix": "every day",
-    "subtitle": "80% of business problems are universal. Here are the most common bottlenecks we uncover.",
-    "solutionLabel": "Solution: VANCORE analyzes all aspects of your business and identifies the exact sources of loss."
+    "subtitle": "80% of business problems are universal. Here are the most common broken links we uncover.",
+    "solutionLabel": "Solution: VANCORE analyzes all aspects of your business and identifies the exact points of loss.",
+    "horeca.title": "HORECA",
+    "ecommerce.title": "E-commerce",
+    "sme.title": "SME",
+    "it.title": "IT"
+  },
+  "levels": {
+    "critical": "CRITICAL",
+    "high": "HIGH",
+    "medium": "MEDIUM"
   },
   "services": {
     "title": "10 pillars of your {highlight}business{/highlight}",
