@@ -50,7 +50,7 @@ export default function ChatDemo() {
             <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('analysis.badge')}</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-black mb-4">
-            {t('analysis.badge')}
+            {t('hero.title')}
           </h2>
           <p className="text-vancore-muted max-w-2xl mx-auto">{t('analysis.subtitle')}</p>
         </div>
