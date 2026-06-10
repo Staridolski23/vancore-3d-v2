@@ -32,9 +32,9 @@ export default function ChatDemo() {
     const keys = key.split('.');
     let value: any = messages;
     for (const k of keys) value = value?.[k];
-    if (typeof value !== 'string') return key;
-    if (!params) return value;
-    return value.replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? `{${k}}`));
+    const template = typeof value === 'string' ? value : key;
+    if (!params) return template;
+    return String(template).replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? `{${k}}`));
   };
 
   const examples = caseExamples[locale] || caseExamples.bg;
@@ -50,7 +50,23 @@ export default function ChatDemo() {
             <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('analysis.badge')}</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-black mb-4">
-            {t('hero.title')}
+            {(() => {
+              const rawTitle = t('hero.title');
+              const parts = rawTitle.split(/(\{highlight\}.*?\{\/highlight\})/g).filter(Boolean);
+              return parts.map((part, i) => {
+                if (part === '{highlight}') return null;
+                if (part === '{/highlight}') return null;
+                if (part.startsWith('{highlight}') && part.endsWith('{/highlight}')) {
+                  const text = part.slice(11, -12);
+                  return (
+                    <span key={i} className="gradient-text">
+                      {text}
+                    </span>
+                  );
+                }
+                return <span key={i}>{part}</span>;
+              });
+            })()}
           </h2>
           <p className="text-vancore-muted max-w-2xl mx-auto">{t('analysis.subtitle')}</p>
         </div>
