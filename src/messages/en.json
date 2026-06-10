@@ -6,17 +6,17 @@
     "services": "Services",
     "team": "Team",
     "contact": "Contact",
-    "freeAnalysis": "Free Analysis",
-    "clientPortal": "Client Portal"
+    "freeAnalysis": "Free analysis",
+    "clientPortal": "Client portal"
   },
   "hero": {
-    "tagline": "Strategic Business Analysis",
-    "title": "Find the {highlight}breaking point{/highlight} in your business",
-    "subtitle": "Full AI-driven analysis across 10 business pillars. Find losses, optimize processes, save thousands.",
-    "ctaPrimary": "Start Free Analysis",
-    "ctaSecondary": "How We Work",
+    "tagline": "Strategic business analysis",
+    "title": "Find the {highlight}broken links{/highlight} in your business",
+    "subtitle": "Comprehensive AI analysis across 10 business aspects. Find losses, optimize processes, save thousands.",
+    "ctaPrimary": "Start free analysis",
+    "ctaSecondary": "How we work?",
     "stats": {
-      "aspects": "Analysis pillars",
+      "aspects": "Analysis aspects",
       "freeCases": "Free cases",
       "industries": "Target industries",
       "availability": "AI availability"
@@ -24,15 +24,19 @@
   },
   "industries": {
     "badge": "Problems we solve",
-    "title.prefix": "Your business",
-    "title.accent": "loses money",
-    "title.suffix": "every day",
     "subtitle": "80% of business problems are universal. Here are the most common broken links we uncover.",
-    "solutionLabel": "Solution: VANCORE analyzes all aspects of your business and identifies the exact points of loss.",
-    "horeca.title": "HORECA",
-    "ecommerce.title": "E-commerce",
-    "sme.title": "SME",
-    "it.title": "IT"
+    "solutionLabel": "Solution: VANCORE analyzes all aspects of your business and identifies the exact points of loss."
+  },
+  "title": {
+    "prefix": "Your business",
+    "accent": "loses money",
+    "suffix": "every day"
+  },
+  "sections": {
+    "horeca": "HORECA",
+    "ecommerce": "E-commerce",
+    "sme": "SME",
+    "it": "IT"
   },
   "levels": {
     "critical": "CRITICAL",
@@ -41,15 +45,15 @@
   },
   "services": {
     "title": "10 pillars of your {highlight}business{/highlight}",
-    "subtitle": "We don’t look at part of the picture. We analyze EVERYTHING.",
-    "cta": "Start Free Analysis",
+    "subtitle": "We don't look at part of the picture. We analyze EVERYTHING.",
+    "cta": "Start free analysis",
     "items": {
-      "finance": { "title": "Finance", "desc": "Revenue, costs, margins, budgeting review" },
+      "finance": { "title": "Finance", "desc": "Revenue, costs, margins, budgeting" },
       "operations": { "title": "Operations", "desc": "Process optimization, automation, supply chain" },
-      "marketing": { "title": "Marketing", "desc": "Strategy, digital marketing, SEO, social channels" },
-      "sales": { "title": "Sales", "desc": "Sales funnel, CRM, conversion, CX" },
-      "hr": { "title": "HR", "desc": "Onboarding, motivation, KPIs, training, turnover" },
-      "it": { "title": "IT", "desc": "Digitalization, infrastructure, software" },
+      "marketing": { "title": "Marketing", "desc": "Strategy, digital marketing, SEO, social media" },
+      "sales": { "title": "Sales", "desc": "Sales funnel, CRM, conversion, customer experience" },
+      "hr": { "title": "HR", "desc": "Onboarding, motivation, KPI, training, turnover" },
+      "it": { "title": "IT", "desc": "Digitalization, infrastructure, software solutions" },
       "brand": { "title": "Brand", "desc": "Identity, visual language, positioning" },
       "legal": { "title": "Legal", "desc": "Compliance, contracts, regulatory requirements" },
       "strategy": { "title": "Strategy", "desc": "Business plan, KPIs, growth, scaling" },
@@ -57,22 +61,23 @@
     }
   },
   "methodology": {
-    "title": "The {highlight}\"Domino\"{/highlight} Framework",
-    "subtitle": "Every company is a chain of interconnected parts. We find the first broken tile.",
+    "title": "The {highlight}\"Domino\"{/highlight} concept",
+    "subtitle": "Every company is a chain of interconnected components. We find the first broken tile.",
     "steps": [
-      { "number": "01", "title": "Registration", "desc": "Enter company details quickly and securely." },
-      { "number": "02", "title": "Describe the Case", "desc": "Share up to 3 operational challenges you're facing." },
-      { "number": "03", "title": "AI Analysis", "desc": "Our AI agents analyze the situation and estimate losses." },
-      { "number": "04", "title": "Concrete Solutions", "desc": "Structured response with measurable business impact." },
-      { "number": "05", "title": "Implementation", "desc": "Friendly follow-up with our team to execute." }
+      { "number": "01", "title": "Registration", "desc": "Enter company data — fast and secure." },
+      { "number": "02", "title": "Describe the case", "desc": "Describe up to 3 operational problems in your business." },
+      { "number": "03", "title": "AI Analysis", "desc": "Our AI agents analyze the situation and calculate losses." },
+      { "number": "04", "title": "Concrete solutions", "desc": "Structured response with measurable results." },
+      { "number": "05", "title": "Implementation", "desc": "Friendly contact with our team for execution." }
     ],
-    "conceptTitle": "The \"Domino\" Concept",
-    "conceptSubtitle": "When one tile breaks, everything after it falls.",
+    "conceptTitle": "The \"Domino\" concept",
+    "conceptSubtitle": "When one element breaks — everything after it falls.",
     "pillars": [
-      "End-to-end 10-pillar analysis",
-      "Causal chain mapping",
-      "Prioritization of critical bottlenecks",
-      "Measurable actions with clear ownership"
+      "Holistic approach — 10 aspects at once",
+      "Cause-and-effect relationships",
+      "Prioritizing critical points",
+      "Concrete measurable actions",
+      "Supporting the process to keep the domino moving."
     ]
   },
   "team": {
@@ -87,62 +92,60 @@
       "momchil": {
         "name": "Momchil Starolidolski",
         "role": "Co-founder & Technical Director",
-        "skills": ["AI Tools", "Data Analytics", "Sales", "Logistics"]
+        "skills": ["AI tools", "Data Analysis", "Sales", "Logistics"]
       },
       "aiAgents": {
         "name": "Our AI Agents",
         "role": "Operations AI Team",
-        "skills": ["24/7 Analysis", "Data", "Automation", "Fast Responses"]
+        "skills": ["24/7 Analysis", "Data", "Automation", "Fast responses"]
       }
     }
   },
   "analysis": {
-    "badge": "Free AI Analysis",
-    "title.prefix": "Try it",
-    "title.accent": "live",
+    "badge": "Free AI analysis",
     "subtitle": "Describe your problem and our AI agents will analyze it in real time.",
     "agentLabel": "VANCORE AI Agent — Senior Business Analyst",
-    "examplesLabel": "Try a sample case (click to populate):",
+    "examplesLabel": "Sample cases (click to fill in):",
     "caseLabel": "Case #{n}",
-    "intro": "Hello! I'm your AI business analyst. Describe an operational challenge and I'll analyze it instantly.",
-    "placeholder": "Describe your problem...",
+    "intro": "Hello! I'm your AI business analyst. Describe an operational problem you're facing and I'll analyze it immediately.",
+    "placeholder": "Describe your problem here...",
     "submit": "Analyze",
     "result": {
-      "analysis": "Situation Analysis",
-      "financialImpact": "Financial Impact",
-      "solutions": "Recommended Actions"
+      "analysis": "Situation analysis",
+      "financialImpact": "Financial impact",
+      "solutions": "Technology solutions"
     },
     "cta": "Contact our team",
     "ctaHint": "Start real implementation now"
   },
   "contact": {
-    "title": "Contact Our Team",
+    "title": "Contact our team",
     "form": {
-      "name": "Full Name",
+      "name": "Full name",
       "email": "Email",
       "message": "Briefly describe your problem...",
-      "submit": "Send Inquiry",
-      "success": "Inquiry sent. We will contact you soon."
+      "submit": "Send inquiry",
+      "success": "Your inquiry has been sent. We'll contact you shortly."
     },
     "info": {
       "email": "Email: hello@vancoresys.com",
       "phone": "Phone: +359 88 000 0000",
-      "directAnalysis": "Direct AI Analysis",
+      "directAnalysis": "Direct AI analysis",
       "directAnalysisDesc": "You can test the free analysis directly in the AI Analysis section."
     }
   },
   "trustCounter": {
     "suffix": "businesses trust VANCORE",
-    "subtitle": "Count updates in real time based on new CRM requests"
+    "subtitle": "The count updates in real time based on new CRM inquiries"
   },
   "chatBot": {
-    "title": "VANCORE AI Analyst",
-    "subtitle": "Responses are automatically logged",
+    "title": "VANCORE AI analyzer",
+    "subtitle": "Responses are recorded automatically",
     "thinking": "Thinking...",
     "placeholder": "Type your answer...",
     "send": "Send",
-    "fallback": "No reply available.",
-    "error": "Connection error with VANCORE."
+    "fallback": "No response.",
+    "error": "Error communicating with VANCORE."
   },
   "footer": {
     "copyright": "© 2026 VANCORE. All rights reserved."

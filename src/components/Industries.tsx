@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 
 const industries = [
-  { id: 'horeca', labelKey: 'industries.horeca.title' },
-  { id: 'ecommerce', labelKey: 'industries.ecommerce.title' },
-  { id: 'sme', labelKey: 'industries.sme.title' },
-  { id: 'it', labelKey: 'industries.it.title' },
+  { id: 'horeca', titleKey: 'sections.horeca' },
+  { id: 'ecommerce', titleKey: 'sections.ecommerce' },
+  { id: 'sme', titleKey: 'sections.sme' },
+  { id: 'it', titleKey: 'sections.it' },
 ];
 
 type Level = 'critical' | 'high' | 'medium';
@@ -67,14 +67,14 @@ export default function Industries() {
             <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('industries.badge')}</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-black mb-4">
-            {t('industries.title.prefix')} <span className="gradient-text">{t('industries.title.accent')}</span> {t('industries.title.suffix')}
+            {t('title.prefix')} <span className="gradient-text">{t('title.accent')}</span> {t('title.suffix')}
           </h2>
           <p className="text-vancore-muted max-w-2xl mx-auto">{t('industries.subtitle')}</p>
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           {industries.map((ind, i) => {
-            const label = t(ind.labelKey);
+            const label = t(ind.titleKey);
             return (
               <button
                 key={ind.id}
@@ -93,7 +93,7 @@ export default function Industries() {
 
         <div className="max-w-4xl mx-auto">
           <div className="glass rounded-3xl p-8 md:p-12 border border-white/5">
-            <h3 className="text-2xl font-bold mb-6">{t(industries[active].labelKey)}</h3>
+            <h3 className="text-2xl font-bold mb-6">{t(industries[active].titleKey)}</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               {problems[industries[active].id].map((p, i) => {
                 const config = levelConfig[p.level];
