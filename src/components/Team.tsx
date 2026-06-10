@@ -51,7 +51,7 @@ export default function Team() {
       <div className="relative z-10 max-w-5xl mx-auto px-6">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
-            <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('team.title').replace(/<[^>]*>/g, '')}</span>
+            <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('team.title')}</span>
           </div>
           <h2
             className="text-3xl md:text-5xl font-black mb-4"
@@ -64,7 +64,24 @@ export default function Team() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {teamMembers.map((member, i) => {
-            const data = t(member.key);
+            const data = {
+              zhanet: {
+                name: 'Жанет Топалова',
+                role: 'Co-founder & Operations Director',
+                skills: ['Project Management', 'Бизнес анализ', 'Маркетинг', 'Бранд идентичност'],
+              },
+              momchil: {
+                name: 'Момчил Старолидолски',
+                role: 'Co-founder & Technical Director',
+                skills: ['AI инструменти', 'Анализ на данни', 'Продажби', 'Логистика'],
+              },
+              aiAgents: {
+                name: 'Нашите AI агенти',
+                role: 'Operations AI Team',
+                skills: ['24/7 Анализ', 'Данни', 'Автоматизация', 'Бързи отговори'],
+              },
+            }[member.key.split('.').pop() ?? ''] ?? { name: '', role: '', skills: [] };
+
             const Icon = member.avatar;
 
             return (

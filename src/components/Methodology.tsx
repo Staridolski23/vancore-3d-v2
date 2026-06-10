@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 
 const steps = [
-  { number: '01', key: 'methodology.steps.0' },
-  { number: '02', key: 'methodology.steps.1' },
-  { number: '03', key: 'methodology.steps.2' },
-  { number: '04', key: 'methodology.steps.3' },
-  { number: '05', key: 'methodology.steps.4' },
+  { number: '01', titleKey: 'methodology.steps.0.title', descKey: 'methodology.steps.0.desc' },
+  { number: '02', titleKey: 'methodology.steps.1.title', descKey: 'methodology.steps.1.desc' },
+  { number: '03', titleKey: 'methodology.steps.2.title', descKey: 'methodology.steps.2.desc' },
+  { number: '04', titleKey: 'methodology.steps.3.title', descKey: 'methodology.steps.3.desc' },
+  { number: '05', titleKey: 'methodology.steps.4.title', descKey: 'methodology.steps.4.desc' },
 ];
 
 export default function Methodology() {
@@ -22,7 +22,26 @@ export default function Methodology() {
     return typeof value === 'string' ? value : key;
   };
 
-  const title = t('methodology.title').replace('{highlight}', '<span class="gradient-text">').replace('{/highlight}', '</span>');
+  const pillarsValue = (() => {
+    const keys = 'methodology.pillars'.split('.');
+    let value: any = messages;
+    for (const k of keys) value = value?.[k];
+    return value;
+  })();
+
+  const pillars = Array.isArray(pillarsValue)
+    ? pillarsValue
+    : [
+        'Първо анализираме всички бизнес процеси и намираме „счупените звена“.',
+        'След това проектираме решение, което да улесни операцията и да спести ресурси.',
+        'Наблягаме на измерим ефект: печалба, време, стабилност.',
+        'Внедряваме промените стъпка по стъпка и измерваме резултата.',
+        'Поддържаме процеса, за да се запази доминото в движение.',
+      ];
+
+  const title = t('methodology.title')
+    .replace('{highlight}', '<span class="gradient-text">')
+    .replace('{/highlight}', '</span>');
 
   return (
     <section id="методология" className="relative py-32">
@@ -59,9 +78,9 @@ export default function Methodology() {
                 <div className={`pb-10 transition-all duration-500 ${i <= active ? 'opacity-100' : 'opacity-50'}`}>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold text-vancore-bronze/60">{step.number}</span>
-                    <h4 className="font-bold text-vancore-light">{t(step.key).title}</h4>
+                    <h4 className="font-bold text-vancore-light">{t(step.titleKey)}</h4>
                   </div>
-                  <p className="text-sm text-vancore-muted leading-relaxed">{t(step.key).desc}</p>
+                  <p className="text-sm text-vancore-muted leading-relaxed">{t(step.descKey)}</p>
                 </div>
               </div>
             ))}
@@ -72,7 +91,7 @@ export default function Methodology() {
               <h3 className="text-2xl font-bold mb-2">{t('methodology.conceptTitle')}</h3>
               <p className="text-vancore-muted text-sm mb-6">{t('methodology.conceptSubtitle')}</p>
               <div className="space-y-6">
-                {t('methodology.pillars').map((item: string, idx: number) => (
+                {pillars.map((item: string, idx: number) => (
                   <div key={idx} className="flex gap-4">
                     <div className="w-8 h-8 rounded-lg bg-vancore-bronze/10 flex items-center justify-center shrink-0">
                       <span className="text-vancore-bronze text-sm">{idx + 1}</span>

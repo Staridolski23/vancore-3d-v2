@@ -43,6 +43,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
 export function useLanguage() {
   const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error('useLanguage must be used within LanguageProvider');
+  if (!ctx) {
+    return {
+      locale: 'bg' as Locale,
+      messages: {} as Messages,
+      toggle: () => {},
+      setLocale: () => {},
+    };
+  }
   return ctx;
 }
