@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ThreeScene from '@/components/ThreeScene';
 import ChatBot from '@/components/ChatBot';
+import { LanguageProvider } from '@/hooks/useLanguage';
 
 export const metadata: Metadata = {
   title: 'VANCORE — AI-подпомогнат бизнес анализ',
@@ -17,11 +18,13 @@ export default function RootLayout({
     <html lang="bg" className="scroll-smooth">
       <body>
         <ThreeScene />
-        <div className="content-layer">
-          <Header />
-          {children}
-          <Footer />
-        </div>
+        <LanguageProvider>
+          <div className="content-layer">
+            <Header />
+            {children}
+            <Footer />
+          </div>
+        </LanguageProvider>
         <ChatBot />
       </body>
     </html>

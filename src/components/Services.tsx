@@ -1,19 +1,101 @@
 'use client';
 
+import { useLanguage } from '@/hooks/useLanguage';
+
 const services = [
-  { icon: '💰', title: 'Финанси', desc: 'Анализ на приходи, разходи, маржове, бюджетиране' },
-  { icon: '⚙️', title: 'Операции', desc: 'Оптимизация на процеси, автоматизация, supply chain' },
-  { icon: '📢', title: 'Маркетинг', desc: 'Стратегия, дигитален маркетинг, SEO, социални медии' },
-  { icon: '📈', title: 'Продажби', desc: 'Sales funnel, CRM, конверсия, клиентско изживяване' },
-  { icon: '👥', title: 'HR', desc: 'Онбординг, мотивация, KPI, обучение, текучест' },
-  { icon: '💻', title: 'IT', desc: 'Дигитализация, инфраструктура, софтуерни решения' },
-  { icon: '🎨', title: 'Бранд', desc: 'Идентичност, визуален език, позициониране' },
-  { icon: '⚖️', title: 'Юридически', desc: 'Съответствие, договори, регулаторни изисквания' },
-  { icon: '🧭', title: 'Стратегия', desc: 'Бизнес план, KPI, растеж, мащабиране' },
-  { icon: '⭐', title: 'Клиентско изживяване', desc: 'Удовлетвореност, лоялност, NPS, обратна връзка' },
+  {
+    key: 'services.items.finance',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M2 12h20M2 12l4-4m-4 4 4 4M22 12l-4-4m4 4-4 4M12 2v20" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.operations',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M12 3v18M3 12h18M5.5 5.5l13 13M18.5 5.5l-13 13" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.marketing',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.sales',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M13 7h8m-8 4h8m-8 4h4M3 7h.01M3 11h.01M3 15h.01" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.hr',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.it',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <rect x="2" y="3" width="20" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M8 21h8M12 17v4" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.brand',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.legal',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.strategy',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M2 20h20M5 20V10l7-5 7 5v10M9 20v-6h6v6" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'services.items.cx',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
 ];
 
 export default function Services() {
+  const { messages } = useLanguage();
+
+  const t = (key: string) => {
+    const keys = key.split('.');
+    let value: any = messages;
+    for (const k of keys) value = value?.[k];
+    return typeof value === 'string' ? value : key;
+  };
+
   return (
     <section id="услуги" className="relative py-32">
       <div className="absolute inset-0 bg-vancore-dark/85" />
@@ -22,24 +104,40 @@ export default function Services() {
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
-            <span className="text-xs text-vancore-bronze tracking-widest uppercase">Услуги</span>
+            <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('services.title')}</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-black mb-4">10 аспекта на <span className="gradient-text">вашия бизнес</span></h2>
-          <p className="text-vancore-muted max-w-2xl mx-auto">Не гледаме част от картината. Анализираме ВСИЧКО.</p>
+          <h2
+            className="text-3xl md:text-5xl font-black mb-4"
+            dangerouslySetInnerHTML={{
+              __html: t('services.title').replace('{highlight}', '<span class="gradient-text">').replace('{/highlight}', '</span>'),
+            }}
+          />
+          <p className="text-vancore-muted max-w-2xl mx-auto">{t('services.subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {services.map((service, i) => (
-            <div key={i} className="group glass rounded-2xl p-6 hover:border-vancore-bronze/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-vancore-bronze/5">
-              <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">{service.icon}</div>
-              <h3 className="font-bold text-sm mb-2 text-vancore-light">{service.title}</h3>
-              <p className="text-xs text-vancore-muted leading-relaxed">{service.desc}</p>
-            </div>
-          ))}
+          {services.map((service, i) => {
+            const item = t(service.key);
+            return (
+              <div
+                key={i}
+                className="group glass rounded-2xl p-6 hover:border-vancore-bronze/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-vancore-bronze/5"
+              >
+                <div className="text-vancore-bronze mb-4 group-hover:scale-110 transition-transform duration-300">{service.icon}</div>
+                <h3 className="font-bold text-sm mb-2 text-vancore-light">{item.title}</h3>
+                <p className="text-xs text-vancore-muted leading-relaxed">{item.desc}</p>
+              </div>
+            );
+          })}
         </div>
 
         <div className="text-center mt-12">
-          <a href="#анализ" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-bold rounded-full hover:shadow-2xl hover:shadow-vancore-bronze/30 transition-all hover:scale-105">Започнете безплатен анализ <span>→</span></a>
+          <a
+            href="#анализ"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-bold rounded-full hover:shadow-2xl hover:shadow-vancore-bronze/30 transition-all hover:scale-105"
+          >
+            {t('services.cta')} <span>→</span>
+          </a>
         </div>
       </div>
     </section>

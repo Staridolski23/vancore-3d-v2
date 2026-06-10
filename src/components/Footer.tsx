@@ -1,15 +1,25 @@
 'use client';
 
+import { useLanguage } from '@/hooks/useLanguage';
+
 const navLinks = [
-  { href: '#проблеми', label: 'Проблеми' },
-  { href: '#методология', label: 'Методология' },
-  { href: '#анализ', label: 'AI Анализ' },
-  { href: '#услуги', label: 'Услуги' },
-  { href: '#екип', label: 'Екип' },
-  { href: '#контакт', label: 'Контакт' },
+  { href: '#проблеми', labelKey: 'nav.problems' },
+  { href: '#методология', labelKey: 'nav.methodology' },
+  { href: '#анализ', labelKey: 'nav.analysis' },
+  { href: '#услуги', labelKey: 'nav.services' },
+  { href: '#екип', labelKey: 'nav.team' },
+  { href: '#контакт', labelKey: 'nav.contact' },
 ];
 
 export default function Footer() {
+  const { messages } = useLanguage();
+  const t = (key: string) => {
+    const keys = key.split('.');
+    let value: any = messages;
+    for (const k of keys) value = value?.[k];
+    return typeof value === 'string' ? value : key;
+  };
+
   return (
     <footer className="relative py-12 border-t border-white/5 bg-vancore-dark/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-6">
@@ -20,10 +30,12 @@ export default function Footer() {
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-xs text-vancore-muted">
             {navLinks.map((link) => (
-              <a key={link.href} href={link.href} className="hover:text-vancore-bronze transition-colors">{link.label}</a>
+              <a key={link.href} href={link.href} className="hover:text-vancore-bronze transition-colors">
+                {t(link.labelKey)}
+              </a>
             ))}
           </div>
-          <div className="text-xs text-vancore-muted">© 2026 VANCORE. Всички права запазени.</div>
+          <div className="text-xs text-vancore-muted">{t('footer.copyright')}</div>
         </div>
       </div>
     </footer>
