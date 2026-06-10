@@ -13,14 +13,7 @@ export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { messages: lang } = useLanguage();
-
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = lang;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
+  const { t } = useLanguage();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

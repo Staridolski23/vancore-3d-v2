@@ -15,20 +15,13 @@ const navLinks = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { locale, toggle, messages } = useLanguage();
+  const { locale, toggle, t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 80);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
 
   return (
     <header

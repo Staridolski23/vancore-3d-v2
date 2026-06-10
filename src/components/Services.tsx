@@ -110,14 +110,7 @@ const services = [
 ];
 
 export default function Services() {
-  const { messages } = useLanguage();
-
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
+  const { t } = useLanguage();
 
   return (
     <section id="услуги" className="relative py-32">

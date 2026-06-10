@@ -13,21 +13,9 @@ const steps = [
 
 export default function Methodology() {
   const [active, setActive] = useState(0);
-  const { messages } = useLanguage();
+  const { t } = useLanguage();
 
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
-
-  const pillarsValue = (() => {
-    const keys = 'methodology.pillars'.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return value;
-  })();
+  const pillarsValue = t('methodology.pillars');
 
   const pillars = Array.isArray(pillarsValue)
     ? pillarsValue

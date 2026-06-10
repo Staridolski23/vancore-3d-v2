@@ -36,13 +36,7 @@ const teamMembers = [
 ];
 
 export default function Team() {
-  const { messages } = useLanguage();
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
+  const { t } = useLanguage();
 
   return (
     <section id="екип" className="relative py-32">

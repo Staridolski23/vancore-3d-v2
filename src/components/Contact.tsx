@@ -12,14 +12,7 @@ export default function Contact() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const { messages } = useLanguage();
-
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
+  const { t } = useLanguage();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

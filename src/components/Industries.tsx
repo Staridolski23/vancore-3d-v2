@@ -49,13 +49,7 @@ const problems: Record<string, Problem[]> = {
 
 export default function Industries() {
   const [active, setActive] = useState(0);
-  const { messages } = useLanguage();
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
+  const { t } = useLanguage();
 
   return (
     <section id="проблеми" className="relative py-32">
@@ -67,7 +61,7 @@ export default function Industries() {
             <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('industries.badge')}</span>
           </div>
           <h2 className="text-3xl md:text-5xl font-black mb-4">
-            {t('title.prefix')} <span className="gradient-text">{t('title.accent')}</span> {t('title.suffix')}
+            {t('industries.title.prefix')} <span className="gradient-text">{t('industries.title.accent')}</span> {t('industries.title.suffix')}
           </h2>
           <p className="text-vancore-muted max-w-2xl mx-auto">{t('industries.subtitle')}</p>
         </div>

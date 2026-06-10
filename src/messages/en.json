@@ -24,13 +24,13 @@
   },
   "industries": {
     "badge": "Problems we solve",
+    "title": {
+      "prefix": "Your business",
+      "accent": "loses money",
+      "suffix": "every day"
+    },
     "subtitle": "80% of business problems are universal. Here are the most common broken links we uncover.",
     "solutionLabel": "Solution: VANCORE analyzes all aspects of your business and identifies the exact points of loss."
-  },
-  "title": {
-    "prefix": "Your business",
-    "accent": "loses money",
-    "suffix": "every day"
   },
   "sections": {
     "horeca": "HORECA",

@@ -10,16 +10,11 @@ const stats = [
 ];
 
 export default function Hero() {
-  const { messages } = useLanguage();
+  const { t } = useLanguage();
 
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
-
-  const title = t('hero.title').replace('{highlight}', '<span class="gradient-text">').replace('{/highlight}', '</span>');
+  const titleHtml = t('hero.title')
+    .replace(/\{highlight\}/g, '<span class="gradient-text">')
+    .replace(/\{\/highlight\}/g, '</span>');
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -31,7 +26,7 @@ export default function Hero() {
           <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('hero.tagline')}</span>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6" dangerouslySetInnerHTML={{ __html: title }} />
+        <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6" dangerouslySetInnerHTML={{ __html: titleHtml }} />
 
         <p className="text-lg md:text-xl text-vancore-muted max-w-2xl mx-auto mb-10">
           {t('hero.subtitle')}

@@ -12,13 +12,7 @@ const navLinks = [
 ];
 
 export default function Footer() {
-  const { messages } = useLanguage();
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let value: any = messages;
-    for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
-  };
+  const { t } = useLanguage();
 
   return (
     <footer className="relative py-12 border-t border-white/5 bg-vancore-dark/80 backdrop-blur-xl">

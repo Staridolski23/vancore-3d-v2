@@ -49,25 +49,7 @@ export default function ChatDemo() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
             <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('analysis.badge')}</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-black mb-4">
-            {(() => {
-              const rawTitle = t('hero.title');
-              const parts = rawTitle.split(/(\{highlight\}.*?\{\/highlight\})/g).filter(Boolean);
-              return parts.map((part, i) => {
-                if (part === '{highlight}') return null;
-                if (part === '{/highlight}') return null;
-                if (part.startsWith('{highlight}') && part.endsWith('{/highlight}')) {
-                  const text = part.slice(11, -12);
-                  return (
-                    <span key={i} className="gradient-text">
-                      {text}
-                    </span>
-                  );
-                }
-                return <span key={i}>{part}</span>;
-              });
-            })()}
-          </h2>
+          <h2 className="text-3xl md:text-5xl font-black mb-4" dangerouslySetInnerHTML={{ __html: t('hero.title').replace(/\{highlight\}/g, '<span class="gradient-text">').replace(/\{\/highlight\}/g, '</span>') }} />
           <p className="text-vancore-muted max-w-2xl mx-auto">{t('analysis.subtitle')}</p>
         </div>
 
