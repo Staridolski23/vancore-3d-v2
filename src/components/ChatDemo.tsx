@@ -9,7 +9,7 @@ type CaseExample = {
   cost: string;
 };
 
-const caseExamples: Record<string, CaseExample> = {
+const caseExamples: Record<string, CaseExample[]> = {
   bg: [
     { problem: 'Ресторант в София губи 30% от персонала всяка година', analysis: 'Тясно гърло: липсва система за онбординг + ниска мотивация', cost: 'Загуба: ~8 000 EUR/година за набиране и обучение' },
     { problem: 'E-commerce фирма обработва 500 поръчки/месец, но има 15% грешки', analysis: 'Тясно гърло: ръчна обработка + липса на инвентарна система', cost: 'Загуба: ~2 500 EUR/месец в възстановки и загубени клиенти' },
@@ -28,11 +28,13 @@ export default function ChatDemo() {
   const [caseIndex, setCaseIndex] = useState(0);
   const { locale, messages } = useLanguage();
 
-  const t = (key: string) => {
+  const t = (key: string, params?: Record<string, string | number>) => {
     const keys = key.split('.');
     let value: any = messages;
     for (const k of keys) value = value?.[k];
-    return typeof value === 'string' ? value : key;
+    if (typeof value !== 'string') return key;
+    if (!params) return value;
+    return value.replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? `{${k}}`));
   };
 
   const examples = caseExamples[locale] || caseExamples.bg;
@@ -109,7 +111,7 @@ export default function ChatDemo() {
                     <div className="bg-vancore-bronze/20 rounded-2xl rounded-tr-sm p-4 max-w-md"><p className="text-sm">{input}</p></div>
                   </div>
                   {[t('analysis.result.analysis'), t('analysis.result.financialImpact'), t('analysis.result.solutions')].map((title, i) => {
-                    const fields = ['analysis', 'cost', 'problem'];
+                    const fields = ['analysis', 'cost', 'problem'] as const;
                     const bgClass = i === 0 ? 'bg-white/5' : i === 1 ? 'bg-red-500/10 border border-red-500/20' : 'bg-green-500/10 border border-green-500/20';
                     const titleClass = i === 0 ? 'text-vancore-bronze' : i === 1 ? 'text-red-400' : 'text-green-400';
                     return (
@@ -130,9 +132,8 @@ export default function ChatDemo() {
               )}
             </div>
           </div>
-    </div>
-    </div>
+        </div>
+      </div>
     </section>
   );
 }
-
