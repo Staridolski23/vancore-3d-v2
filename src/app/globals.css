@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://bg.getfonts.net/allfont.css?fonts=bodoni-cyrillic');
 
 :root {
   --vancore-dark: #0a0a0f;
@@ -21,6 +22,12 @@ body {
   background-color: var(--vancore-dark);
   color: var(--vancore-light);
   overflow-x: hidden;
+}
+
+/* Bodoni font for headings */
+h1, h2, h3, .headline-font {
+  font-family: 'Bodoni', 'Inter', Georgia, serif;
+  font-weight: 700;
 }
 
 /* Noise texture overlay */

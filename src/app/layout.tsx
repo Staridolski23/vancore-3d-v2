@@ -8,7 +8,7 @@ import { LanguageProvider } from '@/hooks/useLanguage';
 
 export const metadata: Metadata = {
   title: 'VANCORE — AI-подпомогнат бизнес анализ',
-  description: 'Намерете счупеното звено във вашия бизнес.',
+  description: 'Намерете счупените звена във вашия бизнес.',
 };
 
 export default function RootLayout({
