@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
+import ChatBot from '@/components/ChatBot';
 
 type CaseExample = {
   problem: string;
@@ -93,13 +94,6 @@ export default function ChatDemo() {
                       className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-vancore-light focus:outline-none focus:border-vancore-bronze/40 transition-colors"
                       onKeyDown={(e) => e.key === 'Enter' && input.trim() && setSubmitted(true)}
                     />
-                    <button
-                      onClick={() => input.trim() && setSubmitted(true)}
-                      disabled={!input.trim()}
-                      className="px-6 py-3 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-vancore-bronze/20 transition-all"
-                    >
-                      {t('analysis.submit')}
-                    </button>
                   </div>
                 </>
               ) : (
@@ -128,6 +122,9 @@ export default function ChatDemo() {
                 </div>
               )}
             </div>
+          </div>
+          <div className="mt-8 flex justify-center">
+            <ChatBot />
           </div>
         </div>
       </div>

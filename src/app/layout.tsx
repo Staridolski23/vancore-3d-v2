@@ -25,7 +25,6 @@ export default function RootLayout({
             <Footer />
           </div>
         </LanguageProvider>
-        <ChatBot />
       </body>
     </html>
   );
