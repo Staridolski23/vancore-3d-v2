@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-const API = 'https://www.vancoresys.com';
+const API = '';
 
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero',
