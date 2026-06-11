@@ -12,7 +12,7 @@
   "hero": {
     "tagline": "Strategic business analysis",
     "title": "Find the {highlight}broken links{/highlight} in your business",
-    "subtitle": "We help companies think globally and grow sustainably. Through our comprehensive AI&Human design business analysis, you don't just reduce losses and optimize processes — you build a stronger, cohesive team ready to seize every opportunity.",
+    "subtitle": "We help companies think globally and grow sustainably. Through our comprehensive {highlight}AI&Human design{/highlight} business analysis, you don't just reduce losses and optimize processes — you build a stronger, cohesive team ready to seize every opportunity.",
     "ctaPrimary": "Start free analysis",
     "ctaSecondary": "How we work?",
     "stats": {

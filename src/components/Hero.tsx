@@ -28,9 +28,7 @@ export default function Hero() {
 
         <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6" dangerouslySetInnerHTML={{ __html: titleHtml }} />
 
-        <p className="text-lg md:text-xl text-vancore-muted max-w-2xl mx-auto mb-10">
-          {t('hero.subtitle')}
-        </p>
+        <p className="text-lg md:text-xl text-vancore-muted max-w-2xl mx-auto mb-10" dangerouslySetInnerHTML={{ __html: t('hero.subtitle').replace(/\{highlight\}/g, '<span class="gradient-text">').replace(/\{\/highlight\}/g, '</span>') }} />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a href="#анализ" className="group relative px-8 py-4 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-bold rounded-full text-lg hover:shadow-2xl hover:shadow-vancore-bronze/30 transition-all duration-500 hover:scale-105">
