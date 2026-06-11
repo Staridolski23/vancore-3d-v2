@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAccounts } from '@/lib/admin-editor';
+
+const ADMIN_ACCOUNTS = [
+  { name: 'Momchil Starolidolski', email: 'momchil@vancore.ai', password: 'vancore2026', role: 'admin' },
+  { name: 'Zhanet Topalova', email: 'zhanet@vancore.ai', password: 'vancore2026', role: 'admin' },
+];
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as { email?: string; password?: string };
     const email = body?.email;
     const password = body?.password;
-    const accounts = await getAccounts();
-    const matched = accounts.find((account: { email: string; password: string }) => account.email === email && account.password === password);
+    const matched = ADMIN_ACCOUNTS.find((a) => a.email === email && a.password === password);
     if (!matched) {
       return NextResponse.json({ error: 'Невалиден имейл или парола.' }, { status: 401 });
     }
