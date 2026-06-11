@@ -22,6 +22,7 @@ export default function RootLayout({
           <div className="content-layer">
             <Header />
             {children}
+            <ChatBot />
             <Footer />
           </div>
         </LanguageProvider>

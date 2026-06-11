@@ -9,8 +9,9 @@ import AdminInbox from '@/components/AdminInbox';
 import AdminCalendar from '@/components/AdminCalendar';
 import AdminAnalysis from '@/components/AdminAnalysis';
 import AdminActivityLog from '@/components/AdminActivityLog';
+import AdminEditor from '@/components/AdminEditor';
 
-type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'calendar' | 'analysis' | 'activity';
+type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'calendar' | 'analysis' | 'activity' | 'editor';
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -18,22 +19,38 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [view, setView] = useState<AdminView>('dashboard');
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    const prev = typeof window !== 'undefined' ? window.localStorage.getItem('vancore_admin_user') : null;
+    if (prev) setIsLoggedIn(true);
+
+    const url =
+      typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const initialView = url?.get('view') === 'editor' ? 'editor' : 'dashboard';
+    setView(initialView);
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const adminSecret = process.env.NEXT_PUBLIC_ADMIN_SECRET || '';
-    let adminUsers: { email: string; secret: string }[] = [];
     try {
-      adminUsers = JSON.parse(process.env.NEXT_PUBLIC_ADMIN_USERS || '[]');
-    } catch {}
-    const fallbackAdmins = [
-      { email: 'momchil@vancore.ai', secret: 'vancore2026' },
-      { email: 'zhanet@vancore.ai', secret: 'vancore2026' },
-    ];
-    const matched =
-      adminUsers.find((user) => user.email === email && user.secret === adminSecret) ||
-      fallbackAdmins.find((user) => user.email === email && user.secret === password);
-    if (matched) setIsLoggedIn(true);
-    else alert('Невалиден логин');
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { user?: { email: string }; error?: string };
+      if (!res.ok || !data?.user?.email) {
+        alert(data?.error || 'Невалиден имейл или парола.');
+        return;
+      }
+      setIsLoggedIn(true);
+      setView('dashboard');
+      window.localStorage.setItem('vancore_admin_user', data.user.email);
+      setEmail('');
+      setPassword('');
+    } catch (err) {
+      console.error(err);
+      alert('Грешка при вход.');
+    }
   };
 
   const navigation: { id: AdminView; label: string; icon: string }[] = [
@@ -45,6 +62,7 @@ export default function AdminPage() {
     { id: 'calendar', label: 'Календар', icon: '📅' },
     { id: 'analysis', label: 'Анализ', icon: '📊' },
     { id: 'activity', label: 'Дейности', icon: '📋' },
+    { id: 'editor', label: 'Редактор', icon: '🎨' },
   ];
 
   if (!isLoggedIn) {
@@ -71,6 +89,10 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  const urlSearchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const defaultView: AdminView = urlSearchParams?.get('view') === 'editor' ? 'editor' : 'dashboard';
+  if (!view || view === 'dashboard') setView(defaultView);
 
   return (
     <div className="min-h-screen bg-vancore-dark">
@@ -102,6 +124,7 @@ export default function AdminPage() {
           {view === 'calendar' && <AdminCalendar />}
           {view === 'analysis' && <AdminAnalysis />}
           {view === 'activity' && <AdminActivityLog />}
+          {view === 'editor' && <AdminEditor />}
         </div>
       </div>
     </div>
