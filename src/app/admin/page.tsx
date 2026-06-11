@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminStats from '@/components/AdminStats';
 import AdminLeads from '@/components/AdminLeads';
 import AdminCases from '@/components/AdminCases';

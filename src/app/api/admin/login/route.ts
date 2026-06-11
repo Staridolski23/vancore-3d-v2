@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const email = body?.email;
     const password = body?.password;
     const accounts = await getAccounts();
-    const matched = accounts.find((account) => account.email === email && account.password === password);
+    const matched = accounts.find((account: { email: string; password: string }) => account.email === email && account.password === password);
     if (!matched) {
       return NextResponse.json({ error: 'Невалиден имейл или парола.' }, { status: 401 });
     }
