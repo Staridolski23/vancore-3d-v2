@@ -10,11 +10,15 @@ export async function getAccounts() {
   return data.accounts || [];
 }
 
-export async function getSections() {
+export async function getSections(): Promise<{ id: string; text: string }[]> {
   if (!(await exists(SITE_PATH))) return [];
   const raw = await fs.readFile(SITE_PATH, 'utf8');
   const data = JSON.parse(raw);
-  return data?.site?.sections || [];
+  const sections = data?.site?.sections || {};
+  return Object.entries(sections).map(([id, value]) => ({
+    id,
+    text: typeof value === 'object' && value !== null && 'text' in value ? (value as { text: string }).text : typeof value === 'string' ? value : JSON.stringify(value),
+  }));
 }
 
 export async function updateSectionText(sectionId: string, text: string) {

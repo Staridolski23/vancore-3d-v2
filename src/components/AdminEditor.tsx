@@ -2,75 +2,53 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-const SECTIONS_BY_ID: Record<string, string> = {
+const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero',
-  services: 'Services',
-  methodology: 'Methodology',
-  industries: 'Industries',
-  team: 'Team',
-  contact: 'Contact',
+  services: 'Услуги',
+  methodology: 'Методология',
+  industries: 'Отрасли',
+  team: 'Екип',
+  contact: 'Контакт',
+  chat: 'AI Анализ',
 };
 
+type SectionItem = { id: string; text: string };
+
 export default function AdminEditor() {
-  const [sections, setSections] = useState<{ id: string; label: string; text: string }[]>([]);
+  const [sections, setSections] = useState<SectionItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setStatus(null);
     try {
       const res = await fetch('/api/admin/sections');
-      const data = (await res.json().catch(() => ({ sections: [] }))) as { sections?: { id: string; text?: string }[] };
-      const items = (data.sections || [])
-        .filter((item): item is { id: string; text?: string } => Boolean(item.id))
-        .map((item) => ({
-          id: item.id,
-          label: SECTIONS_BY_ID[item.id] || item.id,
-          text: item.text || '',
-        }));
+      const data = (await res.json().catch(() => ({ sections: [] }))) as { sections?: SectionItem[] };
+      const items: SectionItem[] = Array.isArray(data.sections) ? data.sections : [];
       setSections(items);
-      if (!selectedId && items.length) {
+      if (!selectedId && items.length > 0) {
         setSelectedId(items[0].id);
-        setText(items[0].text);
+        setText(items[0].text || '');
       }
-    } catch (error) {
-      console.error(error);
-      setStatus('Неуспешно зареждане на секции');
+    } catch (err) {
+      console.error(err);
+      setStatus('Грешка при зареждане на секции');
     } finally {
       setLoading(false);
     }
   }, [selectedId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  const loadPreview = useCallback(async () => {
-    setStatus('Зареждане на preview...');
-    try {
-      const res = await fetch('/api/admin/preview');
-      const data = (await res.json().catch(() => ({ html: '' }))) as { html?: string };
-      setPreviewHtml(data.html || '');
-      setStatus(null);
-    } catch (error) {
-      console.error(error);
-      setStatus('Неуспешно зареждане на preview');
-    }
-  }, []);
-
-  useEffect(() => {
-    loadPreview();
-  }, [loadPreview]);
-
-  const select = (id: string) => {
-    const section = sections.find((item) => item.id === id);
-    if (!section) return;
+  const selectSection = (id: string) => {
+    const sec = sections.find((s) => s.id === id);
+    if (!sec) return;
     setSelectedId(id);
-    setText(section.text);
+    setText(sec.text || '');
   };
 
   const save = async () => {
@@ -85,95 +63,96 @@ export default function AdminEditor() {
       });
       if (!res.ok) throw new Error('save failed');
       await load();
-      await loadPreview();
-      setStatus('Запазено ✅');
-    } catch (error) {
-      console.error(error);
-      setStatus('Грешка при запазване');
+      setStatus('✅ Запазено успешно!');
+    } catch (err) {
+      console.error(err);
+      setStatus('❌ Грешка при запазване');
     } finally {
       setSaving(false);
     }
   };
 
+  const selectedLabel = selectedId ? SECTION_LABELS[selectedId] || selectedId : '';
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_400px] gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold">🎨 Редактор на сайта</h2>
+          <p className="text-sm text-vancore-muted mt-1">Редакрай текстовете и съдържанието директно. Промените се запазват в Admin-данни.</p>
+        </div>
+        <button onClick={load} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm">
+          🔄 Презареди
+        </button>
+      </div>
+
+      {status && (
+        <div className={`rounded-lg border px-4 py-2 text-sm ${status.includes('✅') ? 'border-green-500/30 bg-green-500/10 text-green-400' : status.includes('❌') ? 'border-red-500/30 bg-red-500/10 text-red-400' : 'border-white/10 bg-white/5 text-vancore-muted'}`}>
+          {status}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+        {/* Sidebar — Section list */}
         <aside className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <h2 className="text-sm font-semibold mb-3">Секции</h2>
-          <div className="space-y-1">
-            {loading ? (
-              <p className="text-vancore-muted text-sm">Зареждане...</p>
-            ) : sections.length ? (
-              sections.map((item) => (
+          <h3 className="text-sm font-semibold mb-3 text-vancore-muted uppercase tracking-wider">Секции</h3>
+          {loading ? (
+            <p className="text-sm text-vancore-muted">Зареждане...</p>
+          ) : sections.length === 0 ? (
+            <p className="text-sm text-vancore-muted">Няма намерени секции.</p>
+          ) : (
+            <div className="space-y-1">
+              {sections.map((sec) => (
                 <button
-                  key={item.id}
-                  onClick={() => select(item.id)}
-                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                    selectedId === item.id
-                      ? 'bg-[var(--vancore-bronze,#c9a84c)] text-black'
-                      : 'bg-white/5 hover:bg-white/10'
+                  key={sec.id}
+                  onClick={() => selectSection(sec.id)}
+                  className={`w-full text-left rounded-lg px-3 py-2.5 text-sm transition-all ${
+                    selectedId === sec.id
+                      ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-black font-semibold'
+                      : 'bg-white/5 hover:bg-white/10 text-vancore-light'
                   }`}
                 >
-                  {item.label}
+                  {SECTION_LABELS[sec.id] || sec.id}
                 </button>
-              ))
-            ) : (
-              <p className="text-vancore-muted text-sm">Няма секции.</p>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </aside>
 
-        <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Редакция на секция</h2>
-            <button
-              onClick={loadPreview}
-              className="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-xs"
-            >
-              🔄 Преглед
-            </button>
-          </div>
+        {/* Editor panel */}
+        <section className="rounded-xl border border-white/10 bg-white/5 p-6">
           {selectedId ? (
-            <div className="mt-4 space-y-3">
-              <p className="text-xs text-vancore-muted">
-                Секция:{' '}
-                <span className="text-white">
-                  {SECTIONS_BY_ID[selectedId] || selectedId}
-                </span>
-              </p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">{selectedLabel}</h3>
+                <span className="text-xs text-vancore-muted bg-white/5 px-2 py-1 rounded">{selectedId}</span>
+              </div>
+
               <textarea
-                className="w-full h-64 rounded bg-black/40 border border-white/10 p-3 text-sm"
+                className="w-full h-72 rounded-lg bg-black/40 border border-white/10 p-4 text-sm text-white placeholder-vancore-muted focus:outline-none focus:border-vancore-bronze/50 resize-y"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                placeholder="Въведи текст за тази секция..."
               />
-              <button
-                onClick={save}
-                disabled={saving}
-                className="w-full rounded bg-[var(--vancore-bronze,#c9a84c)] text-black py-2 text-sm font-semibold disabled:opacity-70"
-              >
-                {saving ? 'Запазване...' : '💾 Запази текст'}
-              </button>
-              <p className="text-xs text-vancore-muted">
-                Промяната ще се отрази в админ preview-то след запазване. За да се отрази в сайта, използвай публикуването на секцията.
-              </p>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={save}
+                  disabled={saving}
+                  className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-black font-semibold text-sm disabled:opacity-60 hover:opacity-90 transition-opacity"
+                >
+                  {saving ? '⏳ Запазване...' : '💾 Запази'}
+                </button>
+                <span className="text-xs text-vancore-muted">Данните се запазват в Desktop/VANCORE/Admin-данни/</span>
+              </div>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-vancore-muted">Избери секция отляво.</p>
+            <div className="flex items-center justify-center h-72 text-vancore-muted">
+              <p>👈 Избери секция отляво за да редактираш</p>
+            </div>
           )}
         </section>
-
-        <aside className="rounded-xl border border-white/10 bg-black/40 p-4">
-          <h2 className="text-sm font-semibold mb-3">Admin Preview</h2>
-          {previewHtml ? (
-            <iframe title="admin-preview" src="/api/admin/preview" className="w-full h-[520px] rounded-lg bg-black" />
-          ) : (
-            <p className="text-vancore-muted text-sm">Няма наличен preview.</p>
-          )}
-        </aside>
       </div>
-      {status ? (
-        <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm">{status}</div>
-      ) : null}
     </div>
   );
 }
