@@ -45,7 +45,7 @@ export default function Team() {
       <div className="relative z-10 max-w-5xl mx-auto px-6">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
-            <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('team.title')}</span>
+            <span className="text-xs text-vancore-bronze tracking-widest uppercase">Екип</span>
           </div>
           <h2
             className="text-3xl md:text-5xl font-black mb-4"
