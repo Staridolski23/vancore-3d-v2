@@ -49,6 +49,7 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [previewToken, setPreviewToken] = useState<string | null>(null);
   const [undoStack, setUndoStack] = useState<any[]>([]);
   const [redoStack, setRedoStack] = useState<any[]>([]);
 
