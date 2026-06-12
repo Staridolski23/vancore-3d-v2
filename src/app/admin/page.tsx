@@ -443,11 +443,19 @@ export default function AdminPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs text-gray-400 mb-1">Цвят на бутони</label>
-                          <input type="color" className="w-full h-9 rounded bg-black/40 border border-white/10" defaultValue="#d4af37" />
+                          <input type="color" className="w-full h-9 rounded bg-black/40 border border-white/10" value={selectedSection?.styles?.buttonColor || '#d4af37'} onChange={async (e) => {
+                            const next = { ...(selectedSection?.styles || {}), buttonColor: e.target.value };
+                            setSections((prev) => ({ ...prev, [selectedId as string]: { ...(prev[selectedId as string] || {}), styles: next } }));
+                            await fetch(`${API}/api/admin/sections/${selectedId}/styles`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ styles: next }) });
+                          }} />
                         </div>
                         <div>
                           <label className="block text-xs text-gray-400 mb-1">Шрифт на заглавия</label>
-                          <select className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white">
+                          <select className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={selectedSection?.styles?.headingFont || 'Bodoni Cyrillic'} onChange={async (e) => {
+                            const next = { ...(selectedSection?.styles || {}), headingFont: e.target.value };
+                            setSections((prev) => ({ ...prev, [selectedId as string]: { ...(prev[selectedId as string] || {}), styles: next } }));
+                            await fetch(`${API}/api/admin/sections/${selectedId}/styles`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ styles: next }) });
+                          }}>
                             <option>Bodoni Cyrillic</option>
                             <option>Inter</option>
                             <option>Roboto</option>
