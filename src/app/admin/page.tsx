@@ -253,10 +253,32 @@ export default function AdminPage() {
   };
 
   const exportPreview = () => {
-    const html = `<!DOCTYPE html><html><body><pre>${JSON.stringify({ sections, order }, null, 2)}</pre></body></html>`;
-    const blob = new Blob([html], { type: 'text/html' });
+    const previewHtml = `<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VANCORE Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root { --button-color: ${sections[selectedId || '']?.styles?.buttonColor || '#d4af37'}; --heading-font: ${sections[selectedId || '']?.styles?.headingFont || 'Bodoni Cyrillic, serif'}; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0b0c10; color: #fff; }
+    .section { padding: 60px 20px; max-width: 1100px; margin: 0 auto; }
+    h1, h2, h3 { font-family: var(--heading-font); }
+    .btn { background: var(--button-color); color: #000; padding: 10px 20px; border-radius: 6px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  ${(order || []).map((id) => {
+    const sec = sections[id] || {};
+    return `<section class="section"><h2>${sec.title || ''}</h2><p>${sec.subtitle || ''}</p></section>`;
+  }).join('\n')}
+</body>
+</html>`;
+    const blob = new Blob([previewHtml], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'width=1200,height=800');
   };
 
   const syncLiveSite = async () => {
