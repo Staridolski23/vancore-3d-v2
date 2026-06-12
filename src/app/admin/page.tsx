@@ -72,10 +72,52 @@ export default function AdminPage() {
     }
   }, [isLoggedIn, view]);
 
-  const pushHistory = (snapshot: any) => {
-    setUndoStack((prev) => [...prev.slice(-40), snapshot]);
+  const rebuildStacks = (nextSections: Record<string, AdminSection>, nextOrder: string[]) => {
+    const current = { sections, order };
+    setUndoStack((prev) => {
+      const next = [...prev, current];
+      return next.length > 40 ? next.slice(-40) : next;
+    });
     setRedoStack([]);
+    setSections(nextSections);
+    setOrder(nextOrder);
   };
+
+  const undo = () => {
+    if (!undoStack.length) return;
+    const prev = undoStack[undoStack.length - 1];
+    setRedoStack((r) => [...r, { sections, order }]);
+    setSections(prev.sections || {});
+    setOrder(prev.order || []);
+    setUndoStack((u) => u.slice(0, -1));
+    setStatus('↶ Undo');
+  };
+
+  const redo = () => {
+    if (!redoStack.length) return;
+    const next = redoStack[redoStack.length - 1];
+    setUndoStack((u) => [...u, { sections, order }]);
+    setSections(next.sections || {});
+    setOrder(next.order || []);
+    setRedoStack((r) => r.slice(0, -1));
+    setStatus('↷ Redo');
+  };
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const meta = e.ctrlKey || e.metaKey;
+      if (meta && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      if ((meta && e.key.toLowerCase() === 'y') || (meta && e.shiftKey && e.key.toLowerCase() === 'z')) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undoStack, redoStack, sections, order]);
 
   const loadStats = async () => {
     try {
@@ -146,9 +188,9 @@ export default function AdminPage() {
         body: JSON.stringify({ title: editTitle, subtitle: editSubtitle }),
       });
       if (res.ok) {
-        setSections((prev) => ({ ...prev, [selectedId]: { ...(prev[selectedId] || {}), title: editTitle, subtitle: editSubtitle } }));
+        const nextSections = { ...sections, [selectedId]: { ...(sections[selectedId] || {}), title: editTitle, subtitle: editSubtitle } };
+        rebuildStacks(nextSections, order);
         setStatus('✅ Запазено!');
-        pushHistory({ sections, order, ts: Date.now() });
       } else {
         setStatus('❌ Грешка при запазване');
       }
@@ -160,7 +202,6 @@ export default function AdminPage() {
   };
 
   const reorderSections = async (next: string[]) => {
-    setOrder(next);
     try {
       const res = await fetch(`${API}/api/admin/sections/reorder`, {
         method: 'PATCH',
@@ -169,8 +210,8 @@ export default function AdminPage() {
         body: JSON.stringify({ order: next }),
       });
       if (res.ok) {
+        rebuildStacks(sections, next);
         setStatus('✅ Подредбата е обновена');
-        pushHistory({ sections, order, ts: Date.now() });
       } else {
         setStatus('❌ Не успя да обнови подредбата');
       }
@@ -191,14 +232,13 @@ export default function AdminPage() {
         body: JSON.stringify({ id, type: 'custom', title, subtitle }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setSections((prev) => ({ ...prev, [id]: { title, subtitle, type: 'custom' } }));
-        setOrder((prev) => [...prev, id]);
+        const nextSections = { ...sections, [id]: { title, subtitle, type: 'custom' } };
+        const nextOrder = [...order, id];
+        rebuildStacks(nextSections, nextOrder);
         setSelectedId(id);
         setEditTitle(title);
         setEditSubtitle(subtitle);
         setStatus('✅ Секцията е добавена');
-        pushHistory({ sections, order, ts: Date.now() });
       } else {
         setStatus('❌ Не успя да добави секция');
       }
@@ -216,15 +256,12 @@ export default function AdminPage() {
         credentials: 'include',
       });
       if (res.ok) {
-        setSections((prev) => {
-          const next = { ...prev };
-          delete next[id];
-          return next;
-        });
-        setOrder((prev) => prev.filter((x) => x !== id));
+        const nextSections = { ...sections };
+        delete nextSections[id];
+        const nextOrder = order.filter((x) => x !== id);
+        rebuildStacks(nextSections, nextOrder);
         if (selectedId === id) setSelectedId(null);
         setStatus('✅ Секцията е изтрита');
-        pushHistory({ sections, order, ts: Date.now() });
       } else {
         setStatus('❌ Не успя да изтрие секция');
       }
@@ -396,8 +433,8 @@ export default function AdminPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button onClick={undo} className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">↶ Undo</button>
-                <button onClick={redo} className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">↷ Redo</button>
+                <button onClick={undo} disabled={!undoStack.length} className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm disabled:opacity-30 disabled:cursor-not-allowed">↶ Undo</button>
+                <button onClick={redo} disabled={!redoStack.length} className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm disabled:opacity-30 disabled:cursor-not-allowed">↷ Redo</button>
                 <div className="ml-auto flex items-center gap-2">
                   <button onClick={() => setPreviewMode('desktop')} className={`px-3 py-2 rounded-lg text-sm ${previewMode === 'desktop' ? 'bg-amber-500 text-black' : 'bg-white/5'}`}>🖥 Desktop</button>
                   <button onClick={() => setPreviewMode('mobile')} className={`px-3 py-2 rounded-lg text-sm ${previewMode === 'mobile' ? 'bg-amber-500 text-black' : 'bg-white/5'}`}>📱 Mobile</button>
