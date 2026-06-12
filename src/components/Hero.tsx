@@ -12,8 +12,8 @@ export default function Hero() {
   const subtitle = section?.subtitle || t('hero.subtitle');
 
   const titleHtml = title
-    .replace(/<highlight>/g, '<span class="gradient-text">')
-    .replace(/<\/highlight>/g, '</span>');
+    .replace(/\{highlight\}/g, '<span class="gradient-text">')
+    .replace(/\{\/highlight\}/g, '</span>');
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -27,7 +27,7 @@ export default function Hero() {
 
         <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6" dangerouslySetInnerHTML={{ __html: titleHtml }} />
 
-        <p className="text-lg md:text-xl text-vancore-muted max-w-2xl mx-auto mb-10" dangerouslySetInnerHTML={{ __html: subtitle.replace(/<highlight>/g, '<span class="gradient-text">').replace(/<\/highlight>/g, '</span>') }} />
+        <p className="text-lg md:text-xl text-vancore-muted max-w-2xl mx-auto mb-10" dangerouslySetInnerHTML={{ __html: subtitle.replace(/\{highlight\}/g, '<span class="gradient-text">').replace(/\{\/highlight\}/g, '</span>') }} />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16">
           {[
