@@ -270,26 +270,6 @@ export default function AdminPage() {
     }
   };
 
-  const undo = () => {
-    if (!undoStack.length) return;
-    const prev = undoStack[undoStack.length - 1];
-    setRedoStack((r) => [...r, { sections, order }]);
-    if (prev.sections) setSections(prev.sections);
-    if (prev.order) setOrder(prev.order);
-    setUndoStack((u) => u.slice(0, -1));
-    setStatus('↶ Undo');
-  };
-
-  const redo = () => {
-    if (!redoStack.length) return;
-    const next = redoStack[redoStack.length - 1];
-    setUndoStack((u) => [...u, { sections, order }]);
-    if (next.sections) setSections(next.sections);
-    if (next.order) setOrder(next.order);
-    setRedoStack((r) => r.slice(0, -1));
-    setStatus('↷ Redo');
-  };
-
   const exportPreview = () => {
     const previewHtml = `<!DOCTYPE html>
 <html lang="bg">

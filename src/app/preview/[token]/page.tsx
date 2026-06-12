@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-type Section = { title?: string; subtitle?: string; styles?: Record<string, string> };
+type Section = { title?: string; subtitle?: string; type?: string; styles?: Record<string, string> };
 
 export default function PreviewPage({ params }: { params: { token: string } }) {
   const [sections, setSections] = useState<Record<string, Section>>({});
