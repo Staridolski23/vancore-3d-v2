@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { API_URL } from '@/lib/api';
 import { useLanguage } from '@/hooks/useLanguage';
-
-type Incoming = { id: string; sender_email: string; subject: string; message: string; created_at: string };
+import { useSiteContent } from '@/hooks/useSiteContent';
 
 export default function Contact() {
   const [name, setName] = useState('');
@@ -13,6 +12,11 @@ export default function Contact() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const { t } = useLanguage();
+  const { getSection } = useSiteContent();
+  const section = getSection('contact');
+
+  const title = section?.title || t('contact.title');
+  const subtitle = section?.subtitle || '';
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +30,7 @@ export default function Contact() {
       });
       if (!res.ok) throw new Error('failed');
       setStatus(t('contact.form.success'));
-      setName('');
-      setEmail('');
-      setMessage('');
+      setName(''); setEmail(''); setMessage('');
     } catch (err) {
       setStatus('Грешка при изпращане. Опитайте отново.');
       console.error(err);
@@ -42,9 +44,10 @@ export default function Contact() {
       <div className='relative z-10 max-w-7xl mx-auto px-6'>
         <div className='text-center mb-16'>
           <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6'>
-            <span className='text-xs text-vancore-bronze tracking-widest uppercase'>{t('contact.title')}</span>
+            <span className='text-xs text-vancore-bronze tracking-widest uppercase'>{title}</span>
           </div>
-          <h2 className='text-3xl md:text-5xl font-black mb-4'>{t('contact.title')}</h2>
+          <h2 className='text-3xl md:text-5xl font-black mb-4'>{title}</h2>
+          {subtitle && <p className='text-vancore-muted max-w-2xl mx-auto'>{subtitle}</p>}
         </div>
         <div className='grid md:grid-cols-2 gap-10'>
           <form onSubmit={submit} className='glass rounded-3xl p-8 border border-white/5 space-y-5'>

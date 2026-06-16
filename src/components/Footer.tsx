@@ -1,6 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/hooks/useLanguage';
+import { useSiteContent } from '@/hooks/useSiteContent';
 
 const navLinks = [
   { href: '#проблеми', labelKey: 'nav.problems' },
@@ -13,6 +14,11 @@ const navLinks = [
 
 export default function Footer() {
   const { t } = useLanguage();
+  const { getFooter } = useSiteContent();
+  const footer = getFooter();
+
+  const copyright = footer.text || t('footer.copyright');
+  const contactEmail = footer.contactEmail || 'office@vancore.bg';
 
   return (
     <footer className="relative py-12 border-t border-white/5 bg-vancore-dark/80 backdrop-blur-xl">
@@ -29,7 +35,10 @@ export default function Footer() {
               </a>
             ))}
           </div>
-          <div className="text-xs text-vancore-muted">{t('footer.copyright')}</div>
+          <div className="flex flex-col items-end gap-1">
+            <div className="text-xs text-vancore-muted">{copyright}</div>
+            <a href={`mailto:${contactEmail}`} className="text-xs text-vancore-bronze hover:text-vancore-gold transition-colors">{contactEmail}</a>
+          </div>
         </div>
       </div>
     </footer>

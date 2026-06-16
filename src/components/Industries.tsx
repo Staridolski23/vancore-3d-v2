@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useSiteContent } from '@/hooks/useSiteContent';
 
 const industries = [
   { id: 'horeca', titleKey: 'sections.horeca' },
@@ -11,7 +12,6 @@ const industries = [
 ];
 
 type Level = 'critical' | 'high' | 'medium';
-
 type Problem = { name: string; desc: string; level: Level };
 
 const levelConfig: Record<Level, { color: string; labelKey: string }> = {
@@ -43,48 +43,39 @@ const problems: Record<string, Problem[]> = {
     { name: 'Скалиране', desc: 'От екип до организация — хаос и пропуски', level: 'critical' },
     { name: 'Липса на управление', desc: 'Технически гении, слаб процесен контрол', level: 'high' },
     { name: 'Слаб пазарен подход', desc: 'Силна технология, слаба продажна история', level: 'high' },
-    { name: 'HR предизвикателства', desc: 'Трудно задържане на关键技术 персонал', level: 'medium' },
+    { name: 'HR предизвикателства', desc: 'Трудно задържане на ключов персонал', level: 'medium' },
   ],
 };
 
 export default function Industries() {
   const [active, setActive] = useState(0);
   const { t } = useLanguage();
+  const { getSection } = useSiteContent();
+  const section = getSection('industries');
+
+  const title = section?.title || t('industries.title.prefix') + ' ' + t('industries.title.accent') + ' ' + t('industries.title.suffix');
+  const subtitle = section?.subtitle || t('industries.subtitle');
 
   return (
     <section id="проблеми" className="relative py-32">
       <div className="absolute inset-0 bg-gradient-to-b from-vancore-dark/90 via-vancore-navy/60 to-vancore-dark/90" />
-
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
             <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('industries.badge')}</span>
           </div>
-          <h2 className="text-3xl md:text-5xl font-black mb-4">
-            {t('industries.title.prefix')} <span className="gradient-text">{t('industries.title.accent')}</span> {t('industries.title.suffix')}
-          </h2>
-          <p className="text-vancore-muted max-w-2xl mx-auto">{t('industries.subtitle')}</p>
+          <h2 className="text-3xl md:text-5xl font-black mb-4" dangerouslySetInnerHTML={{
+            __html: title.replace('{highlight}', '<span class="gradient-text">').replace('{/highlight}', '</span>'),
+          }} />
+          <p className="text-vancore-muted max-w-2xl mx-auto">{subtitle}</p>
         </div>
-
         <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {industries.map((ind, i) => {
-            const label = t(ind.titleKey);
-            return (
-              <button
-                key={ind.id}
-                onClick={() => setActive(i)}
-                className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  active === i
-                    ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark shadow-lg shadow-vancore-bronze/20'
-                    : 'glass text-vancore-muted hover:text-vancore-light'
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
+          {industries.map((ind, i) => (
+            <button key={ind.id} onClick={() => setActive(i)}
+              className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${active === i ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark shadow-lg shadow-vancore-bronze/20' : 'glass text-vancore-muted hover:text-vancore-light'}`}
+            >{t(ind.titleKey)}</button>
+          ))}
         </div>
-
         <div className="max-w-4xl mx-auto">
           <div className="glass rounded-3xl p-8 md:p-12 border border-white/5">
             <h3 className="text-2xl font-bold mb-6">{t(industries[active].titleKey)}</h3>
@@ -102,7 +93,6 @@ export default function Industries() {
                 );
               })}
             </div>
-
             <div className="mt-8 p-4 rounded-xl bg-vancore-bronze/5 border border-vancore-bronze/10">
               <p className="text-sm text-vancore-muted">{t('industries.solutionLabel')}</p>
             </div>
