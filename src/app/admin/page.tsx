@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 
+import RichTextEditor from '@/components/RichTextEditor';
+import SectionCarousel from '@/components/SectionCarousel';
+
 const API = '';
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero',
@@ -11,16 +14,20 @@ const SECTION_LABELS: Record<string, string> = {
   team: 'Екип',
   contact: 'Контакт',
   chat: 'AI Анализ',
+  footer: 'Footer',
 };
 
-const DEFAULT_SECTIONS_DICT: Record<string, { title: string; subtitle: string; type?: string }> = {
-  hero: { title: 'Намерете счупените звена във вашия бизнес', subtitle: 'Ние помагаме на компаниите да мислят глобално.', type: 'hero' },
-  services: { title: 'Какво анализираме', subtitle: '10 основни аспекта', type: 'services' },
-  methodology: { title: 'Нашата Методология', subtitle: 'Стъпка по стъпка', type: 'methodology' },
-  industries: { title: 'Целеви отрасли', subtitle: 'Фокусираме се върху сектори', type: 'industries' },
-  team: { title: 'Отборът зад VANCORE', subtitle: 'Хора и агенти', type: 'team' },
-  contact: { title: 'Започнете промяната', subtitle: 'Напишете ни', type: 'contact' },
-  chat: { title: 'БЕЗПЛАТЕН AI АНАЛИЗ', subtitle: 'Опишете проблема си', type: 'chat' },
+const PAGE_TYPE_IDS = new Set<string>();
+
+  const DEFAULT_SECTIONS_DICT: Record<string, { title: string; subtitle: string; type?: string; body?: string; slides?: { id: string; title?: string; subtitle?: string; image?: string }[] }> = {
+  hero: { title: 'Намерете счупените звена във вашия бизнес', subtitle: 'Ние помагаме на компаниите да мислят глобално.', type: 'hero', body: '<p>Тук можеш да добавиш <b>форматиран текст</b> за секция Hero.</p>' },
+  services: { title: 'Какво анализираме', subtitle: '10 основни аспекта', type: 'services', body: '' },
+  methodology: { title: 'Нашата Методология', subtitle: 'Стъпка по стъпка', type: 'methodology', body: '' },
+  industries: { title: 'Целеви отрасли', subtitle: 'Фокусираме се върху сектори', type: 'industries', body: '' },
+  team: { title: 'Отборът зад VANCORE', subtitle: 'Хора и агенти', type: 'team', body: '' },
+  contact: { title: 'Започнете промяната', subtitle: 'Напишете ни', type: 'contact', body: '' },
+  chat: { title: 'БЕЗПЛАТЕН AI АНАЛИЗ', subtitle: 'Опишете проблема си', type: 'chat', body: '' },
+  footer: { title: 'Footer', subtitle: 'Допълнителна информация', type: 'footer', body: '<p>© 2026 VANCORE</p>' },
 };
 
 type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'calendar' | 'analysis' | 'activity' | 'editor';
@@ -30,6 +37,8 @@ type AdminSection = {
   subtitle: string;
   type?: string;
   styles?: Record<string, any>;
+  body?: string;
+  slides?: { id: string; title?: string; subtitle?: string; image?: string }[];
 };
 
 export default function AdminPage() {
@@ -46,6 +55,11 @@ export default function AdminPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editSubtitle, setEditSubtitle] = useState('');
+  const [editBody, setEditBody] = useState('');
+  const [slides, setSlides] = useState<{ id: string; title?: string; subtitle?: string; image?: string }[]>([]);
+  const [media, setMedia] = useState<{ id: string; url: string; type: 'image' | 'video'; caption?: string }[]>([]);
+  const [footerText, setFooterText] = useState('© 2026 VANCORE');
+  const [contactEmail, setContactEmail] = useState('office@vancore.bg');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -174,6 +188,10 @@ export default function AdminPage() {
     const sec = sections[id] || DEFAULT_SECTIONS_DICT[id] || { title: '', subtitle: '' };
     setEditTitle(sec.title || '');
     setEditSubtitle(sec.subtitle || '');
+    setEditBody((sec as any).body || '');
+    setSlides((sec as any).slides || []);
+    setFooterText((sec as any).footerText || '© 2026 VANCORE');
+    setContactEmail((sec as any).contactEmail || 'office@vancore.bg');
   };
 
   const saveSection = async () => {
@@ -185,10 +203,10 @@ export default function AdminPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ title: editTitle, subtitle: editSubtitle }),
+        body: JSON.stringify({ title: editTitle, subtitle: editSubtitle, body: editBody, slides, media, footerText, contactEmail }),
       });
       if (res.ok) {
-        const nextSections = { ...sections, [selectedId]: { ...(sections[selectedId] || {}), title: editTitle, subtitle: editSubtitle } };
+        const nextSections = { ...sections, [selectedId]: { ...(sections[selectedId] || {}), title: editTitle, subtitle: editSubtitle, body: editBody, slides, media, footerText, contactEmail } };
         rebuildStacks(nextSections, order);
         setStatus('✅ Запазено!');
       } else {
@@ -314,6 +332,47 @@ export default function AdminPage() {
     }
   };
 
+  const updateSlide = (index: number, patch: Partial<{ title: string; subtitle: string; image: string }>) => {
+    setSlides((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], ...patch };
+      return next;
+    });
+  };
+
+  const addSlide = () => {
+    setSlides((prev) => [...prev, { id: `slide-${Date.now()}`, title: 'Нов слайд', subtitle: '', image: '' }]);
+  };
+
+  const removeSlide = (index: number) => {
+    setSlides((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateMedia = (index: number, patch: { url?: string; caption?: string }) => {
+    setMedia((prev) => { const next = [...prev]; next[index] = { ...next[index], ...patch }; return next;});
+  };
+  const removeMedia = (index: number) => setMedia((prev) => prev.filter((_, i) => i !== index));
+
+  const addPage = () => {
+    const id = `page-${Date.now()}`;
+    const nextOrder = [...order, id];
+    const nextSections = { ...sections, [id]: { title: 'Нова страница', subtitle: '', type: 'page', body: '', slides: [], media: [] } };
+    rebuildStacks(nextSections, nextOrder);
+    setSelectedId(id);
+  };
+
+  const renamePage = (id: string, title: string) => {
+    setSections((prev) => ({ ...prev, [id]: { ...(prev[id] || {}), title } }));
+  };
+
+  const deletePage = (id: string) => {
+    if (!window.confirm('Изтриваш страница. Сигурен?')) return;
+    const next = { ...sections }; delete next[id];
+    const nextOrder = order.filter((x) => x !== id);
+    rebuildStacks(next, nextOrder);
+    if (selectedId === id) setSelectedId(null);
+  };
+
   const selectedSection = sections[selectedId || ''] || null;
 
   const nav: { id: AdminView; label: string; icon: string }[] = [
@@ -428,8 +487,8 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-4">
                 <aside className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase">Секции</h3>
-                    <button onClick={addSection} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs">+ Добави</button>
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase">Страници</h3>
+                    <button onClick={addPage} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs">+ Страница</button>
                   </div>
                   <div className="space-y-1">
                     {order.map((id, idx) => (
@@ -458,10 +517,18 @@ export default function AdminPage() {
                           className={`w-full text-left rounded px-2 py-2 text-sm flex items-center justify-between gap-2 ${selectedId === id ? 'bg-yellow-500 text-black font-semibold' : 'bg-white/5 hover:bg-white/10'}`}
                         >
                           <span>{SECTION_LABELS[id] || id}</span>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); deleteSection(id); }}
-                            className="text-xs text-red-300 hover:text-red-400"
-                          >🗑</button>
+                          <div className="flex items-center gap-1">
+                            <input
+                              className="w-20 rounded bg-black/30 border border-white/10 px-1 py-0.5 text-[10px] text-white"
+                              value={sections[id]?.title || ''}
+                              onChange={(e) => renamePage(id, e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); deletePage(id); }}
+                              className="text-xs text-red-300 hover:text-red-400"
+                            >🗑</button>
+                          </div>
                         </button>
                       </div>
                     ))}
@@ -477,8 +544,8 @@ export default function AdminPage() {
                         <input className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Подзаглавие</label>
-                        <textarea className="w-full h-24 rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white resize-y" value={editSubtitle} onChange={(e) => setEditSubtitle(e.target.value)} />
+                        <label className="block text-xs text-gray-400 mb-1">Съдържание</label>
+                        <RichTextEditor value={editBody} onChange={setEditBody} placeholder="Свободен текст за секцията..." />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
@@ -505,6 +572,33 @@ export default function AdminPage() {
                       <button onClick={saveSection} disabled={saving} className="px-5 py-2 rounded bg-yellow-500 text-black font-semibold text-sm disabled:opacity-50">
                         {saving ? 'Запазване...' : '💾 Запази'}
                       </button>
+                      <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-semibold text-gray-300">Медия (URL)</h4>
+                          <button onClick={addMediaByUrl} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs">+ Добави медия</button>
+                        </div>
+                        {media.map((item, index) => (
+                          <div key={item.id} className="grid grid-cols-1 gap-1 rounded border border-white/10 bg-black/40 p-2">
+                            <input className="w-full rounded bg-black/40 border border-white/10 px-2 py-1 text-xs text-white" placeholder="https://..." value={item.url} onChange={(e) => updateMedia(index, { url: e.target.value })} />
+                            <input className="w-full rounded bg-black/40 border border-white/10 px-2 py-1 text-xs text-white" placeholder="Подпис (незадължително)" value={item.caption || ''} onChange={(e) => updateMedia(index, { caption: e.target.value })} />
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-gray-500">{item.type === 'video' ? '🎬 Видео' : '🖼 Снимка'}</span>
+                              <button onClick={() => removeMedia(index)} className="text-[10px] text-red-300 hover:text-red-400">Премахни</button>
+                            </div>
+                          </div>
+                        ))}
+                        {!media.length && <p className="text-xs text-gray-500">Няма медия. Добави URL на снимка или видео.</p>}
+                      </div>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Footer текст</label>
+                          <input className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={footerText} onChange={(e) => setFooterText(e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Контакт имейл</label>
+                          <input className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-gray-400">👈 Избери секция отляво, за да редактираш съдържанието и стиловете.</p>
