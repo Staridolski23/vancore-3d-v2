@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
+
 type Slide = {
   id: string;
-  image: string;
-  title: string;
-  subtitle: string;
+  image?: string;
+  title?: string;
+  subtitle?: string;
 };
 
 type SectionCarouselProps = {
@@ -13,7 +15,7 @@ type SectionCarouselProps = {
 
 export default function SectionCarousel({ slides }: SectionCarouselProps) {
   const list = (slides || []).filter((s) => s && (s.image || s.title || s.subtitle));
-  const [index, setIndex] = React.useState(0);
+  const [index, setIndex] = useState(0);
 
   if (!list.length) return null;
 

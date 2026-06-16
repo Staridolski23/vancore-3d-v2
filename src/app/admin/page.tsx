@@ -348,6 +348,17 @@ export default function AdminPage() {
     setSlides((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addMediaByUrl = () => {
+    const url = prompt('Въведи URL на изображение или видео');
+    if (!url) return;
+    const item: { id: string; type: 'image' | 'video'; url: string } = {
+      id: `media-${Date.now()}`,
+      type: url.match(/\.(mp4|webm|ogg)(\?|$)/i) ? 'video' : 'image',
+      url,
+    };
+    setMedia((prev) => [...prev, item]);
+  };
+
   const updateMedia = (index: number, patch: { url?: string; caption?: string }) => {
     setMedia((prev) => { const next = [...prev]; next[index] = { ...next[index], ...patch }; return next;});
   };
