@@ -19,7 +19,7 @@ const SECTION_LABELS: Record<string, string> = {
 
 const PAGE_TYPE_IDS = new Set<string>();
 
-  const DEFAULT_SECTIONS_DICT: Record<string, { title: string; subtitle: string; type?: string; body?: string; slides?: { id: string; title?: string; subtitle?: string; image?: string }[] }> = {
+const DEFAULT_SECTIONS_DICT: Record<string, { title: string; subtitle: string; type?: string; body?: string; slides?: { id: string; title?: string; subtitle?: string; image?: string }[] }> = {
   hero: { title: 'Намерете счупените звена във вашия бизнес', subtitle: 'Ние помагаме на компаниите да мислят глобално.', type: 'hero', body: '<p>Тук можеш да добавиш <b>форматиран текст</b> за секция Hero.</p>' },
   services: { title: 'Какво анализираме', subtitle: '10 основни аспекта', type: 'services', body: '' },
   methodology: { title: 'Нашата Методология', subtitle: 'Стъпка по стъпка', type: 'methodology', body: '' },
