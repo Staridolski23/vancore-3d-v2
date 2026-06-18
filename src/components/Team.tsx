@@ -1,18 +1,11 @@
 'use client';
 
-import { useSiteContent } from '@/hooks/useSiteContent';
-
 const members = [
   { name: 'Momchil Starolydolski', role: 'Co-founder & Operations' },
   { name: 'Zhanet Topalova', role: 'Co-founder & Delivery' },
 ];
 
 export default function Team() {
-  const { getSection } = useSiteContent();
-  const section = getSection('team');
-  const title = section?.title || 'Two founders.';
-  const subtitle = section?.subtitle || 'Hands-on, not hands-off.';
-
   return (
     <section id="about" className="bg-white py-20 md:py-28 border-t border-[#e5e5e5]">
       <div className="max-w-7xl mx-auto px-6">
@@ -22,11 +15,13 @@ export default function Team() {
               — ABOUT
             </div>
             <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-4">
-              {title}
+              Two founders.
             </h2>
-            <p className="font-display text-xl md:text-2xl text-[#111] italic">{subtitle}</p>
+            <p className="font-display text-xl md:text-2xl text-[#111] italic mb-5">
+              Hands-on, not hands-off.
+            </p>
             <p className="mt-5 font-sans text-sm text-[#6b6b6b] leading-relaxed max-w-md">
-              We’re a husband-and-wife consultancy built for the problems that don’t show up in standard dashboards.
+              We&apos;re a husband-and-wife consultancy built for the problems that don&apos;t show up in standard dashboards.
             </p>
           </div>
 
