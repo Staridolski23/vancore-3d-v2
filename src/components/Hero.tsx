@@ -1,46 +1,54 @@
 'use client';
 
-import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContent } from '@/hooks/useSiteContent';
 
 export default function Hero() {
-  const { t } = useLanguage();
   const { getSection } = useSiteContent();
   const section = getSection('hero');
 
-  const title = section?.title || t('hero.title');
-  const subtitle = section?.subtitle || t('hero.subtitle');
-
-  const titleHtml = title
-    .replace(/\{highlight\}/g, '<span class="gradient-text">')
-    .replace(/\{\/highlight\}/g, '</span>');
+  const title = section?.title || 'The clarity your company has been missing.';
+  const subtitle = section?.subtitle || 'A husband-and-wife consultancy for the messy, internal problems — the ones org charts hide and quarterly reports can\'t reach.';
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-vancore-navy/40 via-vancore-dark/30 to-vancore-dark-90" />
-
-      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8">
-          <span className="w-2 h-2 rounded-full bg-vancore-bronze animate-pulse" />
-          <span className="text-xs text-vancore-bronze tracking-widest uppercase">{t('hero.tagline')}</span>
-        </div>
-
-        <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6" dangerouslySetInnerHTML={{ __html: titleHtml }} />
-
-        <p className="text-lg md:text-xl text-vancore-muted max-w-2xl mx-auto mb-10" dangerouslySetInnerHTML={{ __html: subtitle.replace(/\{highlight\}/g, '<span class="gradient-text">').replace(/\{\/highlight\}/g, '</span>') }} />
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16">
-          {[
-            { value: '10', labelKey: 'hero.stats.aspects' },
-            { value: '3', labelKey: 'hero.stats.freeCases' },
-            { value: '4', labelKey: 'hero.stats.industries' },
-            { value: '24/7', labelKey: 'hero.stats.availability' },
-          ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <div className="text-3xl md:text-4xl font-bold gradient-text">{stat.value}</div>
-              <div className="text-xs text-vancore-muted mt-1 uppercase tracking-wider">{t(stat.labelKey)}</div>
+    <section className="relative bg-white min-h-screen flex items-center overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 py-24 md:py-32 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="max-w-xl">
+            <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
+              — VANCORE SYSTEMS / EST. 2018
             </div>
-          ))}
+            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl text-[#111] leading-[1.08] mb-8">
+              {title.split(' ').map((word, i) => {
+                const accentWords = ['missing.'];
+                return (
+                  <span key={i}>
+                    {accentWords.includes(word) ? (
+                      <span className="text-[#c94f2b]">{word}</span>
+                    ) : (
+                      word
+                    )}
+                    {i < title.split(' ').length - 1 ? ' ' : ''}
+                  </span>
+                );
+              })}
+            </h1>
+            <p className="font-sans text-base md:text-lg text-[#6b6b6b] leading-relaxed">
+              {subtitle}
+            </p>
+          </div>
+
+          <div className="relative">
+            <div className="aspect-[4/3] bg-[#e5e5e5] rounded-sm overflow-hidden relative">
+              <img
+                src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80"
+                alt="Modern conference room"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1.5 text-[10px] font-sans font-medium tracking-wider text-[#111]">
+                VS / 2026
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

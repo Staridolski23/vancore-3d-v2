@@ -1,43 +1,69 @@
 'use client';
 
-import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContent } from '@/hooks/useSiteContent';
 
 const navLinks = [
-  { href: '#проблеми', labelKey: 'nav.problems' },
-  { href: '#методология', labelKey: 'nav.methodology' },
-  { href: '#анализ', labelKey: 'nav.analysis' },
-  { href: '#услуги', labelKey: 'nav.services' },
-  { href: '#екип', labelKey: 'nav.team' },
-  { href: '#контакт', labelKey: 'nav.contact' },
+  { href: '/', label: 'Home' },
+  { href: '#services', label: 'Services' },
+  { href: '#work', label: 'Work' },
+  { href: '#about', label: 'About' },
+  { href: '#ai-analyst', label: 'AI Analyst' },
+  { href: '#contact', label: 'Contact' },
 ];
 
 export default function Footer() {
-  const { t } = useLanguage();
   const { getFooter } = useSiteContent();
   const footer = getFooter();
-
-  const copyright = footer.text || t('footer.copyright');
-  const contactEmail = footer.contactEmail || 'office@vancore.bg';
+  const copyright = footer.text || '© 2026 Vancore Systems. Crafted with intent.';
+  const email = footer.contactEmail || 'hello@vancoresys.com';
 
   return (
-    <footer className="relative py-12 border-t border-white/5 bg-vancore-dark/80 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-vancore-bronze to-vancore-gold flex items-center justify-center font-bold text-vancore-dark text-sm">V</div>
-            <span className="text-sm font-bold tracking-wider">VAN<span className="gradient-text">CORE</span></span>
+    <footer className="bg-[#f7f6f2] border-t border-[#e5e5e5]">
+      <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div>
+            <div className="font-display text-xl text-[#111] mb-4">Vancore Systems</div>
+            <p className="text-xs text-[#6b6b6b] leading-relaxed max-w-xs">
+              A boutique business analysis & development consultancy.
+            </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 text-xs text-vancore-muted">
-            {navLinks.map((link) => (
-              <a key={link.href} href={link.href} className="hover:text-vancore-bronze transition-colors">
-                {t(link.labelKey)}
+
+          <div>
+            <div className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-[#111] mb-4">
+              Navigate
+            </div>
+            <nav className="space-y-2">
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="block text-xs text-[#6b6b6b] hover:text-[#c94f2b]"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          <div>
+            <div className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-[#111] mb-4">
+              Contact
+            </div>
+            <div className="space-y-2 text-xs text-[#6b6b6b]">
+              <div>{email}</div>
+              <div>By appointment only.</div>
+              <a href="/client-portal" className="inline-flex items-center gap-2 hover:text-[#c94f2b]">
+                Client Portal <span aria-hidden>→</span>
               </a>
-            ))}
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <div className="text-xs text-vancore-muted">{copyright}</div>
-            <a href={`mailto:${contactEmail}`} className="text-xs text-vancore-bronze hover:text-vancore-gold transition-colors">{contactEmail}</a>
+        </div>
+
+        <div className="mt-12 pt-6 border-t border-[#e5e5e5] flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-[#6b6b6b]">
+          <div>{copyright}</div>
+          <div className="inline-flex items-center gap-2 bg-[#111] text-white rounded-full px-3 py-1.5">
+            <span className="inline-flex h-3 w-3 items-center justify-center rounded-full bg-white text-[#111] text-[8px] font-bold">e</span>
+            <span className="font-sans">Made with Emergent</span>
           </div>
         </div>
       </div>

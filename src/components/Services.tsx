@@ -1,56 +1,48 @@
 'use client';
 
-import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContent } from '@/hooks/useSiteContent';
 
-const services = [
-  { title: 'Финанси', desc: 'Анализ на приходите, разходите и конверзията; оптимизация на маржовете.', icon: '💰' },
-  { title: 'Операции', desc: 'Автоматизация и подобряване на процесите; източване на загуби и бавни вериги.', icon: '⚙️' },
-  { title: 'Маркетинг', desc: 'Стратегия, дигитален маркетинг, SEO и социални медии.', icon: '📣' },
-  { title: 'Продажби', desc: 'Структуриране на функционалната и висококачествена продажна машина.', icon: '📈' },
-  { title: 'Човешки ресурси', desc: 'Набиране, onboard, обучение, ретенция и мотивация на екипа.', icon: '👥' },
-  { title: 'IT', desc: 'Дигитализация, инфраструктура, софтуерни решения.', icon: '💻' },
-  { title: 'Бранд', desc: 'Идентичност, визуален език и позициониране.', icon: '⭐' },
-  { title: 'Юридически', desc: 'Съответствие, договори и регулаторни изисквания.', icon: '⚖️' },
-  { title: 'Стратегия', desc: 'Планиране на растежа и превръщане на действия в резултати.', icon: '🎯' },
-  { title: 'Клиентско изживяване', desc: 'Удовлетвореност, лоялност, NPS и обратна връзка.', icon: '❤️' },
-];
-
 export default function Services() {
-  const { t } = useLanguage();
   const { getSection } = useSiteContent();
   const section = getSection('services');
+  const title = section?.title || 'Four practices.';
+  const subtitle = section?.subtitle || 'One outcome.';
 
-  const title = section?.title || t('services.title');
-  const subtitle = section?.subtitle || t('services.subtitle');
+  const practices = [
+    { number: '01', title: 'Business Analysis' },
+    { number: '02', title: 'Process Re-engineering' },
+    { number: '03', title: 'AI-Powered Diagnostics' },
+    { number: '04', title: 'Change Enablement' },
+  ];
 
   return (
-    <section id="услуги" className="relative py-32">
-      <div className="absolute inset-0 bg-vancore-dark/85" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-vancore-bronze/20 to-transparent" />
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
-            <span className="text-xs text-vancore-bronze tracking-widest uppercase">Услуги</span>
-          </div>
-          <h2 className="text-3xl md:text-5xl font-black mb-4" dangerouslySetInnerHTML={{
-            __html: title.replace('{highlight}', '<span class="gradient-text">').replace('{/highlight}', '</span>'),
-          }} />
-          <p className="text-vancore-muted max-w-2xl mx-auto">{subtitle}</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {services.map((service, i) => (
-            <div key={i} className="group glass rounded-2xl p-6 hover:border-vancore-bronze/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-vancore-bronze/5">
-              <div className="text-2xl mb-4 group-hover:scale-110 transition-transform duration-300">{service.icon}</div>
-              <h3 className="font-bold text-sm mb-2 text-vancore-light">{service.title}</h3>
-              <p className="text-xs text-vancore-muted leading-relaxed">{service.desc}</p>
+    <section id="services" className="bg-white py-20 md:py-28">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10 md:gap-16">
+          <div className="md:max-w-sm">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="h-px w-8 bg-[#c94f2b]" />
+              <span className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-[#c94f2b]">
+                — WHAT WE DO
+              </span>
             </div>
-          ))}
-        </div>
-        <div className="text-center mt-12">
-          <a href="#анализ" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-bold rounded-full hover:shadow-2xl hover:shadow-vancore-bronze/30 transition-all hover:scale-105">
-            {t('services.cta')} <span>→</span>
-          </a>
+            <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-3">
+              {title}
+            </h2>
+            <p className="font-display text-2xl md:text-3xl text-[#111] italic">{subtitle}</p>
+          </div>
+
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+            {practices.map((practice) => (
+              <div
+                key={practice.number}
+                className="border border-[#e5e5e5] rounded-sm p-6 md:p-8 hover:border-[#c94f2b]/40 transition-colors"
+              >
+                <div className="text-[#c94f2b] font-display text-sm mb-3">{practice.number}</div>
+                <h3 className="font-display text-xl md:text-2xl text-[#111]">{practice.title}</h3>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

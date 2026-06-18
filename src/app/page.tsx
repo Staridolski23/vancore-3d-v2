@@ -1,25 +1,31 @@
 'use client';
 
+import Header from '@/components/Header';
 import Hero from '@/components/Hero';
+import Stats from '@/components/Stats';
 import Industries from '@/components/Industries';
 import Methodology from '@/components/Methodology';
-import ChatDemo from '@/components/ChatDemo';
 import Services from '@/components/Services';
-import Team from '@/components/Team';
-import PublicTrustCounter from '@/components/PublicTrustCounter';
+import Work from '@/components/Work';
+import About from '@/components/About';
+import AIAnalyst from '@/components/AIAnalyst';
 import Contact from '@/components/Contact';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   return (
-    <main className="content-layer">
+    <main className="min-h-screen bg-white text-[#111]">
+      <Header />
       <Hero />
+      <Stats />
       <Industries />
       <Methodology />
-      <ChatDemo />
       <Services />
-      <Team />
-      <PublicTrustCounter />
+      <Work />
+      <About />
+      <AIAnalyst />
       <Contact />
+      <Footer />
     </main>
   );
 }

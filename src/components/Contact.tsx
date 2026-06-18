@@ -1,78 +1,46 @@
 'use client';
 
-import { useState } from 'react';
-import { API_URL } from '@/lib/api';
-import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContent } from '@/hooks/useSiteContent';
 
 export default function Contact() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
-  const { t } = useLanguage();
   const { getSection } = useSiteContent();
   const section = getSection('contact');
 
-  const title = section?.title || t('contact.title');
-  const subtitle = section?.subtitle || '';
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setStatus(null);
-    try {
-      const res = await fetch(`${API_URL}/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message }),
-      });
-      if (!res.ok) throw new Error('failed');
-      setStatus(t('contact.form.success'));
-      setName(''); setEmail(''); setMessage('');
-    } catch (err) {
-      setStatus('Грешка при изпращане. Опитайте отново.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <section id='контакт' className='relative py-32'>
-      <div className='relative z-10 max-w-7xl mx-auto px-6'>
-        <div className='text-center mb-16'>
-          <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6'>
-            <span className='text-xs text-vancore-bronze tracking-widest uppercase'>{title}</span>
+    <section id="contact" className="bg-white py-20 md:py-28 border-t border-[#e5e5e5]">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+          <div>
+            <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
+              — CONTACT
+            </div>
+            <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05]">
+              {section?.title || 'Let’s talk'}
+            </h2>
+            <p className="mt-4 font-sans text-sm text-[#6b6b6b] leading-relaxed max-w-md">
+              {section?.subtitle || 'By appointment only — reach out and we’ll schedule a short call.'}
+            </p>
           </div>
-          <h2 className='text-3xl md:text-5xl font-black mb-4'>{title}</h2>
-          {subtitle && <p className='text-vancore-muted max-w-2xl mx-auto'>{subtitle}</p>}
-        </div>
-        <div className='grid md:grid-cols-2 gap-10'>
-          <form onSubmit={submit} className='glass rounded-3xl p-8 border border-white/5 space-y-5'>
-            <div>
-              <label className='block text-xs text-vancore-muted mb-2'>{t('contact.form.name')}</label>
-              <input required value={name} onChange={(e) => setName(e.target.value)} className='w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40' />
-            </div>
-            <div>
-              <label className='block text-xs text-vancore-muted mb-2'>{t('contact.form.email')}</label>
-              <input required type='email' value={email} onChange={(e) => setEmail(e.target.value)} className='w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40' />
-            </div>
-            <div>
-              <label className='block text-xs text-vancore-muted mb-2'>{t('contact.form.message')}</label>
-              <textarea required value={message} onChange={(e) => setMessage(e.target.value)} className='w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40 min-h-[120px]' />
-            </div>
-            <button type='submit' disabled={loading} className='w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold disabled:opacity-50'>{t('contact.form.submit')}</button>
-            {status && <p className='text-xs text-vancore-muted'>{status}</p>}
-          </form>
-          <div className='glass rounded-3xl p-8 border border-white/5 space-y-4 text-sm text-vancore-muted'>
-            <h3 className='text-lg font-bold text-vancore-light'>Контактна информация</h3>
-            <p>{t('contact.info.email')}</p>
-            <p>{t('contact.info.phone')}</p>
-            <div>
-              <h4 className='font-semibold text-vancore-light'>⚡ Директен AI анализ</h4>
-              <p>{t('contact.info.directAnalysisDesc')}</p>
+
+          <div className="border border-[#e5e5e5] rounded-sm p-6 md:p-8">
+            <div className="space-y-4 text-sm text-[#111]">
+              <div>
+                <div className="text-[10px] font-sans font-semibold tracking-[0.2em] text-[#6b6b6b] uppercase mb-1">
+                  Email
+                </div>
+                <a href="mailto:hello@vancoresys.com" className="hover:text-[#c94f2b]">
+                  hello@vancoresys.com
+                </a>
+              </div>
+              <div className="h-px bg-[#e5e5e5]" />
+              <div>
+                <div className="text-[10px] font-sans font-semibold tracking-[0.2em] text-[#6b6b6b] uppercase mb-1">
+                  Client Portal
+                </div>
+                <a href="/client-portal" className="inline-flex items-center gap-2 hover:text-[#c94f2b]">
+                  Client Portal <span aria-hidden>→</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
