@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 const questions = [
   'What is the actual decision that keeps getting delayed?',
   'Who is closest to the problem, and what do they already know?',
@@ -25,10 +27,8 @@ export default function AIAnalyst() {
             <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed max-w-md">
               Vera is our AI business analyst. In five to seven sharp questions, she maps the contours of your problem and prepares a brief so our human consultants arrive informed — not introducing themselves.
             </p>
-            <a
-              href="#contact"
-              className="inline-flex items-center gap-2 mt-8 px-5 py-3 bg-[#c94f2b] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors"
-            >
+            <Link href="/ai-analyst">
+              <button className="inline-flex items-center gap-2 mt-8 px-5 py-3 bg-[#c94f2b] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
               Talk to Vera
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +45,8 @@ export default function AIAnalyst() {
                 <path d="M7 7h10v10" />
                 <path d="M7 17 17 7" />
               </svg>
-            </a>
+            </button>
+            </Link>
           </div>
           <div className="border border-[#e5e5e5] rounded-sm overflow-hidden">
             <div className="bg-[#f7f6f2] px-4 py-3 border-b border-[#e5e5e5]">

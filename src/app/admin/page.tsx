@@ -5,29 +5,30 @@ import { useState, useEffect, useRef } from 'react';
 import RichTextEditor from '@/components/RichTextEditor';
 import SectionCarousel from '@/components/SectionCarousel';
 
-const API = '';
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero',
-  services: 'Услуги',
-  methodology: 'Методология',
-  industries: 'Отрасли',
-  team: 'Екип',
-  contact: 'Контакт',
-  chat: 'AI Анализ',
+  services: 'Services',
+  methodology: 'Methodology',
+  industries: 'Industries',
+  team: 'Team',
+  contact: 'Contact',
+  chat: 'AI Analyst',
   footer: 'Footer',
 };
+
+const API = '';
 
 const PAGE_TYPE_IDS = new Set<string>();
 
 const DEFAULT_SECTIONS_DICT: Record<string, { title: string; subtitle: string; type?: string; body?: string; slides?: { id: string; title?: string; subtitle?: string; image?: string }[] }> = {
-  hero: { title: 'Намерете счупените звена във вашия бизнес', subtitle: 'Ние помагаме на компаниите да мислят глобално.', type: 'hero', body: '<p>Тук можеш да добавиш <b>форматиран текст</b> за секция Hero.</p>' },
-  services: { title: 'Какво анализираме', subtitle: '10 основни аспекта', type: 'services', body: '' },
-  methodology: { title: 'Нашата Методология', subtitle: 'Стъпка по стъпка', type: 'methodology', body: '' },
-  industries: { title: 'Целеви отрасли', subtitle: 'Фокусираме се върху сектори', type: 'industries', body: '' },
-  team: { title: 'Отборът зад VANCORE', subtitle: 'Хора и агенти', type: 'team', body: '' },
-  contact: { title: 'Започнете промяната', subtitle: 'Напишете ни', type: 'contact', body: '' },
-  chat: { title: 'БЕЗПЛАТЕН AI АНАЛИЗ', subtitle: 'Опишете проблема си', type: 'chat', body: '' },
-  footer: { title: 'Footer', subtitle: 'Допълнителна информация', type: 'footer', body: '<p>© 2026 VANCORE</p>' },
+  hero: { title: 'The biggest operational gaps we fix', subtitle: 'Business analysis, AI diagnostics, and delivery.', type: 'hero', body: '<p>Use this area for formatted editor content.</p>' },
+  services: { title: 'What we analyse', subtitle: '10 core business aspects', type: 'services', body: '' },
+  methodology: { title: 'Our methodology', subtitle: 'Step by step', type: 'methodology', body: '' },
+  industries: { title: 'Industries', subtitle: 'Focus sectors', type: 'industries', body: '' },
+  team: { title: 'The team behind VANCORE', subtitle: 'People and agents', type: 'team', body: '' },
+  contact: { title: 'Start the change', subtitle: 'Write to us', type: 'contact', body: '' },
+  chat: { title: 'FREE AI ANALYSIS', subtitle: 'Describe your problem', type: 'chat', body: '' },
+  footer: { title: 'Footer', subtitle: 'Additional information', type: 'footer', body: '<p>© 2026 VANCORE</p>' },
 };
 
 type AdminView = 'dashboard' | 'leads' | 'cases' | 'sessions' | 'inbox' | 'calendar' | 'analysis' | 'activity' | 'editor';
@@ -163,7 +164,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok || !data?.user) {
-        setError(data?.error || 'Невалиден имейл или парола.');
+        setError(data?.error || 'Invalid email or password.');
         return;
       }
       setUser(data.user);
@@ -172,7 +173,7 @@ export default function AdminPage() {
       setEmail('');
       setPassword('');
     } catch {
-      setError('Грешка при вход.');
+      setError('Login failed.');
     }
   };
 
@@ -197,7 +198,7 @@ export default function AdminPage() {
   const saveSection = async () => {
     if (!selectedId) return;
     setSaving(true);
-    setStatus('Запазване...');
+    setStatus('Saving...');
     try {
       const res = await fetch(`${API}/api/admin/sections/${selectedId}`, {
         method: 'PATCH',
@@ -208,12 +209,12 @@ export default function AdminPage() {
       if (res.ok) {
         const nextSections = { ...sections, [selectedId]: { ...(sections[selectedId] || {}), title: editTitle, subtitle: editSubtitle, body: editBody, slides, media, footerText, contactEmail } };
         rebuildStacks(nextSections, order);
-        setStatus('✅ Запазено!');
+        setStatus('Saved');
       } else {
-        setStatus('❌ Грешка при запазване');
+        setStatus('Save failed');
       }
     } catch {
-      setStatus('❌ Грешка');
+      setStatus('Error');
     } finally {
       setSaving(false);
     }
@@ -229,18 +230,18 @@ export default function AdminPage() {
       });
       if (res.ok) {
         rebuildStacks(sections, next);
-        setStatus('✅ Подредбата е обновена');
+        setStatus('Section order updated');
       } else {
-        setStatus('❌ Не успя да обнови подредбата');
+        setStatus('Could not update section order');
       }
     } catch {
-      setStatus('❌ Грешка при подредба');
+      setStatus('Reorder failed');
     }
   };
 
   const addSection = async () => {
     const id = `custom-${Date.now()}`;
-    const title = 'Нова секция';
+    const title = 'New Section';
     const subtitle = '';
     try {
       const res = await fetch(`${API}/api/admin/sections`, {
