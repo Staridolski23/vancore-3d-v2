@@ -7,11 +7,13 @@ const team = [
     name: 'Zhanet Topalova',
     role: 'Co-founder & Strategy Lead',
     focus: 'Business strategy, change enablement, client relations',
+    photo: '/team/zhanet.jpg',
   },
   {
     name: 'Momchil Staridolski',
     role: 'Co-founder & Lead Analyst',
     focus: 'Operations, process re-engineering, financial diagnostics',
+    photo: '/team/momchil.jpg',
   },
 ];
 
@@ -76,8 +78,8 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {team.map((t) => (
               <div key={t.name} className="border border-white/5 rounded-sm p-6 md:p-8">
-                <div className="w-12 h-12 rounded-full bg-[#991930]/20 flex items-center justify-center mb-4">
-                  <span className="font-display text-lg text-[#991930]">{t.name.charAt(0)}</span>
+                <div className="w-20 h-20 rounded-full overflow-hidden mb-4 border-2 border-[#991930]/30">
+                  <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="font-display text-xl text-white mb-1">{t.name}</h3>
                 <div className="text-[#991930] text-sm font-sans mb-3">{t.role}</div>

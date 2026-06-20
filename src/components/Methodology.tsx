@@ -1,12 +1,12 @@
 'use client';
-
 import { useSiteContent } from '@/hooks/useSiteContent';
+import { Search, Stethoscope, Pencil, Rocket } from 'lucide-react';
 
 const steps = [
-  { number: '01', title: 'Discovery', desc: 'Two weeks. Stakeholder interviews, operational shadowing, document review. No deliverable theater.' },
-  { number: '02', title: 'Diagnosis', desc: 'A short, brutal report. What\'s broken, what\'s working, what to leave alone.' },
-  { number: '03', title: 'Design', desc: 'Co-built solutions with your team — not for them. Adoption starts here, not after launch.' },
-  { number: '04', title: 'Deployment', desc: 'We stay until it sticks. Measured, iterated, owned by your people.' },
+  { number: '01', title: 'Discovery', desc: 'Two weeks. Stakeholder interviews, operational shadowing, document review. No deliverable theater.', icon: Search },
+  { number: '02', title: 'Diagnosis', desc: 'A short, brutal report. What\'s broken, what\'s working, what to leave alone.', icon: Stethoscope },
+  { number: '03', title: 'Design', desc: 'Co-built solutions with your team — not for them. Adoption starts here, not after launch.', icon: Pencil },
+  { number: '04', title: 'Deployment', desc: 'We stay until it sticks. Measured, iterated, owned by your people.', icon: Rocket },
 ];
 
 export default function Methodology() {
@@ -16,7 +16,7 @@ export default function Methodology() {
   const title = section?.title || 'We start small, ask sharp, and listen longer.';
 
   return (
-    <section id="методология" className="relative bg-[#050505] py-20 md:py-28">
+    <section id="methodology" className="relative bg-[#050505] py-20 md:py-28">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center gap-3 mb-8">
           <div className="h-px w-8 bg-[#991930]" />
@@ -42,17 +42,23 @@ export default function Methodology() {
           </div>
 
           <div className="space-y-0">
-            {steps.map((step) => (
-              <div key={step.number} className="flex gap-6 md:gap-8 py-7 border-t border-white/5 first:border-t-0">
-                <div className="text-[#991930] font-display text-xl md:text-2xl leading-none pt-0.5">
-                  {step.number}
+            {steps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.number} className="flex gap-6 md:gap-8 py-7 border-t border-white/5 first:border-t-0">
+                  <div className="shrink-0">
+                    <Icon className="w-6 h-6 text-[#991930]" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-[#991930] font-display text-sm">{step.number}</span>
+                      <h3 className="font-display text-2xl md:text-3xl text-white">{step.title}</h3>
+                    </div>
+                    <p className="font-sans text-sm md:text-[15px] text-[#9a9a9a] leading-relaxed">{step.desc}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-display text-2xl md:text-3xl text-white mb-2">{step.title}</h3>
-                  <p className="font-sans text-sm md:text-[15px] text-[#9a9a9a] leading-relaxed">{step.desc}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

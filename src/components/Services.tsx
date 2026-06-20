@@ -1,6 +1,6 @@
 'use client';
-
 import { useSiteContent } from '@/hooks/useSiteContent';
+import { BarChart3, GitBranch, Brain, Handshake } from 'lucide-react';
 
 export default function Services() {
   const { getSection } = useSiteContent();
@@ -9,10 +9,10 @@ export default function Services() {
   const subtitle = section?.subtitle || 'One outcome.';
 
   const practices = [
-    { number: '01', title: 'Business Analysis' },
-    { number: '02', title: 'Process Re-engineering' },
-    { number: '03', title: 'AI-Powered Diagnostics' },
-    { number: '04', title: 'Change Enablement' },
+    { number: '01', title: 'Business Analysis', icon: BarChart3 },
+    { number: '02', title: 'Process Re-engineering', icon: GitBranch },
+    { number: '03', title: 'AI-Powered Diagnostics', icon: Brain },
+    { number: '04', title: 'Change Enablement', icon: Handshake },
   ];
 
   return (
@@ -33,15 +33,21 @@ export default function Services() {
           </div>
 
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
-            {practices.map((practice) => (
-              <div
-                key={practice.number}
-                className="border border-[#e5e5e5] rounded-sm p-6 md:p-8 hover:border-[#991930]/40 transition-colors"
-              >
-                <div className="text-[#991930] font-display text-sm mb-3">{practice.number}</div>
-                <h3 className="font-display text-xl md:text-2xl text-[#111]">{practice.title}</h3>
-              </div>
-            ))}
+            {practices.map((practice) => {
+              const Icon = practice.icon;
+              return (
+                <div
+                  key={practice.number}
+                  className="border border-[#e5e5e5] rounded-sm p-6 md:p-8 hover:border-[#991930]/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <Icon className="w-5 h-5 text-[#991930]" strokeWidth={1.5} />
+                    <span className="text-[#991930] font-display text-sm">{practice.number}</span>
+                  </div>
+                  <h3 className="font-display text-xl md:text-2xl text-[#111]">{practice.title}</h3>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

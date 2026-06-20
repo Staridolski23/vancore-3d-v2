@@ -1,13 +1,6 @@
 'use client';
-
 import Link from 'next/link';
-
-const questions = [
-  'What is the actual decision that keeps getting delayed?',
-  'Who is closest to the problem, and what do they already know?',
-  'Where does work get reinterpreted between teams?',
-  'What would good look like in 60 days?',
-];
+import VeraAvatar from './VeraAvatar';
 
 export default function AIAnalyst() {
   return (
@@ -18,9 +11,12 @@ export default function AIAnalyst() {
             <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
               — AI ANALYST
             </div>
-            <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-4">
-              Meet Vera.
-            </h2>
+            <div className="flex items-center gap-4 mb-4">
+              <VeraAvatar className="w-14 h-14" />
+              <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05]">
+                Meet Vera.
+              </h2>
+            </div>
             <p className="font-display text-xl md:text-2xl text-[#111] italic mb-5">
               Our AI does the preliminary work, so we don&apos;t waste yours.
             </p>
@@ -49,12 +45,13 @@ export default function AIAnalyst() {
             </Link>
           </div>
           <div className="border border-[#e5e5e5] rounded-sm overflow-hidden">
-            <div className="bg-[#f7f6f2] px-4 py-3 border-b border-[#e5e5e5]">
+            <div className="bg-[#f7f6f2] px-4 py-3 border-b border-[#e5e5e5] flex items-center gap-2">
+              <VeraAvatar className="w-5 h-5" />
               <div className="text-[10px] font-sans font-semibold tracking-[0.2em] text-[#6b6b6b] uppercase">Live preview</div>
             </div>
             <div className="p-5 space-y-3">
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#e5e5e5] shrink-0" />
+                <VeraAvatar className="w-6 h-6 shrink-0" />
                 <div className="rounded-2xl rounded-tl-sm bg-[#f7f6f2] border border-[#e5e5e5] px-4 py-3 text-sm text-[#111]">
                   Hello — I&apos;m Vera. May I ask a few quick questions to understand what&apos;s happening inside your company?
                 </div>
@@ -66,7 +63,7 @@ export default function AIAnalyst() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#e5e5e5] shrink-0" />
+                <VeraAvatar className="w-6 h-6 shrink-0" />
                 <div className="rounded-2xl rounded-tl-sm bg-[#f7f6f2] border border-[#e5e5e5] px-4 py-3 text-sm text-[#111]">
                   Tell me — is this a recent shift, or has it been chronic? And how many functions does the firefighting touch?
                 </div>
