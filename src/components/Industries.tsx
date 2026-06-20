@@ -1,7 +1,7 @@
 'use client';
 import { useSiteContent } from '@/hooks/useSiteContent';
 import { Hotel, ShoppingCart, Building2, Cpu } from 'lucide-react';
-import NetworkGraph from './NetworkGraph';
+import IndustriesSlideshow from './IndustriesSlideshow';
 
 const industries = [
   { id: 'horeca', name: 'Hospitality & F&B', desc: 'Operational friction in hotels and restaurants often hides behind guest-facing perfection.', icon: Hotel },
@@ -20,16 +20,16 @@ export default function Industries() {
     <section className="bg-[#050505] py-20 md:py-28">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-10">
           <h2 className="font-display text-4xl md:text-5xl text-white leading-[1.08]">{title}</h2>
           <p className="mt-5 font-sans text-base text-[#9a9a9a] leading-relaxed max-w-md">{subtitle}</p>
         </div>
 
-        {/* 3D Network Graph */}
-        <NetworkGraph />
+        {/* Interactive Slideshow */}
+        <IndustriesSlideshow />
 
         {/* Industry Cards */}
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {industries.map((item) => {
             const Icon = item.icon;
             return (
