@@ -1,9 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Text, Float, OrbitControls } from '@react-three/drei';
-import * as THREE from 'three';
+import { useState, useEffect, useRef } from 'react';
 
 const slides = [
   {
@@ -12,8 +9,8 @@ const slides = [
     mainText: '31%',
     subText: 'efficiency increase',
     detail: 'in 6 weeks',
-    description: 'A restaurant with 40 staff. Kitchen chaos, slow service, customers leaving. We analyzed the process, reorganized the flow, optimized the schedule. Result: 31% faster service, happier customers, less stress for the team.',
-    color: '#991930',
+    description: 'A restaurant with 40 staff. Kitchen chaos, slow service, customers leaving. We analyzed the process, reorganized the flow, optimized the schedule.',
+    stat: { before: 69, after: 100, label: 'Efficiency' },
     chartType: 'bar',
   },
   {
@@ -21,194 +18,150 @@ const slides = [
     industry: 'E-commerce',
     mainText: '24%',
     subText: 'fewer support tickets',
-    detail: 'automated solutions',
-    description: 'An online store with 500 orders daily. A team of 3 was drowning in repetitive inquiries. We implemented a self-service portal with AI chatbot. Result: 24% fewer tickets, the team focuses on growth, customers get instant answers.',
-    color: '#22c55e',
-    chartType: 'arrow',
+    detail: 'self-service + AI chatbot',
+    description: 'An online store with 500 orders daily. A team of 3 was drowning in repetitive inquiries. We implemented a self-service portal with AI chatbot.',
+    stat: { before: 100, after: 76, label: 'Tickets' },
+    chartType: 'line',
   },
   {
     id: 3,
     industry: 'SME',
     mainText: '100%',
-    subText: 'business visibility',
-    detail: 'leadership knows where every deal stands',
-    description: 'An IT company with 15 people. The founder knew everything in their head, but no one else could make decisions. We created a transparent pipeline, documented processes, trained the team. Result: every leader sees the state of the business in real time.',
-    color: '#991930',
+    subText: 'pipeline visibility',
+    detail: 'real-time business insights',
+    description: 'An IT company with 15 people. The founder knew everything in their head, but no one else could make decisions. We created a transparent pipeline.',
+    stat: { before: 0, after: 100, label: 'Visibility' },
     chartType: 'funnel',
   },
   {
     id: 4,
     industry: 'Logistics',
     mainText: '20min',
-    subText: 'instead of 2 hours waiting',
-    detail: 'optimized delivery scheduling',
-    description: 'A logistics company with 30 vehicles. Schedule chaos, customers waiting, drivers colliding. We analyzed routes, optimized distribution, implemented intelligent scheduling. Result: deliveries in 20 minutes instead of 2 hours, costs reduced by 18%.',
-    color: '#991930',
-    chartType: 'clock',
+    subText: 'instead of 2 hours',
+    detail: '18% cost reduction',
+    description: 'A logistics company with 30 vehicles. Schedule chaos, customers waiting, drivers colliding. We analyzed routes, optimized distribution.',
+    stat: { before: 120, after: 20, label: 'Wait time (min)' },
+    chartType: 'circle',
   },
 ];
 
-// 3D Bar Chart
-function BarChart3D({ color }: { color: string }) {
-  const groupRef = useRef<THREE.Group>(null);
-
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.15;
-    }
-  });
-
+function BarChart({ before, after }: { before: number; after: number }) {
   return (
-    <group ref={groupRef}>
-      {[0.5, 0.7, 0.85, 1.0].map((h, i) => (
-        <Float key={i} speed={1.5} floatIntensity={0.2}>
-          <mesh position={[(i - 1.5) * 0.9, h * 1.2, 0]}>
-            <boxGeometry args={[0.6, h * 2.4, 0.6]} />
-            <meshStandardMaterial
-              color={i === 3 ? color : '#2a2a2a'}
-              emissive={i === 3 ? color : '#000000'}
-              emissiveIntensity={i === 3 ? 0.4 : 0}
-              metalness={0.6}
-              roughness={0.3}
-            />
-          </mesh>
-        </Float>
+    <svg viewBox="0 0 200 160" className="w-full h-full">
+      {/* Grid lines */}
+      {[0, 25, 50, 75, 100].map((v) => (
+        <line key={v} x1="30" y1={140 - v} x2="190" y2={140 - v} stroke="#333" strokeWidth="0.5" />
       ))}
-      <Text position={[0, 3.2, 0]} fontSize={0.5} color={color} anchorX="center" font={undefined}>
-        31%
-      </Text>
-    </group>
+      {/* Before bar */}
+      <rect x="50" y={140 - before} width="50" height={before} fill="#333" rx="2" />
+      <text x="75" y={135 - before} textAnchor="middle" fill="#666" fontSize="10">{before}%</text>
+      {/* After bar */}
+      <rect x="120" y={140 - after} width="50" height={after} fill="#991930" rx="2">
+        <animate attributeName="height" from="0" to={after} dur="1s" fill="freeze" />
+        <animate attributeName="y" from="140" to={140 - after} dur="1s" fill="freeze" />
+      </rect>
+      <text x="145" y={135 - after} textAnchor="middle" fill="#991930" fontSize="10" fontWeight="bold">{after}%</text>
+      {/* Labels */}
+      <text x="75" y="155" textAnchor="middle" fill="#666" fontSize="9">Before</text>
+      <text x="145" y="155" textAnchor="middle" fill="#991930" fontSize="9">After</text>
+    </svg>
   );
 }
 
-// 3D Arrow Down
-function ArrowDown3D({ color }: { color: string }) {
-  const groupRef = useRef<THREE.Group>(null);
-
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.position.y = -0.5 + Math.sin(state.clock.elapsedTime * 1.5) * 0.15;
-    }
-  });
-
+function LineChart({ before, after }: { before: number; after: number }) {
+  const points = `30,${140 - before * 0.8} 80,${140 - before * 0.7} 130,${140 - after * 0.9} 190,${140 - after}`;
   return (
-    <group ref={groupRef}>
-      <mesh position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.15, 0.15, 2.5, 16]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.3} metalness={0.5} roughness={0.4} />
-      </mesh>
-      <mesh position={[0, -1, 0]} rotation={[Math.PI, 0, 0]}>
-        <coneGeometry args={[0.5, 1, 16]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} metalness={0.5} roughness={0.4} />
-      </mesh>
-      <Text position={[0, 2, 0]} fontSize={0.4} color={color} anchorX="center" font={undefined}>
-        -24%
-      </Text>
-    </group>
-  );
-}
-
-// 3D Funnel
-function Funnel3D({ color }: { color: string }) {
-  const groupRef = useRef<THREE.Group>(null);
-
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.15;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      {[0, 1, 2, 3].map((i) => (
-        <Float key={i} speed={2} floatIntensity={0.1}>
-          <mesh position={[0, 1.5 - i * 0.8, 0]}>
-            <cylinderGeometry args={[1.2 - i * 0.25, 1.0 - i * 0.25, 0.5, 32]} />
-            <meshStandardMaterial
-              color={i === 3 ? color : '#1a1a1a'}
-              emissive={i === 3 ? color : '#000000'}
-              emissiveIntensity={i === 3 ? 0.5 : 0}
-              metalness={0.7}
-              roughness={0.2}
-              transparent
-              opacity={0.9}
-            />
-          </mesh>
-        </Float>
+    <svg viewBox="0 0 200 160" className="w-full h-full">
+      {/* Grid */}
+      {[0, 25, 50, 75, 100].map((v) => (
+        <line key={v} x1="30" y1={140 - v} x2="190" y2={140 - v} stroke="#333" strokeWidth="0.5" />
       ))}
-      <pointLight position={[0, -1.5, 0]} color={color} intensity={2} distance={5} />
-    </group>
+      {/* Area fill */}
+      <polygon points={`30,140 ${points} 190,140`} fill="url(#redGradient)" opacity="0.3" />
+      {/* Line */}
+      <polyline points={points} fill="none" stroke="#991930" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <animate attributeName="stroke-dashoffset" from="500" to="0" dur="1.5s" fill="freeze" />
+      </polyline>
+      {/* Dots */}
+      <circle cx="30" cy={140 - before * 0.8} r="4" fill="#333" />
+      <circle cx="190" cy={140 - after} r="5" fill="#991930">
+        <animate attributeName="r" from="0" to="5" dur="0.5s" begin="1s" fill="freeze" />
+      </circle>
+      {/* Labels */}
+      <text x="30" y="155" textAnchor="middle" fill="#666" fontSize="9">Week 1</text>
+      <text x="190" y="155" textAnchor="middle" fill="#991930" fontSize="9">Week 8</text>
+      <defs>
+        <linearGradient id="redGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#991930" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#991930" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+    </svg>
   );
 }
 
-// 3D Clock
-function Clock3D({ color }: { color: string }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const handRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
-    }
-    if (handRef.current) {
-      handRef.current.rotation.z = -(state.clock.elapsedTime * 0.3) * (Math.PI / 6);
-    }
-  });
-
+function FunnelChart({ after }: { after: number }) {
+  const stages = [
+    { label: 'Leads', width: 160, percent: 100 },
+    { label: 'Qualified', width: 120, percent: 65 },
+    { label: 'Proposal', width: 80, percent: 40 },
+    { label: 'Closed', width: 50, percent: after },
+  ];
   return (
-    <group ref={groupRef}>
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[1.5, 1.5, 0.15, 32]} />
-        <meshStandardMaterial color="#1a1a1a" metalness={0.8} roughness={0.2} />
-      </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.5, 0.08, 16, 32]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} metalness={0.6} roughness={0.3} />
-      </mesh>
-      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => (
-        <mesh key={i} position={[Math.sin((i * Math.PI) / 6) * 1.2, 0.09, Math.cos((i * Math.PI) / 6) * 1.2]}>
-          <boxGeometry args={[0.08, 0.02, 0.08]} />
-          <meshStandardMaterial color={i % 3 === 0 ? color : '#444444'} />
-        </mesh>
-      ))}
-      <mesh ref={handRef} position={[0, 0.12, 0]}>
-        <boxGeometry args={[0.06, 1.0, 0.03]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} />
-      </mesh>
-      <mesh position={[0, 0.15, 0]}>
-        <sphereGeometry args={[0.12, 16, 16]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} />
-      </mesh>
-      <Text position={[0, 2, 0]} fontSize={0.3} color="white" anchorX="center" font={undefined}>
-        2h → 20min
-      </Text>
-    </group>
+    <svg viewBox="0 0 200 160" className="w-full h-full">
+      {stages.map((stage, i) => {
+        const x = (200 - stage.width) / 2;
+        const y = 20 + i * 32;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={stage.width} height="24" fill={i === 3 ? '#991930' : '#333'} rx="2">
+              {i === 3 && <animate attributeName="opacity" from="0" to="1" dur="0.5s" begin={`${i * 0.3}s`} fill="freeze" />}
+            </rect>
+            <text x="100" y={y + 16} textAnchor="middle" fill="white" fontSize="9" fontWeight={i === 3 ? 'bold' : 'normal'}>
+              {stage.label} — {stage.percent}%
+            </text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
-function SlideContent({ chartType, color }: { chartType: string; color: string }) {
+function CircleChart({ before, after }: { before: number; after: number }) {
+  const beforeR = 50;
+  const afterR = 15;
+  return (
+    <svg viewBox="0 0 200 160" className="w-full h-full">
+      {/* Before circle */}
+      <circle cx="100" cy="80" r={beforeR} fill="none" stroke="#333" strokeWidth="8" />
+      <text x="100" y="75" textAnchor="middle" fill="#666" fontSize="12" fontWeight="bold">120min</text>
+      <text x="100" y="90" textAnchor="middle" fill="#666" fontSize="8">BEFORE</text>
+      {/* After circle */}
+      <circle cx="100" cy="80" r={afterR} fill="#991930">
+        <animate attributeName="r" from="0" to={afterR} dur="1s" fill="freeze" />
+      </circle>
+      <text x="100" y="75" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">20min</text>
+      <text x="100" y="90" textAnchor="middle" fill="#991930" fontSize="8">AFTER</text>
+      {/* Arrow */}
+      <path d="M100 140 L100 150" stroke="#991930" strokeWidth="2" markerEnd="url(#arrowhead)" />
+      <text x="100" y="155" textAnchor="middle" fill="#22c55e" fontSize="9" fontWeight="bold">-83%</text>
+      <defs>
+        <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <polygon points="0 0, 6 3, 0 6" fill="#991930" />
+        </marker>
+      </defs>
+    </svg>
+  );
+}
+
+function Chart({ chartType, stat }: { chartType: string; stat: { before: number; after: number; label: string } }) {
   switch (chartType) {
-    case 'bar': return <BarChart3D color={color} />;
-    case 'arrow': return <ArrowDown3D color={color} />;
-    case 'funnel': return <Funnel3D color={color} />;
-    case 'clock': return <Clock3D color={color} />;
+    case 'bar': return <BarChart before={stat.before} after={stat.after} />;
+    case 'line': return <LineChart before={stat.before} after={stat.after} />;
+    case 'funnel': return <FunnelChart after={stat.after} />;
+    case 'circle': return <CircleChart before={stat.before} after={stat.after} />;
     default: return null;
   }
-}
-
-function Scene({ slideIndex }: { slideIndex: number }) {
-  const slide = slides[slideIndex];
-  return (
-    <>
-      <ambientLight intensity={0.3} />
-      <pointLight position={[5, 5, 5]} intensity={1.5} />
-      <pointLight position={[-5, 3, -5]} intensity={0.5} color="#991930" />
-      <Suspense fallback={null}>
-        <SlideContent chartType={slide.chartType} color={slide.color} />
-      </Suspense>
-      <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} />
-    </>
-  );
 }
 
 export default function IndustriesSlideshow() {
@@ -243,15 +196,15 @@ export default function IndustriesSlideshow() {
           </p>
         </div>
 
-        {/* Right: 3D Graphic */}
-        <div className="h-[350px] lg:h-[400px] bg-[#050505] relative">
-          <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
-            <Scene slideIndex={currentSlide} />
-          </Canvas>
+        {/* Right: Chart */}
+        <div className="h-[350px] lg:h-[400px] bg-[#050505] flex items-center justify-center p-8">
+          <div className="w-full h-full max-w-[300px]">
+            <Chart chartType={slide.chartType} stat={slide.stat} />
+          </div>
         </div>
       </div>
 
-      {/* Bottom: Indicators + Navigation */}
+      {/* Bottom: Indicators */}
       <div className="bg-[#0a0a0a] px-8 py-4 flex items-center justify-between border-t border-white/5">
         <div className="flex gap-2">
           {slides.map((_, i) => (
