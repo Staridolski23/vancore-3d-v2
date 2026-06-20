@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Accent line -->
+  <rect x="0" y="0" width="8" height="630" fill="#991930"/>
+  
+  <!-- Logo box -->
+  <rect x="100" y="240" width="120" height="120" fill="#991930" rx="4"/>
+  <text x="160" y="315" dominant-baseline="middle" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-size="72" fill="white">V</text>
+  
+  <!-- Brand name -->
+  <text x="260" y="290" font-family="Georgia, serif" font-weight="bold" font-size="56" fill="white">VANCORE</text>
+  <text x="260" y="330" font-family="Inter, sans-serif" font-weight="600" font-size="24" fill="#991930" letter-spacing="8">SYSTEMS</text>
+  
+  <!-- Tagline -->
+  <text x="100" y="420" font-family="Inter, sans-serif" font-size="28" fill="#cccccc">AI-Powered Business Analysis</text>
+  
+  <!-- Decorative line -->
+  <rect x="100" y="460" width="200" height="3" fill="#991930"/>
+  
+  <!-- URL -->
+  <text x="100" y="500" font-family="Inter, sans-serif" font-size="18" fill="#666666">vancoresys.com</text>
+</svg>
