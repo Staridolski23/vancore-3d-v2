@@ -21,12 +21,12 @@ const API = '';
 const PAGE_TYPE_IDS = new Set<string>();
 
 const DEFAULT_SECTIONS_DICT: Record<string, { title: string; subtitle: string; type?: string; body?: string; slides?: { id: string; title?: string; subtitle?: string; image?: string }[] }> = {
-  hero: { title: 'The biggest operational gaps we fix', subtitle: 'Business analysis, AI diagnostics, and delivery.', type: 'hero', body: '<p>Use this area for formatted editor content.</p>' },
-  services: { title: 'What we analyse', subtitle: '10 core business aspects', type: 'services', body: '' },
-  methodology: { title: 'Our methodology', subtitle: 'Step by step', type: 'methodology', body: '' },
+  hero: { title: 'The clarity your company has been missing.', subtitle: 'A husband-and-wife consultancy for the messy, internal problems — the ones org charts hide and quarterly reports can\'t reach.', type: 'hero', body: '<p>Use this area for formatted editor content.</p>' },
+  services: { title: 'What we analyze', subtitle: 'Four practices. One outcome.', type: 'services', body: '' },
+  methodology: { title: 'Our Method', subtitle: 'We start small, ask sharp, and listen longer.', type: 'methodology', body: '' },
   industries: { title: 'Industries', subtitle: 'Focus sectors', type: 'industries', body: '' },
   team: { title: 'The team behind VANCORE', subtitle: 'People and agents', type: 'team', body: '' },
-  contact: { title: 'Start the change', subtitle: 'Write to us', type: 'contact', body: '' },
+  contact: { title: 'Let\'s talk', subtitle: 'By appointment only', type: 'contact', body: '' },
   chat: { title: 'FREE AI ANALYSIS', subtitle: 'Describe your problem', type: 'chat', body: '' },
   footer: { title: 'Footer', subtitle: 'Additional information', type: 'footer', body: '<p>© 2026 VANCORE</p>' },
 };
@@ -50,7 +50,6 @@ export default function AdminPage() {
   const [view, setView] = useState<AdminView>('dashboard');
   const [error, setError] = useState('');
 
-  // Editor state
   const [sections, setSections] = useState<Record<string, AdminSection>>(DEFAULT_SECTIONS_DICT as any);
   const [order, setOrder] = useState<string[]>(Object.keys(DEFAULT_SECTIONS_DICT));
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -60,7 +59,7 @@ export default function AdminPage() {
   const [slides, setSlides] = useState<{ id: string; title?: string; subtitle?: string; image?: string }[]>([]);
   const [media, setMedia] = useState<{ id: string; url: string; type: 'image' | 'video'; caption?: string }[]>([]);
   const [footerText, setFooterText] = useState('© 2026 VANCORE');
-  const [contactEmail, setContactEmail] = useState('office@vancore.bg');
+  const [contactEmail, setContactEmail] = useState('hello@vancoresys.com');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -192,7 +191,7 @@ export default function AdminPage() {
     setEditBody((sec as any).body || '');
     setSlides((sec as any).slides || []);
     setFooterText((sec as any).footerText || '© 2026 VANCORE');
-    setContactEmail((sec as any).contactEmail || 'office@vancore.bg');
+    setContactEmail((sec as any).contactEmail || 'hello@vancoresys.com');
   };
 
   const saveSection = async () => {
@@ -257,18 +256,18 @@ export default function AdminPage() {
         setSelectedId(id);
         setEditTitle(title);
         setEditSubtitle(subtitle);
-        setStatus('✅ Секцията е добавена');
+        setStatus('Section added');
       } else {
-        setStatus('❌ Не успя да добави секция');
+        setStatus('Could not add section');
       }
     } catch {
-      setStatus('❌ Грешка при добавяне');
+      setStatus('Error adding section');
     }
   };
 
   const deleteSection = async (id: string) => {
     if (!id) return;
-    if (!window.confirm('Сигурни ли сте, че искате да изтриете тази секция?')) return;
+    if (!window.confirm('Are you sure you want to delete this section?')) return;
     try {
       const res = await fetch(`${API}/api/admin/sections/${id}`, {
         method: 'DELETE',
@@ -280,25 +279,25 @@ export default function AdminPage() {
         const nextOrder = order.filter((x) => x !== id);
         rebuildStacks(nextSections, nextOrder);
         if (selectedId === id) setSelectedId(null);
-        setStatus('✅ Секцията е изтрита');
+        setStatus('Section deleted');
       } else {
-        setStatus('❌ Не успя да изтрие секция');
+        setStatus('Could not delete section');
       }
     } catch {
-      setStatus('❌ Грешка при изтриване');
+      setStatus('Error deleting section');
     }
   };
 
   const exportPreview = () => {
     const previewHtml = `<!DOCTYPE html>
-<html lang="bg">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VANCORE Preview</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    :root { --button-color: ${sections[selectedId || '']?.styles?.buttonColor || '#d4af37'}; --heading-font: ${sections[selectedId || '']?.styles?.headingFont || 'Bodoni Cyrillic, serif'}; }
+    :root { --button-color: ${sections[selectedId || '']?.styles?.buttonColor || '#d4af37'}; --heading-font: ${sections[selectedId || '']?.styles?.headingFont || 'Playfair Display, serif'}; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: #0b0c10; color: #fff; }
     .section { padding: 60px 20px; max-width: 1100px; margin: 0 auto; }
@@ -326,10 +325,10 @@ export default function AdminPage() {
         credentials: 'include',
         body: JSON.stringify({ sections, order }),
       });
-      if (res.ok) setStatus('✅ Синхронизирано с живото съдържание');
-      else setStatus('❌ Неуспешна синхронизация');
+      if (res.ok) setStatus('Synced with live site');
+      else setStatus('Sync failed');
     } catch {
-      setStatus('❌ Грешка при синхронизация');
+      setStatus('Sync error');
     }
   };
 
@@ -342,7 +341,7 @@ export default function AdminPage() {
   };
 
   const addSlide = () => {
-    setSlides((prev) => [...prev, { id: `slide-${Date.now()}`, title: 'Нов слайд', subtitle: '', image: '' }]);
+    setSlides((prev) => [...prev, { id: `slide-${Date.now()}`, title: 'New slide', subtitle: '', image: '' }]);
   };
 
   const removeSlide = (index: number) => {
@@ -350,7 +349,7 @@ export default function AdminPage() {
   };
 
   const addMediaByUrl = () => {
-    const url = prompt('Въведи URL на изображение или видео');
+    const url = prompt('Enter image or video URL');
     if (!url) return;
     const item: { id: string; type: 'image' | 'video'; url: string } = {
       id: `media-${Date.now()}`,
@@ -368,7 +367,7 @@ export default function AdminPage() {
   const addPage = () => {
     const id = `page-${Date.now()}`;
     const nextOrder = [...order, id];
-    const nextSections = { ...sections, [id]: { title: 'Нова страница', subtitle: '', type: 'page', body: '', slides: [], media: [] } };
+    const nextSections = { ...sections, [id]: { title: 'New page', subtitle: '', type: 'page', body: '', slides: [], media: [] } };
     rebuildStacks(nextSections, nextOrder);
     setSelectedId(id);
   };
@@ -378,7 +377,7 @@ export default function AdminPage() {
   };
 
   const deletePage = (id: string) => {
-    if (!window.confirm('Изтриваш страница. Сигурен?')) return;
+    if (!window.confirm('Delete this page. Are you sure?')) return;
     const next = { ...sections }; delete next[id];
     const nextOrder = order.filter((x) => x !== id);
     rebuildStacks(next, nextOrder);
@@ -388,15 +387,15 @@ export default function AdminPage() {
   const selectedSection = sections[selectedId || ''] || null;
 
   const nav: { id: AdminView; label: string; icon: string }[] = [
-    { id: 'dashboard', label: 'Табло', icon: '🏠' },
-    { id: 'leads', label: 'Лийдове', icon: '👥' },
-    { id: 'cases', label: 'Казуси', icon: '📋' },
-    { id: 'sessions', label: 'AI Сесии', icon: '💬' },
-    { id: 'inbox', label: 'Входящи', icon: '📥' },
-    { id: 'calendar', label: 'Календар', icon: '📅' },
-    { id: 'analysis', label: 'Анализ', icon: '📊' },
-    { id: 'activity', label: 'Дейности', icon: '📋' },
-    { id: 'editor', label: 'Редактор', icon: '🎨' },
+    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
+    { id: 'leads', label: 'Leads', icon: '👥' },
+    { id: 'cases', label: 'Cases', icon: '📋' },
+    { id: 'sessions', label: 'AI Sessions', icon: '💬' },
+    { id: 'inbox', label: 'Inbox', icon: '📥' },
+    { id: 'calendar', label: 'Calendar', icon: '📅' },
+    { id: 'analysis', label: 'Analysis', icon: '📊' },
+    { id: 'activity', label: 'Activity', icon: '📋' },
+    { id: 'editor', label: 'Editor', icon: '🎨' },
   ];
 
   if (!isLoggedIn) {
@@ -406,19 +405,19 @@ export default function AdminPage() {
           <div className="text-center mb-8">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-400 flex items-center justify-center text-black text-2xl font-bold mx-auto mb-4">V</div>
             <h1 className="text-2xl font-bold text-white">VANCORE Admin</h1>
-            <p className="text-gray-400 text-sm mt-1">Само за екип</p>
+            <p className="text-gray-400 text-sm mt-1">Team only</p>
           </div>
           <form onSubmit={handleLogin} className="rounded-2xl p-6 border border-amber-500/20 bg-white/5 space-y-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-2">Имейл</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/40" />
+              <label htmlFor="adminEmail" className="block text-xs text-gray-400 mb-2">Email</label>
+              <input id="adminEmail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/40" />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-2">Парола</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/40" />
+              <label htmlFor="adminPassword" className="block text-xs text-gray-400 mb-2">Password</label>
+              <input id="adminPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/40" />
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
-            <button type="submit" className="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-semibold">Вход</button>
+            <button type="submit" className="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-semibold">Sign in</button>
           </form>
         </div>
       </div>
@@ -435,7 +434,7 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-400">{user?.name}</span>
-            <button onClick={logout} className="text-xs text-gray-400 hover:text-amber-500">Изход</button>
+            <button onClick={logout} className="text-xs text-gray-400 hover:text-amber-500">Sign out</button>
           </div>
         </div>
       </header>
@@ -453,13 +452,13 @@ export default function AdminPage() {
           {view === 'dashboard' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: 'Лийдове', value: stats.leads },
-                { label: 'Нови седмицата', value: stats.leads_week },
-                { label: 'AI Сесии', value: stats.sessions },
-                { label: 'Казуси', value: stats.cases },
-                { label: 'Потребители', value: stats.users },
-                { label: 'Срещи', value: stats.meetings },
-                { label: 'Дейности', value: stats.activities },
+                { label: 'Leads', value: stats.leads },
+                { label: 'New this week', value: stats.leads_week },
+                { label: 'AI Sessions', value: stats.sessions },
+                { label: 'Cases', value: stats.cases },
+                { label: 'Users', value: stats.users },
+                { label: 'Meetings', value: stats.meetings },
+                { label: 'Activities', value: stats.activities },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
                   <div className="text-2xl font-bold">{s.value}</div>
@@ -473,13 +472,13 @@ export default function AdminPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold">🎨 Редактор на сайта</h2>
-                  <p className="text-sm text-gray-400 mt-1">Редактирай подредба, стилове и съдържание на секциите.</p>
+                  <h2 className="text-xl font-bold">🎨 Site Editor</h2>
+                  <p className="text-sm text-gray-400 mt-1">Edit layout, styles, and content of sections.</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={loadContent} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm">🔄 Презареди</button>
+                  <button onClick={loadContent} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm">🔄 Reload</button>
                   <button onClick={exportPreview} className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm">👁 Preview</button>
-                  <button onClick={syncLiveSite} className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-sm">🚀 Синхронизирай</button>
+                  <button onClick={syncLiveSite} className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-sm">🚀 Sync</button>
                 </div>
               </div>
 
@@ -493,14 +492,14 @@ export default function AdminPage() {
               </div>
 
               {status && (
-                <div className={`rounded-lg border px-4 py-2 text-sm ${status.includes('✅') ? 'border-green-500/30 bg-green-500/10 text-green-400' : status.includes('❌') ? 'border-red-500/30 bg-red-500/10 text-red-400' : 'border-white/10 bg-white/5 text-gray-400'}`}>{status}</div>
+                <div className={`rounded-lg border px-4 py-2 text-sm ${status.includes('✅') || status.includes('Saved') || status.includes('Synced') ? 'border-green-500/30 bg-green-500/10 text-green-400' : status.includes('❌') || status.includes('failed') || status.includes('Error') ? 'border-red-500/30 bg-red-500/10 text-red-400' : 'border-white/10 bg-white/5 text-gray-400'}`}>{status}</div>
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-4">
                 <aside className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold text-gray-400 uppercase">Страници</h3>
-                    <button onClick={addPage} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs">+ Страница</button>
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase">Pages</h3>
+                    <button onClick={addPage} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs">+ Page</button>
                   </div>
                   <div className="space-y-1">
                     {order.map((id, idx) => (
@@ -522,7 +521,7 @@ export default function AdminPage() {
                             reorderSections(next);
                           }}
                           className="w-6 text-center text-xs text-gray-400 select-none"
-                          aria-label="Преди"
+                          aria-label="Drag to reorder"
                         >☰</button>
                         <button
                           onClick={() => selectSection(id)}
@@ -552,16 +551,20 @@ export default function AdminPage() {
                     <div className="space-y-3">
                       <h3 className="font-semibold text-lg">{SECTION_LABELS[selectedId || ''] || selectedId}</h3>
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Заглавие</label>
-                        <input className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                        <label htmlFor="editTitle" className="block text-xs text-gray-400 mb-1">Title</label>
+                        <input id="editTitle" className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-400 mb-1">Съдържание</label>
-                        <RichTextEditor value={editBody} onChange={setEditBody} placeholder="Свободен текст за секцията..." />
+                        <label htmlFor="editSubtitle" className="block text-xs text-gray-400 mb-1">Subtitle</label>
+                        <input id="editSubtitle" className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={editSubtitle} onChange={(e) => setEditSubtitle(e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Content</label>
+                        <RichTextEditor value={editBody} onChange={setEditBody} placeholder="Free text for the section..." />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Цвят на бутони</label>
+                          <label className="block text-xs text-gray-400 mb-1">Button color</label>
                           <input type="color" className="w-full h-9 rounded bg-black/40 border border-white/10" value={selectedSection?.styles?.buttonColor || '#d4af37'} onChange={async (e) => {
                             const next = { ...(selectedSection?.styles || {}), buttonColor: e.target.value };
                             setSections((prev) => ({ ...prev, [selectedId as string]: { ...(prev[selectedId as string] || {}), styles: next } }));
@@ -569,51 +572,51 @@ export default function AdminPage() {
                           }} />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Шрифт на заглавия</label>
-                          <select className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={selectedSection?.styles?.headingFont || 'Bodoni Cyrillic'} onChange={async (e) => {
+                          <label className="block text-xs text-gray-400 mb-1">Heading font</label>
+                          <select className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={selectedSection?.styles?.headingFont || 'Playfair Display'} onChange={async (e) => {
                             const next = { ...(selectedSection?.styles || {}), headingFont: e.target.value };
                             setSections((prev) => ({ ...prev, [selectedId as string]: { ...(prev[selectedId as string] || {}), styles: next } }));
                             await fetch(`${API}/api/admin/sections/${selectedId}/styles`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ styles: next }) });
                           }}>
-                            <option>Bodoni Cyrillic</option>
+                            <option>Playfair Display</option>
                             <option>Inter</option>
                             <option>Roboto</option>
                           </select>
                         </div>
                       </div>
                       <button onClick={saveSection} disabled={saving} className="px-5 py-2 rounded bg-yellow-500 text-black font-semibold text-sm disabled:opacity-50">
-                        {saving ? 'Запазване...' : '💾 Запази'}
+                        {saving ? 'Saving...' : '💾 Save'}
                       </button>
                       <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-2">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-semibold text-gray-300">Медия (URL)</h4>
-                          <button onClick={addMediaByUrl} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs">+ Добави медия</button>
+                          <h4 className="text-xs font-semibold text-gray-300">Media (URL)</h4>
+                          <button onClick={addMediaByUrl} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs">+ Add media</button>
                         </div>
                         {media.map((item, index) => (
                           <div key={item.id} className="grid grid-cols-1 gap-1 rounded border border-white/10 bg-black/40 p-2">
                             <input className="w-full rounded bg-black/40 border border-white/10 px-2 py-1 text-xs text-white" placeholder="https://..." value={item.url} onChange={(e) => updateMedia(index, { url: e.target.value })} />
-                            <input className="w-full rounded bg-black/40 border border-white/10 px-2 py-1 text-xs text-white" placeholder="Подпис (незадължително)" value={item.caption || ''} onChange={(e) => updateMedia(index, { caption: e.target.value })} />
+                            <input className="w-full rounded bg-black/40 border border-white/10 px-2 py-1 text-xs text-white" placeholder="Caption (optional)" value={item.caption || ''} onChange={(e) => updateMedia(index, { caption: e.target.value })} />
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-gray-500">{item.type === 'video' ? '🎬 Видео' : '🖼 Снимка'}</span>
-                              <button onClick={() => removeMedia(index)} className="text-[10px] text-red-300 hover:text-red-400">Премахни</button>
+                              <span className="text-[10px] text-gray-500">{item.type === 'video' ? '🎬 Video' : '🖼 Image'}</span>
+                              <button onClick={() => removeMedia(index)} className="text-[10px] text-red-300 hover:text-red-400">Remove</button>
                             </div>
                           </div>
                         ))}
-                        {!media.length && <p className="text-xs text-gray-500">Няма медия. Добави URL на снимка или видео.</p>}
+                        {!media.length && <p className="text-xs text-gray-500">No media. Add an image or video URL.</p>}
                       </div>
                       <div className="grid grid-cols-1 gap-3">
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Footer текст</label>
+                          <label className="block text-xs text-gray-400 mb-1">Footer text</label>
                           <input className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={footerText} onChange={(e) => setFooterText(e.target.value)} />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Контакт имейл</label>
+                          <label className="block text-xs text-gray-400 mb-1">Contact email</label>
                           <input className="w-full rounded bg-black/40 border border-white/10 px-3 py-2 text-sm text-white" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400">👈 Избери секция отляво, за да редактираш съдържанието и стиловете.</p>
+                    <p className="text-sm text-gray-400">👈 Select a section on the left to edit content and styles.</p>
                   )}
                 </section>
               </div>
@@ -622,7 +625,7 @@ export default function AdminPage() {
 
           {(view === 'leads' || view === 'cases' || view === 'sessions' || view === 'inbox' || view === 'calendar' || view === 'analysis' || view === 'activity') && (
             <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-              <p className="text-gray-400 text-sm">Секцията "{view}" се зарежда от сървъра. Данните ще се появят след зареждане.</p>
+              <p className="text-gray-400 text-sm">The "{view}" section loads from the server. Data will appear after loading.</p>
             </div>
           )}
         </div>

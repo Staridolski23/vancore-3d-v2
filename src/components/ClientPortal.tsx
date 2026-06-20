@@ -29,7 +29,6 @@ export default function ClientPortal() {
   const [confirmed, setConfirmed] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'book' | 'meetings'>('book');
 
-  // Check for existing session
   useEffect(() => {
     const saved = localStorage.getItem('vancore_client_token');
     if (saved) {
@@ -38,7 +37,6 @@ export default function ClientPortal() {
     }
   }, []);
 
-  // Load meetings when logged in
   useEffect(() => {
     if (!isLoggedIn || !token) return;
     const loadMeetings = async () => {
@@ -52,7 +50,6 @@ export default function ClientPortal() {
     loadMeetings();
   }, [isLoggedIn, token]);
 
-  // Load slots when date changes
   useEffect(() => {
     if (!date) { setSlots([]); return; }
     let cancelled = false;
@@ -92,7 +89,7 @@ export default function ClientPortal() {
       });
       const data = await res.json();
       if (!res.ok || !data?.token) {
-        setAuthError(data?.error || (authMode === 'login' ? 'Невалиден имейл или парола.' : 'Грешка при регистрация.'));
+        setAuthError(data?.error || (authMode === 'login' ? 'Invalid email or password.' : 'Registration failed.'));
         return;
       }
       setToken(data.token);
@@ -104,7 +101,7 @@ export default function ClientPortal() {
         setCompany(data.user.company || '');
       }
     } catch {
-      setAuthError('Грешка при свързване със сървъра.');
+      setAuthError('Connection error. Please try again.');
     } finally {
       setAuthLoading(false);
     }
@@ -130,23 +127,22 @@ export default function ClientPortal() {
       setConfirmed(selectedSlot);
       setSelectedSlot(null);
     } catch {
-      alert('Неуспешно запазване. Опитайте отново.');
+      alert('Booking failed. Please try again.');
     }
   };
 
-  // ─── Auth Screen ───
   if (!isLoggedIn) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-black mb-2">
-              {authMode === 'login' ? 'Вход' : 'Регистрация'}
+              {authMode === 'login' ? 'Sign in' : 'Register'}
             </h2>
             <p className="text-sm text-vancore-muted">
               {authMode === 'login'
-                ? 'Влезте в клиентския си портал за да управлявайте анализите и срещите си.'
-                : 'Създайте акаунт за да запазвате часове и да следите анализите си.'}
+                ? 'Sign in to your client portal to manage analyses and meetings.'
+                : 'Create an account to book meetings and track your analyses.'}
             </p>
           </div>
 
@@ -155,13 +151,13 @@ export default function ClientPortal() {
               onClick={() => { setAuthMode('login'); setAuthError(''); }}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'login' ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
             >
-              Вход
+              Sign in
             </button>
             <button
               onClick={() => { setAuthMode('register'); setAuthError(''); }}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'register' ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
             >
-              Регистрация
+              Register
             </button>
           </div>
 
@@ -169,29 +165,32 @@ export default function ClientPortal() {
             {authMode === 'register' && (
               <>
                 <div>
-                  <label className="block text-xs text-vancore-muted mb-1">Име и фамилия</label>
+                  <label htmlFor="authName" className="block text-xs text-vancore-muted mb-1">Full name</label>
                   <input
+                    id="authName"
                     value={authName}
                     onChange={(e) => setAuthName(e.target.value)}
-                    placeholder="Иван Иванов"
+                    placeholder="John Doe"
                     required
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light placeholder:text-white/30 focus:outline-none focus:border-vancore-bronze/40"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-vancore-muted mb-1">Компания</label>
+                  <label htmlFor="authCompany" className="block text-xs text-vancore-muted mb-1">Company</label>
                   <input
+                    id="authCompany"
                     value={authCompany}
                     onChange={(e) => setAuthCompany(e.target.value)}
-                    placeholder="Име на компанията"
+                    placeholder="Company name"
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light placeholder:text-white/30 focus:outline-none focus:border-vancore-bronze/40"
                   />
                 </div>
               </>
             )}
             <div>
-              <label className="block text-xs text-vancore-muted mb-1">Имейл</label>
+              <label htmlFor="authEmail" className="block text-xs text-vancore-muted mb-1">Email</label>
               <input
+                id="authEmail"
                 type="email"
                 value={authEmail}
                 onChange={(e) => setAuthEmail(e.target.value)}
@@ -201,8 +200,9 @@ export default function ClientPortal() {
               />
             </div>
             <div>
-              <label className="block text-xs text-vancore-muted mb-1">Парола</label>
+              <label htmlFor="authPassword" className="block text-xs text-vancore-muted mb-1">Password</label>
               <input
+                id="authPassword"
                 type="password"
                 value={authPassword}
                 onChange={(e) => setAuthPassword(e.target.value)}
@@ -220,7 +220,7 @@ export default function ClientPortal() {
               disabled={authLoading}
               className="w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold disabled:opacity-50"
             >
-              {authLoading ? 'Зареждане...' : authMode === 'login' ? 'Влез' : 'Регистрирай се'}
+              {authLoading ? 'Loading...' : authMode === 'login' ? 'Sign in' : 'Register'}
             </button>
           </form>
         </div>
@@ -228,12 +228,11 @@ export default function ClientPortal() {
     );
   }
 
-  // ─── Logged In Screen ───
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Здравейте, {name || email}</h2>
-        <button onClick={logout} className="text-xs text-vancore-muted hover:text-vancore-bronze">Изход</button>
+        <h2 className="text-xl font-bold">Welcome, {name || email}</h2>
+        <button onClick={logout} className="text-xs text-vancore-muted hover:text-vancore-bronze">Sign out</button>
       </div>
 
       <div className="flex gap-2">
@@ -241,58 +240,58 @@ export default function ClientPortal() {
           onClick={() => setActiveTab('book')}
           className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'book' ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
         >
-          📅 Запази час
+          📅 Book a meeting
         </button>
         <button
           onClick={() => setActiveTab('meetings')}
           className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'meetings' ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
         >
-          📋 Моите срещи ({meetings.length})
+          📋 My meetings ({meetings.length})
         </button>
       </div>
 
       {activeTab === 'book' && (
         <div className="glass rounded-2xl p-6 border border-white/5 space-y-5">
           <div>
-            <label className="block text-xs text-vancore-muted mb-2">Изберете дата</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-vancore-light" />
+            <label htmlFor="date" className="block text-xs text-vancore-muted mb-2">Select date</label>
+            <input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-vancore-light" />
           </div>
 
           <div>
-            <label className="block text-xs text-vancore-muted mb-2">Свободни часове</label>
+            <label className="block text-xs text-vancore-muted mb-2">Available slots</label>
             <div className="grid grid-cols-3 gap-2">
               {slots.map((slot) => (
                 <button key={slot} onClick={() => setSelectedSlot(slot)} className={`px-3 py-2 rounded-lg text-xs font-medium border transition-colors ${selectedSlot === slot ? 'border-vancore-bronze bg-vancore-bronze/10 text-vancore-light' : 'border-white/10 text-vancore-muted hover:border-vancore-bronze/40'}`}>{slot}</button>
               ))}
-              {slots.length === 0 && <div className="text-xs text-vancore-muted col-span-3">Няма свободни часове за тази дата.</div>}
+              {slots.length === 0 && <div className="text-xs text-vancore-muted col-span-3">No available slots for this date.</div>}
             </div>
           </div>
 
           {selectedSlot && !confirmed && (
             <div className="space-y-3">
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Име Фамилия" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
-              <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Имейл" type="email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
-              <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Компания" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
-              <button onClick={book} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold">Запази час</button>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
+              <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
+              <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
+              <button onClick={book} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold">Book meeting</button>
             </div>
           )}
 
-          {confirmed && <p className="text-sm text-green-400 text-center">✅ Часът {confirmed} е запазен. Ще се свържем с вас.</p>}
+          {confirmed && <p className="text-sm text-green-400 text-center">✅ Meeting at {confirmed} is booked. We'll be in touch.</p>}
         </div>
       )}
 
       {activeTab === 'meetings' && (
         <div className="glass rounded-2xl p-6 border border-white/5">
           {meetings.length === 0 ? (
-            <p className="text-sm text-vancore-muted text-center">Нямате запазени срещи.</p>
+            <p className="text-sm text-vancore-muted text-center">No meetings booked yet.</p>
           ) : (
             <div className="space-y-3">
               {meetings.map((m) => (
                 <div key={m.id} className="rounded-lg border border-white/10 bg-white/5 p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{m.date} в {m.time}</span>
+                    <span className="text-sm font-medium">{m.date} at {m.time}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${m.status === 'confirmed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                      {m.status === 'confirmed' ? 'Потвърдена' : 'Чакаща'}
+                      {m.status === 'confirmed' ? 'Confirmed' : 'Pending'}
                     </span>
                   </div>
                   {m.notes && <p className="text-xs text-vancore-muted">{m.notes}</p>}
