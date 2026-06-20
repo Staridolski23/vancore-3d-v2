@@ -53,7 +53,7 @@ export default function AboutPage() {
             </div>
             <div className="space-y-5">
               <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">
-                VANCORE was founded in 2018 by Momchil Starolidolski and Zhanet Topalova. After years of working inside companies — watching good strategies fail because of internal friction, and watching small fixes create outsized impact — we decided to build a consultancy that works the way we believe consulting should work.
+                VANCORE was founded in 2026 by Momchil Starolidolski and Zhanet Topalova. After years of working inside companies — watching good strategies fail because of internal friction, and watching small fixes create outsized impact — we decided to build a consultancy that works the way we believe consulting should work.
               </p>
               <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">
                 We stay small by design. We take on a limited number of engagements so we can give each one the attention it deserves. We don't do slide decks that collect dust — we do work that changes how your company operates.
