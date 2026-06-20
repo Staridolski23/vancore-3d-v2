@@ -21,8 +21,8 @@ export default function Services() {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10 md:gap-16">
           <div className="md:max-w-sm">
             <div className="flex items-center gap-3 mb-5">
-              <div className="h-px w-8 bg-[#c94f2b]" />
-              <span className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-[#c94f2b]">
+              <div className="h-px w-8 bg-[#991930]" />
+              <span className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-[#991930]">
                 — WHAT WE DO
               </span>
             </div>
@@ -36,9 +36,9 @@ export default function Services() {
             {practices.map((practice) => (
               <div
                 key={practice.number}
-                className="border border-[#e5e5e5] rounded-sm p-6 md:p-8 hover:border-[#c94f2b]/40 transition-colors"
+                className="border border-[#e5e5e5] rounded-sm p-6 md:p-8 hover:border-[#991930]/40 transition-colors"
               >
-                <div className="text-[#c94f2b] font-display text-sm mb-3">{practice.number}</div>
+                <div className="text-[#991930] font-display text-sm mb-3">{practice.number}</div>
                 <h3 className="font-display text-xl md:text-2xl text-[#111]">{practice.title}</h3>
               </div>
             ))}

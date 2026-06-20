@@ -37,7 +37,7 @@ export default function AdminAnalysis() {
         placeholder="Опишете проблема за анализ..."
         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-vancore-light focus:outline-none focus:border-vancore-bronze/40 min-h-[120px]"
       />
-      <button onClick={runAnalysis} disabled={loading} className="px-4 py-2 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold disabled:opacity-50">
+      <button onClick={runAnalysis} disabled={loading} className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark font-semibold disabled:opacity-50">
         {loading ? 'Анализиране...' : 'Анализирай'}
       </button>
       {result && (

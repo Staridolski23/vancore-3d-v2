@@ -149,13 +149,13 @@ export default function ClientPortal() {
           <div className="flex gap-2 mb-6">
             <button
               onClick={() => { setAuthMode('login'); setAuthError(''); }}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'login' ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'login' ? 'bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
             >
               Sign in
             </button>
             <button
               onClick={() => { setAuthMode('register'); setAuthError(''); }}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'register' ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'register' ? 'bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
             >
               Register
             </button>
@@ -218,7 +218,7 @@ export default function ClientPortal() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold disabled:opacity-50"
+              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark font-semibold disabled:opacity-50"
             >
               {authLoading ? 'Loading...' : authMode === 'login' ? 'Sign in' : 'Register'}
             </button>
@@ -238,13 +238,13 @@ export default function ClientPortal() {
       <div className="flex gap-2">
         <button
           onClick={() => setActiveTab('book')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'book' ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'book' ? 'bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
         >
           📅 Book a meeting
         </button>
         <button
           onClick={() => setActiveTab('meetings')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'meetings' ? 'bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'meetings' ? 'bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
         >
           📋 My meetings ({meetings.length})
         </button>
@@ -272,7 +272,7 @@ export default function ClientPortal() {
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
               <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
               <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light" />
-              <button onClick={book} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold">Book meeting</button>
+              <button onClick={book} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark font-semibold">Book meeting</button>
             </div>
           )}
 

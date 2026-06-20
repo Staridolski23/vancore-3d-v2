@@ -52,7 +52,7 @@ function ParticleField() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.02} color="#d4af37" transparent opacity={0.5} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} />
+      <pointsMaterial size={0.02} color="#991930" transparent opacity={0.5} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} />
     </points>
   );
 }
@@ -78,7 +78,7 @@ function GlowRings() {
       </mesh>
       <mesh ref={ring2} position={[0, 0.5, -4]}>
         <torusGeometry args={[3.8, 0.01, 16, 100]} />
-        <meshStandardMaterial color="#d4af37" emissive="#d4af37" emissiveIntensity={0.4} transparent opacity={0.2} />
+        <meshStandardMaterial color="#991930" emissive="#991930" emissiveIntensity={0.4} transparent opacity={0.2} />
       </mesh>
     </group>
   );
@@ -98,7 +98,7 @@ function CameraController() {
       <ambientLight intensity={0.15} />
       <spotLight position={[5, 8, 6]} angle={0.35} penumbra={0.5} intensity={30} castShadow shadow-mapSize={[2048, 2048]} />
       <pointLight position={[-5, 2, 3]} intensity={20} color="#c9a84c" distance={20} />
-      <pointLight position={[3, -3, 2]} intensity={8} color="#d4af37" distance={12} />
+      <pointLight position={[3, -3, 2]} intensity={8} color="#991930" distance={12} />
     </group>
   );
 }

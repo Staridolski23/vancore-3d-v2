@@ -48,7 +48,7 @@ export default function AdminInbox() {
                 </div>
                 <button
                   onClick={() => replyMail(item.sender_email, item.subject)}
-                  className="px-3 py-2 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark rounded-lg text-xs font-semibold hover:shadow-lg transition-all"
+                  className="px-3 py-2 bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark rounded-lg text-xs font-semibold hover:shadow-lg transition-all"
                 >
                   Отговори с имейл
                 </button>

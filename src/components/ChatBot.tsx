@@ -55,7 +55,7 @@ export default function ChatBot() {
 
   return (
     <>
-      <button onClick={toggleChat} className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark shadow-lg flex items-center justify-center text-2xl">
+      <button onClick={toggleChat} className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark shadow-lg flex items-center justify-center text-2xl">
         {isOpen ? '✕' : '💬'}
       </button>
       {isOpen && (
@@ -98,7 +98,7 @@ export default function ChatBot() {
                   placeholder={t('chatBot.placeholder')}
                   className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-vancore-bronze/40"
                 />
-                <button onClick={sendMessage} disabled={loading || !input.trim()} className="px-4 py-2.5 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark rounded-xl text-sm font-semibold disabled:opacity-50">{t('chatBot.send')}</button>
+                <button onClick={sendMessage} disabled={loading || !input.trim()} className="px-4 py-2.5 bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark rounded-xl text-sm font-semibold disabled:opacity-50">{t('chatBot.send')}</button>
               </div>
             </div>
           </div>

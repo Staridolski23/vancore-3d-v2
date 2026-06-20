@@ -297,7 +297,7 @@ export default function AdminPage() {
   <title>VANCORE Preview</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    :root { --button-color: ${sections[selectedId || '']?.styles?.buttonColor || '#d4af37'}; --heading-font: ${sections[selectedId || '']?.styles?.headingFont || 'Playfair Display, serif'}; }
+    :root { --button-color: ${sections[selectedId || '']?.styles?.buttonColor || '#991930'}; --heading-font: ${sections[selectedId || '']?.styles?.headingFont || 'Playfair Display, serif'}; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: #0b0c10; color: #fff; }
     .section { padding: 60px 20px; max-width: 1100px; margin: 0 auto; }
@@ -403,7 +403,7 @@ export default function AdminPage() {
       <div className="min-h-screen flex items-center justify-center px-4 bg-[#0b0c10]">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-400 flex items-center justify-center text-black text-2xl font-bold mx-auto mb-4">V</div>
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#991930] to-[#991930] flex items-center justify-center text-black text-2xl font-bold mx-auto mb-4">V</div>
             <h1 className="text-2xl font-bold text-white">VANCORE Admin</h1>
             <p className="text-gray-400 text-sm mt-1">Team only</p>
           </div>
@@ -417,7 +417,7 @@ export default function AdminPage() {
               <input id="adminPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/40" />
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
-            <button type="submit" className="w-full py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-semibold">Sign in</button>
+            <button type="submit" className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#991930] to-[#991930] text-black font-semibold">Sign in</button>
           </form>
         </div>
       </div>
@@ -429,7 +429,7 @@ export default function AdminPage() {
       <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0b0c10]/80 backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-400 flex items-center justify-center text-black text-xs font-bold">V</div>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#991930] to-[#991930] flex items-center justify-center text-black text-xs font-bold">V</div>
             <span className="font-bold text-sm tracking-wider">VAN<span className="text-amber-500">CORE</span> Admin</span>
           </div>
           <div className="flex items-center gap-4">
@@ -442,7 +442,7 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <nav className="flex flex-wrap gap-2 mb-8">
           {nav.map((item) => (
-            <button key={item.id} onClick={() => setView(item.id)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === item.id ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-black' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
+            <button key={item.id} onClick={() => setView(item.id)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === item.id ? 'bg-gradient-to-r from-[#991930] to-[#991930] text-black' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
               <span className="mr-2">{item.icon}</span>{item.label}
             </button>
           ))}
@@ -565,7 +565,7 @@ export default function AdminPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs text-gray-400 mb-1">Button color</label>
-                          <input type="color" className="w-full h-9 rounded bg-black/40 border border-white/10" value={selectedSection?.styles?.buttonColor || '#d4af37'} onChange={async (e) => {
+                          <input type="color" className="w-full h-9 rounded bg-black/40 border border-white/10" value={selectedSection?.styles?.buttonColor || '#991930'} onChange={async (e) => {
                             const next = { ...(selectedSection?.styles || {}), buttonColor: e.target.value };
                             setSections((prev) => ({ ...prev, [selectedId as string]: { ...(prev[selectedId as string] || {}), styles: next } }));
                             await fetch(`${API}/api/admin/sections/${selectedId}/styles`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ styles: next }) });

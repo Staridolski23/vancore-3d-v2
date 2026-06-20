@@ -40,7 +40,7 @@ export default function AIAnalystPage() {
   return (
     <div className="min-h-screen bg-white border-t border-[#e5e5e5]">
       <div className="max-w-3xl mx-auto px-6 py-20">
-        <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">— AI ANALYST</div>
+        <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">— AI ANALYST</div>
         <h1 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-6">Chat with Vera.</h1>
         <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed mb-8">
           Describe your case. Vera will ask a few sharp questions and prepare a brief for our team.
@@ -73,12 +73,12 @@ export default function AIAnalystPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
               placeholder="Describe your case…"
-              className="flex-1 bg-white border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#c94f2b]/40"
+              className="flex-1 bg-white border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#991930]/40"
             />
             <button
               onClick={send}
               disabled={sending}
-              className="px-4 py-2.5 rounded-lg bg-[#c94f2b] text-white text-sm font-medium hover:bg-[#a83d1f] disabled:opacity-50"
+              className="px-4 py-2.5 rounded-lg bg-[#991930] text-white text-sm font-medium hover:bg-[#a83d1f] disabled:opacity-50"
             >
               Send
             </button>

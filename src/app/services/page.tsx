@@ -40,7 +40,7 @@ export default function ServicesPage() {
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-36 md:pb-24">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
+          <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
             — SERVICES
           </div>
           <h1 className="font-display text-5xl md:text-6xl lg:text-7xl text-[#111] leading-[1.08] mb-6 max-w-3xl">
@@ -57,8 +57,8 @@ export default function ServicesPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
             {practices.map((p) => (
-              <div key={p.number} className="border border-[#e5e5e5] rounded-sm p-6 md:p-8 hover:border-[#c94f2b]/40 transition-colors">
-                <div className="text-[#c94f2b] font-display text-sm mb-3">{p.number}</div>
+              <div key={p.number} className="border border-[#e5e5e5] rounded-sm p-6 md:p-8 hover:border-[#991930]/40 transition-colors">
+                <div className="text-[#991930] font-display text-sm mb-3">{p.number}</div>
                 <h3 className="font-display text-xl md:text-2xl text-[#111] mb-3">{p.title}</h3>
                 <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">{p.desc}</p>
               </div>
@@ -71,8 +71,8 @@ export default function ServicesPage() {
       <section className="py-16 md:py-24 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-3 mb-8">
-            <div className="h-px w-8 bg-[#c94f2b]" />
-            <span className="text-xs font-sans font-semibold tracking-[0.2em] uppercase text-[#c94f2b]">
+            <div className="h-px w-8 bg-[#991930]" />
+            <span className="text-xs font-sans font-semibold tracking-[0.2em] uppercase text-[#991930]">
               — OUR METHOD
             </span>
           </div>
@@ -88,7 +88,7 @@ export default function ServicesPage() {
                 { n: '04', t: 'Deployment', d: 'We stay until it sticks. Measured, iterated, owned by your people.' },
               ].map((s) => (
                 <div key={s.n} className="flex gap-6 md:gap-8 py-7 border-t border-white/5 first:border-t-0">
-                  <div className="text-[#c94f2b] font-display text-xl md:text-2xl leading-none pt-0.5">{s.n}</div>
+                  <div className="text-[#991930] font-display text-xl md:text-2xl leading-none pt-0.5">{s.n}</div>
                   <div className="flex-1">
                     <h3 className="font-display text-2xl md:text-3xl text-white mb-2">{s.t}</h3>
                     <p className="font-sans text-sm md:text-[15px] text-[#9a9a9a] leading-relaxed">{s.d}</p>
@@ -103,14 +103,14 @@ export default function ServicesPage() {
       {/* Industries */}
       <section className="py-16 md:py-24 border-t border-[#e5e5e5]">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
+          <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
             — INDUSTRIES
           </div>
           <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.08] mb-10">Where we show up</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {industries.map((ind) => (
               <div key={ind.name} className="border border-[#e5e5e5] rounded-sm p-5">
-                <div className="text-[#c94f2b] font-display text-sm mb-2">{ind.name}</div>
+                <div className="text-[#991930] font-display text-sm mb-2">{ind.name}</div>
                 <p className="text-xs text-[#6b6b6b] leading-relaxed">{ind.detail}</p>
               </div>
             ))}
@@ -125,7 +125,7 @@ export default function ServicesPage() {
           <p className="font-sans text-sm text-[#6b6b6b] mb-8 max-w-md mx-auto">
             Book a short call and we'll tell you honestly whether we can help.
           </p>
-          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#c94f2b] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
+          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
             Book a call
           </a>
         </div>

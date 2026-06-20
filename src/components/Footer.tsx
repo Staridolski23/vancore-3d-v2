@@ -38,7 +38,7 @@ export default function Footer() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="block text-base text-[#6b6b6b] hover:text-[#c94f2b]"
+                    className="block text-base text-[#6b6b6b] hover:text-[#991930]"
                   >
                     {link.label}
                   </a>
@@ -53,7 +53,7 @@ export default function Footer() {
               <div className="space-y-1 text-base text-[#6b6b6b]">
                 <div>{email}</div>
                 <div>By appointment only.</div>
-                <a href="/client-portal" className="inline-flex items-center gap-1 hover:text-[#c94f2b]">
+                <a href="/client-portal" className="inline-flex items-center gap-1 hover:text-[#991930]">
                   Client Portal <span aria-hidden>→</span>
                 </a>
               </div>

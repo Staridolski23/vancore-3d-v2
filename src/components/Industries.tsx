@@ -26,7 +26,7 @@ export default function Industries() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {industries.map((item) => (
               <div key={item.id} className="border border-white/5 rounded-sm p-5 hover:border-white/15 transition-colors">
-                <div className="text-[#c94f2b] font-display text-sm mb-2">{item.title}</div>
+                <div className="text-[#991930] font-display text-sm mb-2">{item.title}</div>
                 <p className="text-xs text-[#9a9a9a] leading-relaxed">{item.desc}</p>
               </div>
             ))}

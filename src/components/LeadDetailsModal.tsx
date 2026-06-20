@@ -29,7 +29,7 @@ export default function LeadDetails({ lead, onClose }: Props) {
 
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-vancore-bronze/20 to-vancore-gold/20 flex items-center justify-center text-2xl">👤</div>
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#991930]/20 to-[#991930]/20 flex items-center justify-center text-2xl">👤</div>
             <div>
               <h4 className="text-lg font-bold">{lead.name}</h4>
               <p className="text-sm text-vancore-muted">{lead.company}</p>
@@ -61,7 +61,7 @@ export default function LeadDetails({ lead, onClose }: Props) {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button className="flex-1 px-4 py-2.5 bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold rounded-xl text-sm hover:shadow-lg hover:shadow-vancore-bronze/20 transition-all">Свържи се</button>
+            <button className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark font-semibold rounded-xl text-sm hover:shadow-lg hover:shadow-vancore-bronze/20 transition-all">Свържи се</button>
             <button className="px-4 py-2.5 glass border border-white/10 text-vancore-muted rounded-xl text-sm hover:text-vancore-light transition-colors">Изпрати имейл</button>
           </div>
         </div>

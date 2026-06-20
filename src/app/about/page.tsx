@@ -30,7 +30,7 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-36 md:pb-24">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
+          <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
             — ABOUT
           </div>
           <h1 className="font-display text-5xl md:text-6xl lg:text-7xl text-[#111] leading-[1.08] mb-6 max-w-3xl">
@@ -69,18 +69,18 @@ export default function AboutPage() {
       {/* Team */}
       <section className="py-16 md:py-24 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
+          <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
             — TEAM
           </div>
           <h2 className="font-display text-4xl md:text-5xl text-white leading-[1.08] mb-12">The people behind VANCORE</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {team.map((t) => (
               <div key={t.name} className="border border-white/5 rounded-sm p-6 md:p-8">
-                <div className="w-12 h-12 rounded-full bg-[#c94f2b]/20 flex items-center justify-center mb-4">
-                  <span className="font-display text-lg text-[#c94f2b]">{t.name.charAt(0)}</span>
+                <div className="w-12 h-12 rounded-full bg-[#991930]/20 flex items-center justify-center mb-4">
+                  <span className="font-display text-lg text-[#991930]">{t.name.charAt(0)}</span>
                 </div>
                 <h3 className="font-display text-xl text-white mb-1">{t.name}</h3>
-                <div className="text-[#c94f2b] text-sm font-sans mb-3">{t.role}</div>
+                <div className="text-[#991930] text-sm font-sans mb-3">{t.role}</div>
                 <p className="font-sans text-sm text-[#9a9a9a] leading-relaxed">{t.focus}</p>
               </div>
             ))}
@@ -91,7 +91,7 @@ export default function AboutPage() {
       {/* Values */}
       <section className="py-16 md:py-24 border-t border-[#e5e5e5]">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
+          <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
             — VALUES
           </div>
           <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.08] mb-10">What we stand for</h2>
@@ -113,7 +113,7 @@ export default function AboutPage() {
           <p className="font-sans text-sm text-[#6b6b6b] mb-8 max-w-md mx-auto">
             We'd rather tell you honestly if we're not the right fit than waste your time.
           </p>
-          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#c94f2b] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
+          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
             Get in touch
           </a>
         </div>

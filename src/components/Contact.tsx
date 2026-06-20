@@ -11,7 +11,7 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           <div>
-            <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
+            <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
               — CONTACT
             </div>
             <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05]">
@@ -28,7 +28,7 @@ export default function Contact() {
                 <div className="text-[10px] font-sans font-semibold tracking-[0.2em] text-[#6b6b6b] uppercase mb-1">
                   Email
                 </div>
-                <a href="mailto:hello@vancoresys.com" className="hover:text-[#c94f2b]">
+                <a href="mailto:hello@vancoresys.com" className="hover:text-[#991930]">
                   hello@vancoresys.com
                 </a>
               </div>
@@ -37,7 +37,7 @@ export default function Contact() {
                 <div className="text-[10px] font-sans font-semibold tracking-[0.2em] text-[#6b6b6b] uppercase mb-1">
                   Client Portal
                 </div>
-                <a href="/client-portal" className="inline-flex items-center gap-2 hover:text-[#c94f2b]">
+                <a href="/client-portal" className="inline-flex items-center gap-2 hover:text-[#991930]">
                   Client Portal <span aria-hidden>→</span>
                 </a>
               </div>

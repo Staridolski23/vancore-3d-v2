@@ -17,7 +17,7 @@ export default function Stats() {
               <div className="font-display text-4xl md:text-5xl text-[#111] mb-3">
                 {item.value}
               </div>
-              <div className="h-px w-8 bg-[#c94f2b] mx-auto mb-3" />
+              <div className="h-px w-8 bg-[#991930] mx-auto mb-3" />
               <div className="text-[11px] sm:text-xs font-sans font-medium text-[#6b6b6b] tracking-[0.15em] uppercase">
                 {item.label}
               </div>

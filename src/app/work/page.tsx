@@ -37,7 +37,7 @@ export default function WorkPage() {
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-36 md:pb-24">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
+          <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
             — WORK
           </div>
           <h1 className="font-display text-5xl md:text-6xl lg:text-7xl text-[#111] leading-[1.08] mb-6 max-w-3xl">
@@ -56,7 +56,7 @@ export default function WorkPage() {
             {cases.map((c) => (
               <div key={c.client} className="py-10 md:py-14 flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                 <div className="md:max-w-md">
-                  <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-2">
+                  <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-2">
                     {c.industry}
                   </div>
                   <h3 className="font-display text-2xl md:text-3xl text-white mb-3">{c.client}</h3>
@@ -79,7 +79,7 @@ export default function WorkPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
             <div>
-              <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
+              <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
                 — PROCESS
               </div>
               <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05]">
@@ -94,7 +94,7 @@ export default function WorkPage() {
                 { n: '04', t: 'Deployment', d: 'We stay until it sticks. Measured, iterated, owned by your people.' },
               ].map((s) => (
                 <div key={s.n} className="flex gap-6">
-                  <div className="text-[#c94f2b] font-display text-lg leading-none pt-0.5">{s.n}</div>
+                  <div className="text-[#991930] font-display text-lg leading-none pt-0.5">{s.n}</div>
                   <div>
                     <h3 className="font-display text-xl text-[#111] mb-1">{s.t}</h3>
                     <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">{s.d}</p>
@@ -113,7 +113,7 @@ export default function WorkPage() {
           <p className="font-sans text-sm text-[#6b6b6b] mb-8 max-w-md mx-auto">
             We take on a limited number of engagements at a time. If the fit is right, we'll tell you.
           </p>
-          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#c94f2b] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
+          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
             Start a conversation
           </a>
         </div>

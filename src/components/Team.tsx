@@ -11,7 +11,7 @@ export default function Team() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           <div>
-            <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
+            <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
               — ABOUT
             </div>
             <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-4">

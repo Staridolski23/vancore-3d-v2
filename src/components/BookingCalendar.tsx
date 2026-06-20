@@ -72,7 +72,7 @@ export default function BookingCalendar() {
         )}
 
         {selectedSlot && !confirmed && (
-          <button onClick={() => bookSlot(selectedSlot)} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-vancore-bronze to-vancore-gold text-vancore-dark font-semibold">
+          <button onClick={() => bookSlot(selectedSlot)} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark font-semibold">
             Запази {selectedSlot}
           </button>
         )}

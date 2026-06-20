@@ -11,7 +11,7 @@ export default function Work() {
   return (
     <section id="work" className="bg-[#050505] py-20 md:py-28">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-[#c94f2b] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
+        <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
           — CASES
         </div>
         <h2 className="font-display text-4xl md:text-5xl text-white leading-[1.08] mb-10">Selected work</h2>

@@ -19,8 +19,8 @@ export default function Methodology() {
     <section id="методология" className="relative bg-[#050505] py-20 md:py-28">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-px w-8 bg-[#c94f2b]" />
-          <span className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-[#c94f2b]">
+          <div className="h-px w-8 bg-[#991930]" />
+          <span className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-[#991930]">
             — Our Method
           </span>
         </div>
@@ -33,7 +33,7 @@ export default function Methodology() {
                 const isAccent = word.toLowerCase() === 'longer';
                 return (
                   <span key={i}>
-                    {isItalic ? <em className="italic">{word}</em> : isAccent ? <span className="text-[#c94f2b]">{word}</span> : word}
+                    {isItalic ? <em className="italic">{word}</em> : isAccent ? <span className="text-[#991930]">{word}</span> : word}
                     {i < title.split(' ').length - 1 ? ' ' : ''}
                   </span>
                 );
@@ -44,7 +44,7 @@ export default function Methodology() {
           <div className="space-y-0">
             {steps.map((step) => (
               <div key={step.number} className="flex gap-6 md:gap-8 py-7 border-t border-white/5 first:border-t-0">
-                <div className="text-[#c94f2b] font-display text-xl md:text-2xl leading-none pt-0.5">
+                <div className="text-[#991930] font-display text-xl md:text-2xl leading-none pt-0.5">
                   {step.number}
                 </div>
                 <div className="flex-1">

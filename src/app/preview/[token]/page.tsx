@@ -29,7 +29,7 @@ export default function PreviewPage({ params }: { params: { token: string } }) {
     <div className="min-h-screen bg-[#0b0c10] text-white">
       {(order || []).map((id) => {
         const sec = sections[id] || {};
-        const btnColor = (sec.styles && sec.styles.buttonColor) || '#d4af37';
+        const btnColor = (sec.styles && sec.styles.buttonColor) || '#991930';
         const headingFont = (sec.styles && sec.styles.headingFont) || 'Bodoni Cyrillic, serif';
         return (
           <section key={id} className="py-16 px-6" style={{ fontFamily: "'Inter', sans-serif" }}>
