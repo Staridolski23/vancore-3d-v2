@@ -24,7 +24,7 @@ export default function AIAnalyst() {
               Vera is our AI business analyst. In five to seven sharp questions, she maps the contours of your problem and prepares a brief so our human consultants arrive informed — not introducing themselves.
             </p>
             <Link href="/ai-analyst">
-              <button className="inline-flex items-center gap-2 mt-8 px-5 py-3 bg-[#991930] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
+              <button className="btn-hover inline-flex items-center gap-2 mt-8 px-5 py-3 bg-[#991930] text-white text-sm font-sans font-medium">
               Talk to Vera
               <svg
                 xmlns="http://www.w3.org/2000/svg"

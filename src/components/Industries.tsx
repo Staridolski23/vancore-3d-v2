@@ -27,7 +27,7 @@ export default function Industries() {
             {industries.map((item) => {
               const Icon = item.icon;
               return (
-                <div key={item.id} className="border border-white/5 rounded-sm p-5 hover:border-[#991930]/40 transition-colors">
+                <div key={item.id} className="card-hover-dark border border-white/5 rounded-sm p-5 cursor-pointer">
                   <Icon className="w-5 h-5 text-[#991930] mb-3" strokeWidth={1.5} />
                   <div className="font-display text-lg text-white mb-2">{item.name}</div>
                   <p className="font-sans text-sm text-[#9a9a9a] leading-relaxed">{item.desc}</p>

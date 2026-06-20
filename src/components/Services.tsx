@@ -38,7 +38,7 @@ export default function Services() {
               return (
                 <div
                   key={practice.number}
-                  className="border border-[#e5e5e5] rounded-sm p-6 md:p-8 hover:border-[#991930]/40 transition-colors"
+                  className="card-hover border border-[#e5e5e5] rounded-sm p-6 md:p-8 cursor-pointer"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <Icon className="w-5 h-5 text-[#991930]" strokeWidth={1.5} />

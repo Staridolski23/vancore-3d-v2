@@ -115,7 +115,7 @@ export default function AboutPage() {
           <p className="font-sans text-sm text-[#6b6b6b] mb-8 max-w-md mx-auto">
             We'd rather tell you honestly if we're not the right fit than waste your time.
           </p>
-          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
+          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium btn-hover">
             Get in touch
           </a>
         </div>

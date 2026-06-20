@@ -113,7 +113,7 @@ export default function WorkPage() {
           <p className="font-sans text-sm text-[#6b6b6b] mb-8 max-w-md mx-auto">
             We take on a limited number of engagements at a time. If the fit is right, we'll tell you.
           </p>
-          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
+          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium btn-hover">
             Start a conversation
           </a>
         </div>

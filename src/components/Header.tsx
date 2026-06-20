@@ -56,7 +56,7 @@ export default function Header() {
           </a>
           <a
             href="/contact"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#111] text-white text-sm font-sans font-medium hover:bg-black/80 transition-colors"
+            className="btn-hover inline-flex items-center gap-2 px-4 py-2 bg-[#991930] text-white text-sm font-sans font-medium"
           >
             Book a call
             <svg

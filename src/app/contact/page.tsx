@@ -98,7 +98,7 @@ export default function ContactPage() {
                     <label htmlFor="message" className="block text-xs text-[#6b6b6b] mb-1">What's the problem?</label>
                     <textarea id="message" required rows={4} placeholder="Describe the situation you're facing..." className="w-full bg-white border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#991930]/40 resize-none" />
                   </div>
-                  <button type="submit" className="w-full py-2.5 rounded-lg bg-[#991930] text-white text-sm font-medium hover:bg-[#a83d1f] transition-colors">
+                  <button type="submit" className="w-full py-2.5 rounded-lg bg-[#991930] text-white text-sm font-medium btn-hover">
                     Send message
                   </button>
                 </form>

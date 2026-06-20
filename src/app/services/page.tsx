@@ -125,7 +125,7 @@ export default function ServicesPage() {
           <p className="font-sans text-sm text-[#6b6b6b] mb-8 max-w-md mx-auto">
             Book a short call and we'll tell you honestly whether we can help.
           </p>
-          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium hover:bg-[#a83d1f] transition-colors">
+          <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium btn-hover">
             Book a call
           </a>
         </div>
