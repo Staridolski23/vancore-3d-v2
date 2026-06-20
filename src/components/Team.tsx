@@ -1,8 +1,8 @@
 'use client';
 
 const members = [
-  { name: 'Momchil Starolydolski', role: 'Co-founder & Operations' },
   { name: 'Zhanet Topalova', role: 'Co-founder & Delivery' },
+  { name: 'Momchil Staridolski', role: 'Co-founder & Operations' },
 ];
 
 export default function Team() {
