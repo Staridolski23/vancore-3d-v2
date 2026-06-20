@@ -18,7 +18,7 @@ export default function Stats() {
                 {item.value}
               </div>
               <div className="h-px w-8 bg-[#c94f2b] mx-auto mb-3" />
-              <div className="text-[10px] font-sans font-medium text-[#6b6b6b] tracking-[0.15em] uppercase">
+              <div className="text-[11px] sm:text-xs font-sans font-medium text-[#6b6b6b] tracking-[0.15em] uppercase">
                 {item.label}
               </div>
             </div>

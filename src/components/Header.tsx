@@ -38,7 +38,7 @@ export default function Header() {
           </div>
         </a>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
           {navLinks.map((link) => (
             <a
               key={link.href}

@@ -32,7 +32,7 @@ export default function Footer() {
             <div className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-[#111] mb-4">
               Navigate
             </div>
-            <nav className="space-y-2">
+            <nav className="space-y-2" aria-label="Footer navigation">
               {navLinks.map((link) => (
                 <a
                   key={link.href}
