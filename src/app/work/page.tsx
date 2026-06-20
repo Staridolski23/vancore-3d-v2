@@ -1,7 +1,6 @@
 'use client';
 
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
 const cases = [
   {
@@ -120,7 +119,6 @@ export default function WorkPage() {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }
