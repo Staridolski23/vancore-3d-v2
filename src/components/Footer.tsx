@@ -24,7 +24,7 @@ export default function Footer() {
           <div className="md:max-w-xs">
             <div className="font-display text-lg text-[#111] mb-1">Vancore Systems</div>
             <p className="text-base text-[#6b6b6b] leading-relaxed">
-              A boutique business analysis & development consultancy.
+              A <span className="text-[#991930] font-medium">boutique business</span> analysis & development consultancy.
             </p>
           </div>
 

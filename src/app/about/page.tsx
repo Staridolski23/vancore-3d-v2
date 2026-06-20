@@ -33,11 +33,11 @@ export default function AboutPage() {
           <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
             — ABOUT
           </div>
-          <h1 className="font-display text-5xl md:text-6xl lg:text-7xl text-[#111] leading-[1.08] mb-6 max-w-3xl">
-            A boutique business analysis &amp; development consultancy.
-          </h1>
-          <p className="font-sans text-base md:text-lg text-[#6b6b6b] leading-relaxed max-w-2xl">
-            We help companies see clearly through their internal complexity — and act on what they find. Operating at the intersection of operations, technology, and people.
+          <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05]">
+            A <span className="text-[#991930]">boutique business</span> analysis &amp; development consultancy.
+          </h2>
+          <p className="mt-5 font-sans text-base text-[#6b6b6b] leading-relaxed max-w-2xl">
+            We help companies see clearly through their internal complexity — and act on what they find.
           </p>
         </div>
       </section>

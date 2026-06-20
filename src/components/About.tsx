@@ -10,7 +10,7 @@ export default function About() {
               — ABOUT
             </div>
             <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05]">
-              A boutique business analysis &amp; development consultancy.
+              A <span className="text-[#991930]">boutique business</span> analysis &amp; development consultancy.
             </h2>
             <p className="mt-5 font-sans text-lg text-[#333] leading-relaxed max-w-md">
               We help companies see clearly through their internal complexity — and act on what they find.
