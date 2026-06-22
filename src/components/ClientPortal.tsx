@@ -139,29 +139,29 @@ export default function ClientPortal() {
             <h2 className="text-2xl font-black mb-2">
               {authMode === 'login' ? 'Sign in' : 'Register'}
             </h2>
-            <p className="text-sm text-vancore-muted">
-              {authMode === 'login'
-                ? 'Sign in to your client portal to manage analyses and meetings.'
-                : 'Create an account to book meetings and track your analyses.'}
+            <p className="text-sm text-[#6b6b6b]">
+                {authMode === 'login'
+                  ? 'Sign in to your client portal to manage analyses and meetings.'
+                  : 'Create an account to book meetings and track your analyses.'}
             </p>
           </div>
 
           <div className="flex gap-2 mb-6">
             <button
               onClick={() => { setAuthMode('login'); setAuthError(''); }}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'login' ? 'bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'login' ? 'bg-[#991930] text-white' : 'bg-[#f7f6f2] text-[#6b6b6b] hover:bg-[#e5e5e5]'}`}
             >
               Sign in
             </button>
             <button
               onClick={() => { setAuthMode('register'); setAuthError(''); }}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'register' ? 'bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark' : 'bg-white/5 text-vancore-muted hover:bg-white/10'}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === 'register' ? 'bg-[#991930] text-white' : 'bg-[#f7f6f2] text-[#6b6b6b] hover:bg-[#e5e5e5]'}`}
             >
               Register
             </button>
           </div>
 
-          <form onSubmit={handleAuth} className="glass rounded-2xl p-6 border border-white/5 space-y-4">
+          <form onSubmit={handleAuth} className="bg-white rounded-2xl p-6 border border-[#e5e5e5] space-y-4 shadow-sm">
             {authMode === 'register' && (
               <>
                 <div>
@@ -172,23 +172,23 @@ export default function ClientPortal() {
                     onChange={(e) => setAuthName(e.target.value)}
                     placeholder="John Doe"
                     required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light placeholder:text-white/30 focus:outline-none focus:border-vancore-bronze/40"
+                    className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40"
                   />
                 </div>
                 <div>
-                  <label htmlFor="authCompany" className="block text-xs text-vancore-muted mb-1">Company</label>
+                  <label htmlFor="authCompany" className="block text-xs text-[#6b6b6b] mb-1">Company</label>
                   <input
                     id="authCompany"
                     value={authCompany}
                     onChange={(e) => setAuthCompany(e.target.value)}
                     placeholder="Company name"
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light placeholder:text-white/30 focus:outline-none focus:border-vancore-bronze/40"
+                    className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40"
                   />
                 </div>
               </>
             )}
             <div>
-              <label htmlFor="authEmail" className="block text-xs text-vancore-muted mb-1">Email</label>
+              <label htmlFor="authEmail" className="block text-xs text-[#6b6b6b] mb-1">Email</label>
               <input
                 id="authEmail"
                 type="email"
@@ -196,11 +196,11 @@ export default function ClientPortal() {
                 onChange={(e) => setAuthEmail(e.target.value)}
                 placeholder="you@company.com"
                 required
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light placeholder:text-white/30 focus:outline-none focus:border-vancore-bronze/40"
+                className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40"
               />
             </div>
             <div>
-              <label htmlFor="authPassword" className="block text-xs text-vancore-muted mb-1">Password</label>
+              <label htmlFor="authPassword" className="block text-xs text-[#6b6b6b] mb-1">Password</label>
               <input
                 id="authPassword"
                 type="password"
@@ -209,7 +209,7 @@ export default function ClientPortal() {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-vancore-light placeholder:text-white/30 focus:outline-none focus:border-vancore-bronze/40"
+                className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40"
               />
             </div>
 
@@ -218,7 +218,7 @@ export default function ClientPortal() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#991930] to-[#991930] text-vancore-dark font-semibold disabled:opacity-50"
+              className="w-full py-2.5 rounded-lg bg-[#991930] text-white font-semibold disabled:opacity-50"
             >
               {authLoading ? 'Loading...' : authMode === 'login' ? 'Sign in' : 'Register'}
             </button>
