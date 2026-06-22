@@ -23,16 +23,15 @@ export default function VeraChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState('');
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // 0 = lead capture, 1-5 = questions, 6+ = analysis/subscription
   const [quickReplies, setQuickReplies] = useState<string[] | null>(null);
   const [placeholder, setPlaceholder] = useState('');
-  const [isLeadCapture, setIsLeadCapture] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [leadData, setLeadData] = useState({ name: '', company: '', email: '', phone: '' });
   const [leadSubmitted, setLeadSubmitted] = useState(false);
+  const [chatLocked, setChatLocked] = useState(false); // Locks chat after analysis
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
@@ -44,21 +43,56 @@ export default function VeraChat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping, quickReplies, isLeadCapture, scrollToBottom]);
+  }, [messages, isTyping, quickReplies, scrollToBottom]);
 
-  // Send initial message on mount
-  useEffect(() => {
-    sendMessage('Hello');
-  }, []);
+  // Submit lead capture form to start chat
+  const submitLead = async () => {
+    if (!leadData.name.trim() || !leadData.email.trim()) return;
+    
+    setIsTyping(true);
+    
+    // Save lead to backend
+    try {
+      await fetch('/api/ai-analyst', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: 'Lead submitted, start conversation', 
+          leadData 
+        }),
+      });
+    } catch {}
+    
+    setLeadSubmitted(true);
+    setStep(1);
+    
+    // Send initial greeting after lead capture
+    setTimeout(async () => {
+      const res = await fetch('/api/ai-analyst', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Hello', sessionId: '' }),
+      });
+      const data = await res.json();
+      
+      const assistantMsg: Message = { role: 'assistant', text: data.reply, ts: new Date().toISOString() };
+      setMessages([assistantMsg]);
+      setSessionId(data.sessionId || '');
+      setStep(data.step || 1);
+      setQuickReplies(data.quickReplies || null);
+      setPlaceholder(data.placeholder || '');
+      setIsTyping(false);
+    }, 500);
+  };
 
   const sendMessage = async (text: string) => {
-    if (!text.trim() || isTyping) return;
+    if (!text.trim() || isTyping || chatLocked) return;
 
     const userMsg: Message = { role: 'user', text, ts: new Date().toISOString() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
-    setQuickReplies(null); // Clear quick replies after clicking
+    setQuickReplies(null);
 
     try {
       const res = await fetch('/api/ai-analyst', {
@@ -68,7 +102,6 @@ export default function VeraChat() {
       });
       const data = await res.json();
 
-      // Artificial delay for natural feel
       await new Promise(resolve => setTimeout(resolve, 800));
 
       const assistantMsg: Message = { role: 'assistant', text: data.reply, ts: new Date().toISOString() };
@@ -77,7 +110,11 @@ export default function VeraChat() {
       setStep(data.step || 1);
       setQuickReplies(data.quickReplies || null);
       setPlaceholder(data.placeholder || '');
-      setIsLeadCapture(data.isLeadCapture || false);
+      
+      // Lock chat after analysis (step 7+)
+      if (data.step >= 7) {
+        setChatLocked(true);
+      }
     } catch {
       await new Promise(resolve => setTimeout(resolve, 500));
       const errMsg: Message = {
@@ -91,26 +128,89 @@ export default function VeraChat() {
     }
   };
 
-  const submitLead = async () => {
-    if (!leadData.name || !leadData.email) return;
-    try {
-      await fetch('/api/ai-analyst', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: 'Lead submitted', sessionId, leadData }),
-      });
-      setLeadSubmitted(true);
-    } catch {
-      setLeadSubmitted(true);
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage(input);
     }
   };
+
+  // Step 0: Lead Capture Form (before chat starts)
+  if (step === 0 && !leadSubmitted) {
+    return (
+      <>
+        <style jsx>{fadeStyle}</style>
+        <div className="w-full flex flex-col bg-[#0a0a0a] rounded-sm border border-white/5">
+          <div className="px-4 py-3 border-b border-white/5 flex items-center gap-3">
+            <VeraAvatar className="w-8 h-8" />
+            <div>
+              <div className="text-sm font-semibold text-white">Vera AI</div>
+              <div className="text-[10px] text-[#6b6b6b]">Business Analyst • VANCORE</div>
+            </div>
+          </div>
+          
+          <div className="p-6 space-y-4">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-white mb-2">Welcome to VANCORE AI Analyst</h3>
+              <p className="text-sm text-[#9a9a9a]">Share your details to start your free AI business analysis. No spam — just actionable insights.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-[#9a9a9a] mb-1">Full name *</label>
+                <input
+                  value={leadData.name}
+                  onChange={e => setLeadData(p => ({ ...p, name: e.target.value }))}
+                  placeholder="John Doe"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-[#9a9a9a] mb-1">Company name</label>
+                <input
+                  value={leadData.company}
+                  onChange={e => setLeadData(p => ({ ...p, company: e.target.value }))}
+                  placeholder="Company name"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-[#9a9a9a] mb-1">Email *</label>
+                <input
+                  type="email"
+                  value={leadData.email}
+                  onChange={e => setLeadData(p => ({ ...p, email: e.target.value }))}
+                  placeholder="you@company.com"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-[#9a9a9a] mb-1">Phone number</label>
+                <input
+                  value={leadData.phone}
+                  onChange={e => setLeadData(p => ({ ...p, phone: e.target.value }))}
+                  placeholder="+359 888 123 456"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                />
+              </div>
+            </div>
+            
+            <button
+              onClick={submitLead}
+              disabled={!leadData.name.trim() || !leadData.email.trim()}
+              className="w-full py-3 rounded-lg bg-[#991930] text-white font-semibold hover:bg-[#a83d1f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Start My Free AI Analysis
+            </button>
+            
+            <p className="text-[10px] text-[#6b6b6b] text-center">
+              By submitting, you agree to receive business analysis from VANCORE. We respect your privacy.
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -137,17 +237,19 @@ export default function VeraChat() {
               className={`flex gap-3 animate-fade-in-up ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
             >
               {msg.role === 'assistant' && <VeraAvatar className="w-6 h-6 shrink-0 mt-1" />}
-              <div className="max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm">
-                <p className={`whitespace-pre-wrap leading-relaxed ${msg.role === 'user' ? 'text-white' : 'text-white'}`}>
-                  {msg.text}
-                </p>
+              <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                msg.role === 'user' 
+                  ? 'bg-[#991930] text-white rounded-tr-sm' 
+                  : 'bg-[#1a1a1a] text-white rounded-tl-sm border border-white/5'
+              }`}>
+                <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
                 <p className={`text-[9px] mt-2 ${msg.role === 'user' ? 'text-white/50' : 'text-[#6b6b6b]'}`}>
                   {new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
             </div>
           ))}
-
+          
           {isTyping && (
             <div className="flex gap-3 animate-fade-in-up">
               <VeraAvatar className="w-6 h-6 shrink-0 mt-1" />
@@ -161,33 +263,40 @@ export default function VeraChat() {
             </div>
           )}
 
-          {/* Lead Capture Form */}
-          {isLeadCapture && !leadSubmitted && (
-            <div className="bg-[#1a1a1a] border border-[#991930]/30 rounded-sm p-4 space-y-3 animate-fade-in-up">
-              <h4 className="text-sm font-semibold text-white">Get Your Free Assessment</h4>
-              <p className="text-xs text-[#9a9a9a]">Share your details and our team will prepare a tailored proposal.</p>
+          {/* Subscription CTA after analysis (chat locked) */}
+          {chatLocked && (
+            <div className="bg-[#1a1a1a] border border-[#991930]/30 rounded-sm p-5 space-y-4 animate-fade-in-up">
+              <h4 className="text-base font-semibold text-white text-center">🚀 Ready to Transform Your Business?</h4>
+              <p className="text-xs text-[#9a9a9a] text-center">Get detailed analysis, implementation plans, and ongoing support.</p>
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input value={leadData.name} onChange={e => setLeadData(p => ({ ...p, name: e.target.value }))} placeholder="Full name *" className="bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50" />
-                <input value={leadData.company} onChange={e => setLeadData(p => ({ ...p, company: e.target.value }))} placeholder="Company name" className="bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50" />
-                <input value={leadData.email} onChange={e => setLeadData(p => ({ ...p, email: e.target.value }))} placeholder="Email *" type="email" className="bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50" />
-                <input value={leadData.phone} onChange={e => setLeadData(p => ({ ...p, phone: e.target.value }))} placeholder="Phone number" className="bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50" />
+                <a
+                  href="https://vancoresys.com/client-portal"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-3 rounded-lg bg-[#991930] text-white text-center text-sm font-semibold hover:bg-[#a83d1f] transition-colors"
+                >
+                  💳 Subscribe — €99/mo
+                </a>
+                <a
+                  href="https://vancoresys.com/contact"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-3 rounded-lg border border-[#991930]/30 text-[#991930] text-center text-sm font-semibold hover:bg-[#991930]/10 transition-colors"
+                >
+                  📞 Book Free Call
+                </a>
               </div>
-              <button onClick={submitLead} disabled={!leadData.name || !leadData.email} className="w-full py-2.5 rounded-lg bg-[#991930] text-white text-sm font-medium hover:bg-[#a83d1f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                Get My Free Assessment
-              </button>
-            </div>
-          )}
-
-          {leadSubmitted && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded-sm p-4 text-center animate-fade-in-up">
-              <div className="text-green-400 font-semibold text-sm">Thank you!</div>
-              <p className="text-xs text-[#9a9a9a] mt-1">Our team will contact you within 24 hours.</p>
+              
+              <p className="text-[10px] text-[#6b6b6b] text-center">
+                Or email us at hello@vancoresys.com
+              </p>
             </div>
           )}
         </div>
 
         {/* Quick Replies */}
-        {quickReplies && quickReplies.length > 0 && (
+        {quickReplies && quickReplies.length > 0 && !chatLocked && (
           <div className="px-4 py-2 border-t border-white/5 flex gap-2 flex-wrap animate-fade-in-up">
             {quickReplies.map((reply, i) => (
               <button
@@ -201,24 +310,30 @@ export default function VeraChat() {
           </div>
         )}
 
-        {/* Input */}
+        {/* Input — disabled when chat is locked */}
         <div className="px-4 py-3 border-t border-white/5">
-          <div className="flex gap-2">
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={placeholder || 'Type your message...'}
-              className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
-            />
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || isTyping}
-              className="px-4 py-2.5 rounded-lg bg-[#991930] text-white text-sm font-medium hover:bg-[#a83d1f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Send
-            </button>
-          </div>
+          {chatLocked ? (
+            <div className="text-center text-xs text-[#6b6b6b]">
+              Chat ended. Subscribe or book a call above to continue.
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder || 'Type your message...'}
+                className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+              />
+              <button
+                onClick={() => sendMessage(input)}
+                disabled={!input.trim() || isTyping}
+                className="px-4 py-2.5 rounded-lg bg-[#991930] text-white text-sm font-medium hover:bg-[#a83d1f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Send
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
