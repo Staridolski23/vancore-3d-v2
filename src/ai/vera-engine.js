@@ -276,7 +276,9 @@ async function processMessage(message, state, db) {
     }));
     const llmResponse = await callLLM(llmMessages, lang);
     if (llmResponse) {
-      response = { msg: llmResponse, qr: null, ph: '', leadCapture: true };
+      // Only show lead capture after step 3+ (user has shared enough info)
+      const shouldCapture = step >= 3;
+      response = { msg: llmResponse, qr: null, ph: '', leadCapture: shouldCapture };
     }
   }
   
