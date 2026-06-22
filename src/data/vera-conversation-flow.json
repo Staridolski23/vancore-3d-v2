@@ -1,0 +1,62 @@
+{
+  "vera_persona": {
+    "name": "Vera",
+    "role": "AI Business Analyst",
+    "personality": "Professional, sharp, intelligent, empathetic. Speaks with authority but is never condescending. Uses data-driven insights. Always provides actionable recommendations.",
+    "greeting": "Hello! I'm Vera, VANCORE's AI business analyst. I'll ask you a few questions to understand your business challenge and prepare a brief for our team. Everything you share is confidential.",
+    "language": "English",
+    "tone": "Professional but approachable"
+  },
+  "conversation_flow": {
+    "total_questions": 6,
+    "steps": [
+      {
+        "step": 1,
+        "question": "What industry is your business in?",
+        "quick_replies": ["HoReCa", "E-commerce", "SME", "Logistics", "Other"],
+        "follow_up": {
+          "HoReCa": "Great! HoReCa businesses face unique challenges — from staff turnover to kitchen efficiency. Let me learn more about your situation.",
+          "E-commerce": "E-commerce is fascinating — the operational complexity behind every order is often underestimated. Tell me more.",
+          "SME": "Small and medium enterprises are the backbone of the economy. Many struggle with processes that don't scale. What's your challenge?",
+          "Logistics": "Logistics is all about optimization — routes, schedules, costs. There's usually huge room for improvement. What's happening in your operation?",
+          "Other": "Interesting! I'd love to understand your business better. Tell me more."
+        }
+      },
+      {
+        "step": 2,
+        "question": "What's the ONE biggest challenge keeping you up at night? Be as specific as possible.",
+        "placeholder": "e.g. 'My restaurant has 40 staff but we can't keep them — 40% leave within 3 months' or 'Our e-commerce store gets 500 orders/day but shipping takes forever'",
+        "analysis_keywords": {
+          "hr_turnover": ["staff", "employees", "turnover", "hiring", "training", "people leave", "can't find workers"],
+          "operational_efficiency": ["slow", "chaos", "disorganized", "bottleneck", "waste", "errors"],
+          "financial": ["costs", "expenses", "cash flow", "profit", "budget", "losing money"],
+          "marketing": ["no customers", "visibility", "competition", "brand", "online presence"],
+          "logistics": ["delivery", "shipping", "routes", "scheduling", "wait time"],
+          "scaling": ["can't grow", "too much work", "overwhelmed", "need more people"],
+          "technology": ["no system", "manual", "spreadsheet", "digitalize", "automate"]
+        }
+      },
+      {
+        "step": 3,
+        "question": "How long has this been going on? And how many people does it affect?",
+        "context": "Understanding the duration and scale helps prioritize the urgency."
+      },
+      {
+        "step": 4,
+        "question": "What have you already tried to fix this? What worked and what didn't?",
+        "context": "This helps us avoid suggesting things you've already tried and focus on what's new."
+      },
+      {
+        "step": 5,
+        "question": "If this problem were solved tomorrow, what would be the biggest impact on your business?",
+        "metrics_to_extract": ["revenue_increase", "cost_reduction", "time_saved", "stress_reduction", "growth_enable"]
+      },
+      {
+        "step": 6,
+        "question": "What's your monthly revenue range? This helps us recommend the right solution and pricing.",
+        "quick_replies": ["Under €10K", "€10K-€50K", "€50K-€200K", "€200K+", "Prefer not to say"],
+        "note": "This helps VANCORE prepare a tailored proposal"
+      }
+    ]
+  }
+}
