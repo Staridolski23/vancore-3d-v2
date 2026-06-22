@@ -19,17 +19,52 @@ const fadeStyle = `
 }
 `;
 
+const SUBSCRIPTION_PLANS = [
+  {
+    id: 'payg',
+    name: 'Pay-As-You-Go',
+    price: 25,
+    unit: '500 questions',
+    description: 'One-time credit, no subscription',
+    features: ['500 AI questions', 'No monthly commitment', 'Valid for 3 months'],
+    popular: false,
+    color: 'bronze'
+  },
+  {
+    id: 'professional',
+    name: 'Professional',
+    price: 49,
+    unit: '/month',
+    description: 'For active business owners',
+    features: ['Unlimited AI questions', 'Monthly business report', 'Client portal access', 'Priority support (4h)', 'Templates & tools'],
+    popular: true,
+    color: 'silver'
+  },
+  {
+    id: 'business',
+    name: 'Business',
+    price: 99,
+    unit: '/month',
+    description: 'For growing businesses',
+    features: ['Everything in Professional', 'Weekly auto-analysis', '2 human consultant calls/month', 'Growth plan', 'CRM integrations', 'Case studies & playbooks'],
+    popular: false,
+    color: 'gold'
+  }
+];
+
 export default function VeraChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState('');
-  const [step, setStep] = useState(0); // 0 = lead capture, 1-5 = questions, 6+ = analysis/subscription
+  const [step, setStep] = useState(0);
   const [quickReplies, setQuickReplies] = useState<string[] | null>(null);
   const [placeholder, setPlaceholder] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [leadData, setLeadData] = useState({ name: '', company: '', email: '', phone: '' });
   const [leadSubmitted, setLeadSubmitted] = useState(false);
-  const [chatLocked, setChatLocked] = useState(false); // Locks chat after analysis
+  const [chatLocked, setChatLocked] = useState(false);
+  const [showSubscription, setShowSubscription] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -43,15 +78,13 @@ export default function VeraChat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping, quickReplies, scrollToBottom]);
+  }, [messages, isTyping, quickReplies, showSubscription, scrollToBottom]);
 
-  // Submit lead capture form to start chat
   const submitLead = async () => {
     if (!leadData.name.trim() || !leadData.email.trim()) return;
     
     setIsTyping(true);
     
-    // Save lead to backend
     try {
       await fetch('/api/ai-analyst', {
         method: 'POST',
@@ -66,7 +99,6 @@ export default function VeraChat() {
     setLeadSubmitted(true);
     setStep(1);
     
-    // Send initial greeting after lead capture
     setTimeout(async () => {
       const res = await fetch('/api/ai-analyst', {
         method: 'POST',
@@ -111,8 +143,9 @@ export default function VeraChat() {
       setQuickReplies(data.quickReplies || null);
       setPlaceholder(data.placeholder || '');
       
-      // Lock chat after analysis (step 7+)
+      // Show subscription after analysis (step 7+)
       if (data.step >= 7) {
+        setShowSubscription(true);
         setChatLocked(true);
       }
     } catch {
@@ -135,7 +168,13 @@ export default function VeraChat() {
     }
   };
 
-  // Step 0: Lead Capture Form (before chat starts)
+  const selectPlan = (planId: string) => {
+    setSelectedPlan(planId);
+    // Redirect to client portal for registration/payment
+    window.location.href = `/client-portal?plan=${planId}&email=${encodeURIComponent(leadData.email)}&name=${encodeURIComponent(leadData.name)}`;
+  };
+
+  // Step 0: Lead Capture Form
   if (step === 0 && !leadSubmitted) {
     return (
       <>
@@ -263,40 +302,83 @@ export default function VeraChat() {
             </div>
           )}
 
-          {/* Subscription CTA after analysis (chat locked) */}
-          {chatLocked && (
-            <div className="bg-[#1a1a1a] border border-[#991930]/30 rounded-sm p-5 space-y-4 animate-fade-in-up">
-              <h4 className="text-base font-semibold text-white text-center">🚀 Ready to Transform Your Business?</h4>
-              <p className="text-xs text-[#9a9a9a] text-center">Get detailed analysis, implementation plans, and ongoing support.</p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <a
-                  href="https://vancoresys.com/client-portal"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full py-3 rounded-lg bg-[#991930] text-white text-center text-sm font-semibold hover:bg-[#a83d1f] transition-colors"
-                >
-                  💳 Subscribe — €99/mo
-                </a>
-                <a
-                  href="https://vancoresys.com/contact"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full py-3 rounded-lg border border-[#991930]/30 text-[#991930] text-center text-sm font-semibold hover:bg-[#991930]/10 transition-colors"
-                >
-                  📞 Book Free Call
-                </a>
+          {/* Notification message before subscription */}
+          {showSubscription && !selectedPlan && (
+            <div className="bg-[#1a1a1a] border border-[#991930]/30 rounded-sm p-4 space-y-4 animate-fade-in-up">
+              <div className="text-center">
+                <div className="text-2xl mb-2">✅</div>
+                <h4 className="text-base font-semibold text-white mb-1">Your Analysis is Complete!</h4>
+                <p className="text-xs text-[#9a9a9a]">
+                  You've used your 5 free questions. To continue with detailed analysis and ongoing support, choose a plan below.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Subscription Plans */}
+          {showSubscription && !selectedPlan && (
+            <div className="space-y-3 animate-fade-in-up">
+              <h4 className="text-sm font-semibold text-white text-center">Choose Your Plan</h4>
+              <div className="grid grid-cols-1 gap-3">
+                {SUBSCRIPTION_PLANS.map((plan) => (
+                  <button
+                    key={plan.id}
+                    onClick={() => selectPlan(plan.id)}
+                    className={`relative w-full p-4 rounded-lg border text-left transition-all hover:scale-[1.02] ${
+                      plan.popular 
+                        ? 'border-[#991930] bg-[#991930]/10' 
+                        : 'border-white/10 bg-[#1a1a1a] hover:border-[#991930]/30'
+                    }`}
+                  >
+                    {plan.popular && (
+                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#991930] text-white text-[10px] font-semibold rounded-full">
+                        MOST POPULAR
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <h5 className="text-sm font-semibold text-white">{plan.name}</h5>
+                        <p className="text-[10px] text-[#9a9a9a]">{plan.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-white">€{plan.price}</div>
+                        <div className="text-[10px] text-[#9a9a9a]">{plan.unit}</div>
+                      </div>
+                    </div>
+                    <ul className="space-y-1">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="text-[11px] text-[#9a9a9a] flex items-center gap-1.5">
+                          <span className="text-green-400">✓</span> {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </button>
+                ))}
               </div>
               
-              <p className="text-[10px] text-[#6b6b6b] text-center">
-                Or email us at hello@vancoresys.com
-              </p>
+              <div className="text-center pt-2">
+                <a 
+                  href="https://vancoresys.com/contact" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#991930] hover:underline"
+                >
+                  Or book a free 30-minute consultation call →
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Chat locked message */}
+          {chatLocked && selectedPlan && (
+            <div className="text-center text-xs text-[#6b6b6b] animate-fade-in-up">
+              Redirecting to subscription page...
             </div>
           )}
         </div>
 
         {/* Quick Replies */}
-        {quickReplies && quickReplies.length > 0 && !chatLocked && (
+        {quickReplies && quickReplies.length > 0 && !chatLocked && !showSubscription && (
           <div className="px-4 py-2 border-t border-white/5 flex gap-2 flex-wrap animate-fade-in-up">
             {quickReplies.map((reply, i) => (
               <button
@@ -310,11 +392,11 @@ export default function VeraChat() {
           </div>
         )}
 
-        {/* Input — disabled when chat is locked */}
+        {/* Input */}
         <div className="px-4 py-3 border-t border-white/5">
           {chatLocked ? (
             <div className="text-center text-xs text-[#6b6b6b]">
-              Chat ended. Subscribe or book a call above to continue.
+              Chat ended. Choose a plan above to continue.
             </div>
           ) : (
             <div className="flex gap-2">
