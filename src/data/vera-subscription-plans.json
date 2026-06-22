@@ -1,0 +1,88 @@
+{
+  "subscription_plans": {
+    "currency": "EUR",
+    "billing": "monthly",
+    "plans": [
+      {
+        "id": "starter",
+        "name": "AI Starter",
+        "price": 99,
+        "interval": "month",
+        "description": "Perfect for small businesses starting with AI analysis",
+        "features": [
+          "Unlimited AI consultations via Vera chat",
+          "Monthly business health report",
+          "Access to industry benchmarks",
+          "Email support within 24h",
+          "Access to business templates library"
+        ],
+        "limitations": [
+          "No human consultant calls",
+          "No custom implementation plans"
+        ],
+        "cta": "Start AI Starter"
+      },
+      {
+        "id": "professional",
+        "name": "AI Professional",
+        "price": 299,
+        "interval": "month",
+        "description": "For growing businesses needing deeper analysis",
+        "features": [
+          "Everything in AI Starter",
+          "Weekly AI business analysis",
+          "2 human consultant calls/month (30 min each)",
+          "Custom implementation roadmap",
+          "Priority support within 4h",
+          "Access to case studies & playbooks",
+          "Financial diagnostics & projections"
+        ],
+        "limitations": [
+          "Limited to 20 analyses/month"
+        ],
+        "cta": "Start AI Professional",
+        "popular": true
+      },
+      {
+        "id": "enterprise",
+        "name": "AI Enterprise",
+        "price": 749,
+        "interval": "month",
+        "description": "Full AI-powered business analysis for established companies",
+        "features": [
+          "Everything in AI Professional",
+          "Unlimited analyses",
+          "Dedicated senior analyst",
+          "Weekly strategy calls",
+          "Full 10-aspect business audit quarterly",
+          "Custom integrations (CRM, ERP, etc.)",
+          "On-site workshops (2/year)",
+          "Result guarantee or money back"
+        ],
+        "limitations": [],
+        "cta": "Contact Sales"
+      }
+    ],
+    "onetime_analysis": {
+      "id": "full_analysis",
+      "name": "Full Business Analysis",
+      "price": 399,
+      "description": "One-time comprehensive 10-aspect analysis",
+      "features": [
+        "Complete business audit (10 aspects)",
+        "Detailed PDF report with findings",
+        "Prioritized improvement roadmap",
+        "Implementation plan with timelines",
+        "ROI projections for each improvement",
+        "30-day email support"
+      ],
+      "delivery": "5-7 business days"
+    },
+    "payment_provider": "revolut",
+    "revolut": {
+      "api_base": "https://developer.revolut.com/api/1.0",
+      "webhook_secret_env": "REVOLUT_WEBHOOK_SECRET",
+      "merchant_id_env": "REVOLUT_MERCHANT_ID"
+    }
+  }
+}

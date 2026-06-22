@@ -230,16 +230,68 @@ function generateRuleBasedResponse(message, history, step) {
   if (step === 4) return { msg: t.askDuration, qr: null, ph: '' };
   if (step === 5) return { msg: t.askTried, qr: null, ph: '' };
   if (step === 6) return { msg: t.askImpact, qr: null, ph: '' };
-  if (step === 7) return { msg: t.askRevenue, qr: t.qrRevenue, ph: '' };
   
-  if (step >= 8) {
+  // Step 7: Short analysis + CTA for detailed analysis/subscription
+  if (step >= 7) {
     const indName = industry === 'E-commerce' ? 'E-commerce' : industry === 'HoReCa' ? 'HoReCa' : industry === 'Logistics' ? (lang === 'bg' ? 'Логистика' : 'Logistics') : (lang === 'bg' ? 'SME' : 'SME');
     const probNames = problems.map(p => {
       const n = { 'hr': lang === 'bg' ? 'HR и персонал' : 'HR & staff', 'operations': lang === 'bg' ? 'Операции' : 'Operations', 'financial': lang === 'bg' ? 'Финанси' : 'Finance', 'marketing': lang === 'bg' ? 'Маркетинг' : 'Marketing', 'logistics': lang === 'bg' ? 'Логистика' : 'Logistics', 'scaling': lang === 'bg' ? 'Растеж' : 'Scaling', 'technology': lang === 'bg' ? 'Технологии' : 'Technology', 'legal': lang === 'bg' ? 'Правни' : 'Legal', 'starting': lang === 'bg' ? 'Стартиране' : 'Starting', 'general': lang === 'bg' ? 'Общ анализ' : 'General' };
       return n[p] || p;
     }).join(', ');
     
-    return { msg: t.assessment + (lang === 'bg' ? '**Отрасъл:** ' + indName + '\n**Предизвикателства:** ' + probNames + '\n\nТипично се наблюдава подобрение от 20-40% за 6-8 седмици. Нашият анализ започва от €300.\n\n' + t.cta : '**Industry:** ' + indName + '\n**Challenges:** ' + probNames + '\n\nBased on similar cases, we typically see 20-40% improvement in key metrics within 6-8 weeks. Our analysis starts at €300.\n\n' + t.cta), qr: null, ph: '', leadCapture: true };
+    const shortAnalysis = lang === 'bg'
+      ? `## 📊 Кратък анализ
+
+**Отрасъл:** ${indName}
+**Предизвикателства:** ${probNames}
+
+Въз основа на подобни случаи, типично се наблюдава подобрение от 20-40% по ключови метрики в рамките на 6-8 седмици.
+
+### 🚀 За подробен анализ:
+
+**Опция 1: Безплатна консултация**
+Запиши 30-минутна среща с нашия екип — ще анализираме бизнеса ви и ще ви дадем конкретни препоръки.
+
+**Опция 2: AI Абонамент — €99/месец**
+• Неограничени AI консултации
+• Месечен анализ на бизнеса ви
+• Приоритетна поддръжка
+• Достъп до шаблони и инструменти
+
+**Опция 3: Пълен анализ — €399**
+• Пълен анализ на 10 аспекта
+• Детайлен план за имплементация
+• 30 дни поддръжка
+• Гаранция за резултат
+
+[Запиши безплатна консултация](https://vancoresys.com/contact) | [Започни абонамент](https://vancoresys.com/client-portal)`
+      : `## 📊 Quick Analysis
+
+**Industry:** ${indName}
+**Challenges:** ${probNames}
+
+Based on similar cases, we typically see 20-40% improvement in key metrics within 6-8 weeks.
+
+### 🚀 For a detailed analysis:
+
+**Option 1: Free Consultation**
+Book a 30-minute call with our team — we'll analyze your business and provide specific recommendations.
+
+**Option 2: AI Subscription — €99/month**
+• Unlimited AI consultations
+• Monthly business analysis
+• Priority support
+• Access to templates and tools
+
+**Option 3: Full Analysis — €399**
+• Complete 10-aspect analysis
+• Detailed implementation plan
+• 30-day support
+• Result guarantee
+
+[Book Free Consultation](https://vancoresys.com/contact) | [Start Subscription](https://vancoresys.com/client-portal)`;
+    
+    return { msg: shortAnalysis, qr: null, ph: '', leadCapture: true };
   }
   
   return { msg: t.fallback, qr: null, ph: '' };
