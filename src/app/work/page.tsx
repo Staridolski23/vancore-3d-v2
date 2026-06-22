@@ -22,10 +22,10 @@ const cases = [
     detail: 'Sales leadership had no clear view of deal progression. We rebuilt the CRM pipeline stages, trained the team, and created a weekly reporting cadence.',
   },
   {
-    client: 'Regional Hospital',
-    industry: 'Healthcare',
-    result: 'Scheduling bottlenecks removed',
-    detail: 'Patient scheduling was creating 2-hour wait times. We redesigned the appointment system and introduced time-slot optimization, reducing average wait to 20 minutes.',
+    client: 'Regional Logistics',
+    industry: 'Logistics',
+    result: '20min instead of 2 hours waiting',
+    detail: 'Delivery scheduling was creating 2-hour wait times. We analyzed routes, optimized distribution, and implemented intelligent scheduling, reducing average wait to 20 minutes.',
   },
 ];
 

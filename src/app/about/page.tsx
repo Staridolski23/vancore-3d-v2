@@ -1,6 +1,6 @@
 'use client';
-
 import Header from '@/components/Header';
+import { Users, MessageCircle, Ear, Handshake } from 'lucide-react';
 
 const team = [
   {
@@ -18,10 +18,10 @@ const team = [
 ];
 
 const values = [
-  { title: 'Stay small', desc: 'We cap our team size to stay close to the work. No layers between the people doing the analysis and the people living with the problem.' },
-  { title: 'Ask sharp', desc: 'We don\'t do 40-question surveys. Five to seven well-placed questions reveal more than a hundred generic ones.' },
-  { title: 'Listen longer', desc: 'The first answer is rarely the real one. We stay in the room until the actual problem surfaces.' },
-  { title: 'Leave ownership', desc: 'We don\'t build dependencies. Every engagement ends with your team owning the solution — not us.' },
+  { title: 'Stay small', desc: 'We cap our team size to stay close to the work. No layers between the people doing the analysis and the people living with the problem.', icon: Users },
+  { title: 'Ask sharp', desc: 'We don\'t do 40-question surveys. Five to seven well-placed questions reveal more than a hundred generic ones.', icon: MessageCircle },
+  { title: 'Listen longer', desc: 'The first answer is rarely the real one. We stay in the room until the actual problem surfaces.', icon: Ear },
+  { title: 'Leave ownership', desc: 'We don\'t build dependencies. Every engagement ends with your team owning the solution — not us.', icon: Handshake },
 ];
 
 export default function AboutPage() {
@@ -54,13 +54,13 @@ export default function AboutPage() {
               </h2>
             </div>
             <div className="space-y-5">
-              <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">
+              <p className="font-sans text-base text-[#333] leading-relaxed">
                 VANCORE was founded in 2026 by Zhanet Topalova and Momchil Staridolski. After years of working inside companies — watching good strategies fail because of internal friction, and watching small fixes create outsized impact — we decided to build a consultancy that works the way we believe consulting should work.
               </p>
-              <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">
+              <p className="font-sans text-base text-[#333] leading-relaxed">
                 We stay small by design. We take on a limited number of engagements so we can give each one the attention it deserves. We don't do slide decks that collect dust — we do work that changes how your company operates.
               </p>
-              <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">
+              <p className="font-sans text-base text-[#333] leading-relaxed">
                 Our name comes from "Vantage and Core" — the perspective you need and the center of the problem. That's what we bring.
               </p>
             </div>
@@ -77,11 +77,11 @@ export default function AboutPage() {
           <h2 className="font-display text-4xl md:text-5xl text-white leading-[1.08] mb-12">The people behind VANCORE</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {team.map((t) => (
-              <div key={t.name} className="border border-white/5 rounded-sm p-6 md:p-8">
-                <div className="w-20 h-20 rounded-full overflow-hidden mb-4 border-2 border-[#991930]/30">
+              <div key={t.name} className="border border-white/5 rounded-sm p-6 md:p-8 hover:border-[#991930]/30 transition-colors">
+                <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-[#991930]/30">
                   <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
                 </div>
-                <h3 className="font-display text-xl text-white mb-1">{t.name}</h3>
+                <h3 className="font-display text-2xl text-white mb-1">{t.name}</h3>
                 <div className="text-[#991930] text-sm font-sans mb-3">{t.role}</div>
                 <p className="font-sans text-sm text-[#9a9a9a] leading-relaxed">{t.focus}</p>
               </div>
@@ -98,12 +98,16 @@ export default function AboutPage() {
           </div>
           <h2 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.08] mb-10">What we stand for</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
-            {values.map((v) => (
-              <div key={v.title} className="border border-[#e5e5e5] rounded-sm p-6">
-                <h3 className="font-display text-xl text-[#111] mb-2">{v.title}</h3>
-                <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">{v.desc}</p>
-              </div>
-            ))}
+            {values.map((v) => {
+              const Icon = v.icon;
+              return (
+                <div key={v.title} className="card-hover border border-[#e5e5e5] rounded-sm p-6 cursor-pointer">
+                  <Icon className="w-6 h-6 text-[#991930] mb-3" strokeWidth={1.5} />
+                  <h3 className="font-display text-xl text-[#111] mb-2">{v.title}</h3>
+                  <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed">{v.desc}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -112,7 +116,7 @@ export default function AboutPage() {
       <section className="py-16 md:py-24 bg-[#f7f6f2] border-t border-[#e5e5e5]">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 className="font-display text-3xl md:text-4xl text-[#111] mb-4">Want to work with us?</h2>
-          <p className="font-sans text-sm text-[#6b6b6b] mb-8 max-w-md mx-auto">
+          <p className="font-sans text-base text-[#6b6b6b] mb-8 max-w-md mx-auto">
             We'd rather tell you honestly if we're not the right fit than waste your time.
           </p>
           <a href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#991930] text-white text-sm font-sans font-medium btn-hover">
@@ -120,7 +124,6 @@ export default function AboutPage() {
           </a>
         </div>
       </section>
-
     </main>
   );
 }
