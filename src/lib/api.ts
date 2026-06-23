@@ -1,1 +1,1 @@
-export const API_URL = 'https://api.vancoresys.com/api';
+export const API_URL = '';
