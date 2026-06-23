@@ -299,7 +299,8 @@ export default function VeraChat() {
             <div className="text-sm font-semibold text-white">Vera AI</div>
             <div className="text-[10px] text-[#6b6b6b]">Business Analyst • VANCORE</div>
           </div>
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="ml-auto flex items-center gap-2">
+            <span className="px-1.5 py-0.5 rounded text-[9px] bg-[#991930]/20 text-[#991930] font-medium">AI</span>
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-[10px] text-green-400">Online</span>
           </div>
