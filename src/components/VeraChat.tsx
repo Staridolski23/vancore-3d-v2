@@ -233,10 +233,47 @@ export default function VeraChat() {
                 />
               </div>
             </div>
+
+            {/* GDPR Consent Checkboxes */}
+            <div className="space-y-2 pt-2">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={leadData.consentTerms}
+                  onChange={e => setLeadData(p => ({ ...p, consentTerms: e.target.checked }))}
+                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-[#1a1a1a] text-[#991930] focus:ring-[#991930]/50"
+                />
+                <span className="text-[11px] text-[#9a9a9a] leading-relaxed">
+                  I agree to the <a href="/terms" className="text-[#991930] hover:underline" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/privacy" className="text-[#991930] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a> *
+                </span>
+              </label>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={leadData.consentData}
+                  onChange={e => setLeadData(p => ({ ...p, consentData: e.target.checked }))}
+                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-[#1a1a1a] text-[#991930] focus:ring-[#991930]/50"
+                />
+                <span className="text-[11px] text-[#9a9a9a] leading-relaxed">
+                  I consent to the processing of my personal data for AI business analysis purposes *
+                </span>
+              </label>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={leadData.consentMarketing}
+                  onChange={e => setLeadData(p => ({ ...p, consentMarketing: e.target.checked }))}
+                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-[#1a1a1a] text-[#991930] focus:ring-[#991930]/50"
+                />
+                <span className="text-[11px] text-[#9a9a9a] leading-relaxed">
+                  I agree to receive business insights and updates from VANCORE (optional)
+                </span>
+              </label>
+            </div>
             
             <button
               onClick={submitLead}
-              disabled={!leadData.name.trim() || !leadData.email.trim()}
+              disabled={!leadData.name.trim() || !leadData.email.trim() || !leadData.consentTerms || !leadData.consentData}
               className="w-full py-3 rounded-lg bg-[#991930] text-white font-semibold hover:bg-[#a83d1f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Start My Free AI Analysis
