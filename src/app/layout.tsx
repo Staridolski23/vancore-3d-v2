@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import CookieBanner from '@/components/CookieBanner';
 
 export const metadata: Metadata = {
   title: 'VANCORE — AI-Powered Business Analysis',
@@ -49,6 +50,7 @@ export default function RootLayout({
           {children}
           <Footer />
         </div>
+        <CookieBanner />
       </body>
     </html>
   );

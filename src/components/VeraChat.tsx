@@ -60,7 +60,15 @@ export default function VeraChat() {
   const [quickReplies, setQuickReplies] = useState<string[] | null>(null);
   const [placeholder, setPlaceholder] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [leadData, setLeadData] = useState({ name: '', company: '', email: '', phone: '' });
+  const [leadData, setLeadData] = useState({ 
+    name: '', 
+    company: '', 
+    email: '', 
+    phone: '',
+    consentTerms: false,
+    consentData: false,
+    consentMarketing: false
+  });
   const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [chatLocked, setChatLocked] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
@@ -108,9 +116,7 @@ export default function VeraChat() {
       const data = await res.json();
       
       // Add AI disclosure to first message
-      const aiDisclosure = lang === 'bg' 
-        ? '\n\n🤖 *Аз съм AI асистент. За сложни бизнес решения, консултирайте се с нашия екип от експерти.*'
-        : '\n\n🤖 *I am an AI assistant. For complex business decisions, consult with our team of experts.*';
+      const aiDisclosure = '\n\n🤖 *I am an AI assistant. For complex business decisions, consult with our team of experts.*';
       
       const assistantMsg: Message = { 
         role: 'assistant', 
