@@ -107,7 +107,16 @@ export default function VeraChat() {
       });
       const data = await res.json();
       
-      const assistantMsg: Message = { role: 'assistant', text: data.reply, ts: new Date().toISOString() };
+      // Add AI disclosure to first message
+      const aiDisclosure = lang === 'bg' 
+        ? '\n\n🤖 *Аз съм AI асистент. За сложни бизнес решения, консултирайте се с нашия екип от експерти.*'
+        : '\n\n🤖 *I am an AI assistant. For complex business decisions, consult with our team of experts.*';
+      
+      const assistantMsg: Message = { 
+        role: 'assistant', 
+        text: data.reply + (data.step === 2 ? aiDisclosure : ''), 
+        ts: new Date().toISOString() 
+      };
       setMessages([assistantMsg]);
       setSessionId(data.sessionId || '');
       setStep(data.step || 1);
