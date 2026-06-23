@@ -14,18 +14,63 @@ interface UserInfo {
   subscription_end: string | null;
 }
 
-interface ChatSession {
+interface Insight {
   id: string;
-  created_at: string;
-  messages_count: number;
-  last_message: string;
+  text: string;
+  time: string;
+  category: string;
+}
+
+interface Activity {
+  id: string;
+  type: 'conversation' | 'report' | 'meeting' | 'account';
+  text: string;
+  time: string;
+  icon: string;
 }
 
 const PLANS: Record<string, { name: string; price: string; color: string }> = {
+  starter: { name: 'Starter', price: '€0', color: '#6b6b6b' },
   payg: { name: 'Pay-As-You-Go', price: '€25 / 500 questions', color: '#CD7F32' },
   professional: { name: 'Professional', price: '€49/mo', color: '#C0C0C0' },
   business: { name: 'Business', price: '€99/mo', color: '#FFD700' },
 };
+
+const CLARITY_DATA = [
+  { label: 'Finance', value: 80, color: '#10b981' },
+  { label: 'Operations', value: 60, color: '#f59e0b' },
+  { label: 'HR', value: 40, color: '#ef4444' },
+  { label: 'Marketing', value: 75, color: '#10b981' },
+  { label: 'Strategy', value: 55, color: '#f59e0b' },
+];
+
+const MOCK_INSIGHTS: Insight[] = [
+  {
+    id: '1',
+    text: '31% efficiency increase in HoReCa typically correlates with inventory management improvements. Have you audited your stock rotation this month?',
+    time: '2 hours ago',
+    category: 'Operations',
+  },
+  {
+    id: '2',
+    text: 'SMEs that review financials weekly are 2.3x more likely to hit growth targets. Your last review was 18 days ago.',
+    time: '1 day ago',
+    category: 'Finance',
+  },
+  {
+    id: '3',
+    text: 'Your competitor analysis shows a gap in digital marketing. Businesses in your segment that invest in SEO see 45% more organic leads.',
+    time: '3 days ago',
+    category: 'Marketing',
+  },
+];
+
+const MOCK_ACTIVITIES: Activity[] = [
+  { id: '1', type: 'conversation', text: 'New conversation with Vera about supply chain', time: '2 hours ago', icon: '💬' },
+  { id: '2', type: 'report', text: 'Monthly Business Health Report generated', time: '5 days ago', icon: '📊' },
+  { id: '3', type: 'meeting', text: 'Strategy call with Momchil confirmed — Jul 2', time: '1 week ago', icon: '📅' },
+  { id: '4', type: 'account', text: 'Account created — Welcome to VANCORE', time: '12 days ago', icon: '⚪' },
+];
 
 export default function ClientPortal() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -38,24 +83,8 @@ export default function ClientPortal() {
   const [authCompany, setAuthCompany] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'chat' | 'billing'>('dashboard');
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'chat' | 'billing' | 'settings'>('dashboard');
 
-  // Check for URL params (coming from Vera chat)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlPlan = params.get('plan');
-    const urlEmail = params.get('email');
-    const urlName = params.get('name');
-    
-    if (urlPlan && urlEmail) {
-      setAuthMode('register');
-      setAuthEmail(urlEmail);
-      setAuthName(urlName || '');
-    }
-  }, []);
-
-  // Check for saved token
   useEffect(() => {
     const saved = localStorage.getItem('vancore_client_token');
     if (saved) {
@@ -73,23 +102,18 @@ export default function ClientPortal() {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
-        setSessions(data.sessions || []);
       } else {
-        // Token expired
         localStorage.removeItem('vancore_client_token');
         setToken(null);
         setIsLoggedIn(false);
       }
-    } catch {
-      // Will show login
-    }
+    } catch {}
   };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
     setAuthLoading(true);
-    
     try {
       const endpoint = authMode === 'login' ? '/api/client/login' : '/api/client/register';
       const body: any = { email: authEmail, password: authPassword };
@@ -97,34 +121,20 @@ export default function ClientPortal() {
         body.name = authName;
         body.company = authCompany;
       }
-      
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      
       const data = await res.json();
-      
       if (!res.ok || !data?.token) {
         setAuthError(data?.error || (authMode === 'login' ? 'Invalid email or password.' : 'Registration failed.'));
         return;
       }
-      
       setToken(data.token);
       setIsLoggedIn(true);
       localStorage.setItem('vancore_client_token', data.token);
-      
-      if (data.user) {
-        setUser(data.user);
-      }
-      
-      // If coming from Vera chat with plan selection, redirect to payment
-      const params = new URLSearchParams(window.location.search);
-      const urlPlan = params.get('plan');
-      if (urlPlan && authMode === 'register') {
-        setActiveTab('billing');
-      }
+      if (data.user) setUser(data.user);
     } catch {
       setAuthError('Connection error. Please try again.');
     } finally {
@@ -179,60 +189,24 @@ export default function ClientPortal() {
               <>
                 <div>
                   <label htmlFor="authName" className="block text-xs text-[#6b6b6b] mb-1">Full name *</label>
-                  <input
-                    id="authName"
-                    value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                    placeholder="John Doe"
-                    required
-                    className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40"
-                  />
+                  <input id="authName" value={authName} onChange={(e) => setAuthName(e.target.value)} placeholder="John Doe" required className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40" />
                 </div>
                 <div>
                   <label htmlFor="authCompany" className="block text-xs text-[#6b6b6b] mb-1">Company</label>
-                  <input
-                    id="authCompany"
-                    value={authCompany}
-                    onChange={(e) => setAuthCompany(e.target.value)}
-                    placeholder="Company name"
-                    className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40"
-                  />
+                  <input id="authCompany" value={authCompany} onChange={(e) => setAuthCompany(e.target.value)} placeholder="Company name" className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40" />
                 </div>
               </>
             )}
             <div>
               <label htmlFor="authEmail" className="block text-xs text-[#6b6b6b] mb-1">Email *</label>
-              <input
-                id="authEmail"
-                type="email"
-                value={authEmail}
-                onChange={(e) => setAuthEmail(e.target.value)}
-                placeholder="you@company.com"
-                required
-                className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40"
-              />
+              <input id="authEmail" type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="you@company.com" required className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40" />
             </div>
             <div>
               <label htmlFor="authPassword" className="block text-xs text-[#6b6b6b] mb-1">Password *</label>
-              <input
-                id="authPassword"
-                type="password"
-                value={authPassword}
-                onChange={(e) => setAuthPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={6}
-                className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40"
-              />
+              <input id="authPassword" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40" />
             </div>
-
             {authError && <p className="text-sm text-red-500">{authError}</p>}
-
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="w-full py-2.5 rounded-lg bg-[#991930] text-white font-semibold disabled:opacity-50 hover:bg-[#a83d1f] transition-colors"
-            >
+            <button type="submit" disabled={authLoading} className="w-full py-2.5 rounded-lg bg-[#991930] text-white font-semibold disabled:opacity-50 hover:bg-[#a83d1f] transition-colors">
               {authLoading ? 'Loading...' : authMode === 'login' ? 'Sign in' : 'Create Account'}
             </button>
           </form>
@@ -242,158 +216,153 @@ export default function ClientPortal() {
   }
 
   // Logged in — Dashboard
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-[#111]">Welcome, {user?.name || 'User'}</h2>
-          <p className="text-sm text-[#6b6b6b]">{user?.email}</p>
-        </div>
-        <button onClick={logout} className="text-sm text-[#6b6b6b] hover:text-[#991930]">
-          Sign out
-        </button>
-      </div>
+  const clarityScore = 31;
+  const currentPlan = user?.plan || 'starter';
 
-      {/* Subscription Status */}
-      <div className={`rounded-xl p-4 border ${
-        user?.subscription_status === 'active' 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-yellow-50 border-yellow-200'
-      }`}>
+  return (
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Welcome Hero */}
+      <div className="bg-gradient-to-r from-[#111] to-[#1a1a1a] rounded-2xl p-6 border border-white/5">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm font-semibold text-[#111]">
-              {user?.plan ? PLANS[user.plan]?.name || user.plan : 'Free Plan'}
+            <h2 className="text-xl font-bold text-white mb-1">Welcome, {user?.name || 'User'}! ☀️</h2>
+            <p className="text-sm text-[#9a9a9a]">How confident do you feel about your business performance today?</p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-[#991930]">{clarityScore}%</div>
+            <div className="text-[10px] text-[#6b6b6b] uppercase tracking-wider">Clarity Score</div>
+          </div>
+        </div>
+        <div className="mt-4 h-2 bg-white/5 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-[#991930] to-[#c94f2b] rounded-full transition-all duration-1000" style={{ width: `${clarityScore}%` }} />
+        </div>
+        <div className="mt-4 flex gap-3">
+          <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
+            💬 Talk to Vera
+          </a>
+          <button className="px-4 py-2 bg-white/5 text-white text-sm font-medium rounded-lg hover:bg-white/10 transition-colors border border-white/10">
+            📊 View Reports
+          </button>
+        </div>
+      </div>
+
+      {/* Clarity Score Breakdown */}
+      <div className="bg-[#111] rounded-2xl p-6 border border-white/5">
+        <h3 className="text-base font-semibold text-white mb-4">Business Clarity Breakdown</h3>
+        <div className="space-y-3">
+          {CLARITY_DATA.map((item) => (
+            <div key={item.label} className="flex items-center gap-3">
+              <div className="w-20 text-sm text-[#9a9a9a]">{item.label}</div>
+              <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
+              </div>
+              <div className="w-10 text-right text-sm font-medium text-white">{item.value}%</div>
             </div>
-            <div className="text-xs text-[#6b6b6b]">
-              {user?.subscription_status === 'active' 
-                ? `Active until ${user?.subscription_end ? new Date(user.subscription_end).toLocaleDateString() : 'N/A'}`
-                : user?.credits 
-                  ? `${user.credits} questions remaining`
-                  : 'No active subscription'}
+          ))}
+        </div>
+      </div>
+
+      {/* AI Insights Feed */}
+      <div className="bg-[#111] rounded-2xl p-6 border border-white/5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-semibold text-white">🤖 Vera&apos;s Insights</h3>
+          <a href="/ai-analyst" className="text-xs text-[#991930] hover:underline">Ask Follow-up →</a>
+        </div>
+        <div className="space-y-3">
+          {MOCK_INSIGHTS.map((insight) => (
+            <div key={insight.id} className="p-4 bg-white/5 rounded-xl border border-white/5 hover:border-[#991930]/20 transition-colors">
+              <div className="flex items-start gap-3">
+                <span className="text-lg">📌</span>
+                <div className="flex-1">
+                  <p className="text-sm text-white leading-relaxed">{insight.text}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[10px] text-[#6b6b6b]">{insight.time}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-[#9a9a9a]">{insight.category}</span>
+                  </div>
+                </div>
+              </div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Active Plan & Usage */}
+      <div className="bg-[#111] rounded-2xl p-6 border border-white/5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-semibold text-white">Active Plan</h3>
+          <span className="px-2 py-1 rounded-lg text-xs font-medium bg-[#10b981]/20 text-[#10b981]">
+            {user?.subscription_status === 'active' ? 'Active' : 'Free'}
+          </span>
+        </div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="text-lg font-semibold text-white">{PLANS[currentPlan]?.name || 'Starter'}</div>
+            <div className="text-sm text-[#6b6b6b]">{PLANS[currentPlan]?.price || '€0'}</div>
           </div>
           {user?.subscription_status !== 'active' && (
-            <a 
-              href="/ai-analyst" 
-              className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors"
-            >
+            <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
               Upgrade
             </a>
           )}
         </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-3 bg-white/5 rounded-lg text-center">
+            <div className="text-xl font-bold text-white">87</div>
+            <div className="text-[10px] text-[#6b6b6b] uppercase">Questions</div>
+          </div>
+          <div className="p-3 bg-white/5 rounded-lg text-center">
+            <div className="text-xl font-bold text-white">3</div>
+            <div className="text-[10px] text-[#6b6b6b] uppercase">Reports</div>
+          </div>
+          <div className="p-3 bg-white/5 rounded-lg text-center">
+            <div className="text-xl font-bold text-white">1</div>
+            <div className="text-[10px] text-[#6b6b6b] uppercase">Calls</div>
+          </div>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-[#e5e5e5]">
-        {(['dashboard', 'chat', 'billing'] as const).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium capitalize transition-colors border-b-2 ${
-              activeTab === tab 
-                ? 'border-[#991930] text-[#991930]' 
-                : 'border-transparent text-[#6b6b6b] hover:text-[#111]'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* Activity Feed */}
+      <div className="bg-[#111] rounded-2xl p-6 border border-white/5">
+        <h3 className="text-base font-semibold text-white mb-4">Recent Activity</h3>
+        <div className="space-y-3">
+          {MOCK_ACTIVITIES.map((activity) => (
+            <div key={activity.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+              <span className="text-lg">{activity.icon}</span>
+              <div className="flex-1">
+                <p className="text-sm text-white">{activity.text}</p>
+                <p className="text-[10px] text-[#6b6b6b]">{activity.time}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Dashboard Tab */}
-      {activeTab === 'dashboard' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-5 border border-[#e5e5e5]">
-            <div className="text-2xl font-bold text-[#111]">{sessions.length}</div>
-            <div className="text-sm text-[#6b6b6b]">Total Conversations</div>
-          </div>
-          <div className="bg-white rounded-xl p-5 border border-[#e5e5e5]">
-            <div className="text-2xl font-bold text-[#111]">
-              {sessions.reduce((acc, s) => acc + (s.messages_count || 0), 0)}
-            </div>
-            <div className="text-sm text-[#6b6b6b]">Questions Asked</div>
-          </div>
-          <div className="bg-white rounded-xl p-5 border border-[#e5e5e5]">
-            <div className="text-2xl font-bold text-[#991930]">
-              {user?.plan ? PLANS[user.plan]?.price : '€0'}
-            </div>
-            <div className="text-sm text-[#6b6b6b]">Current Plan</div>
-          </div>
-        </div>
-      )}
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <a href="/ai-analyst" className="p-4 bg-[#111] rounded-xl border border-white/5 hover:border-[#991930]/30 transition-colors text-center group">
+          <div className="text-2xl mb-2">💬</div>
+          <div className="text-sm text-white font-medium group-hover:text-[#991930] transition-colors">Talk to Vera</div>
+        </a>
+        <button className="p-4 bg-[#111] rounded-xl border border-white/5 hover:border-[#991930]/30 transition-colors text-center group">
+          <div className="text-2xl mb-2">📊</div>
+          <div className="text-sm text-white font-medium group-hover:text-[#991930] transition-colors">Generate Report</div>
+        </button>
+        <button className="p-4 bg-[#111] rounded-xl border border-white/5 hover:border-[#991930]/30 transition-colors text-center group">
+          <div className="text-2xl mb-2">📅</div>
+          <div className="text-sm text-white font-medium group-hover:text-[#991930] transition-colors">Book Call</div>
+        </button>
+        <button className="p-4 bg-[#111] rounded-xl border border-white/5 hover:border-[#991930]/30 transition-colors text-center group">
+          <div className="text-2xl mb-2">💳</div>
+          <div className="text-sm text-white font-medium group-hover:text-[#991930] transition-colors">Upgrade Plan</div>
+        </button>
+      </div>
 
-      {/* Chat History Tab */}
-      {activeTab === 'chat' && (
-        <div className="bg-white rounded-xl border border-[#e5e5e5]">
-          {sessions.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-[#6b6b6b] mb-4">No conversations yet.</p>
-              <a 
-                href="/ai-analyst" 
-                className="inline-block px-6 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors"
-              >
-                Start New Analysis
-              </a>
-            </div>
-          ) : (
-            <div className="divide-y divide-[#e5e5e5]">
-              {sessions.map((session) => (
-                <div key={session.id} className="p-4 hover:bg-[#f7f6f2] transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-[#111]">
-                        {new Date(session.created_at).toLocaleDateString()}
-                      </div>
-                      <div className="text-xs text-[#6b6b6b]">
-                        {session.messages_count} messages
-                      </div>
-                    </div>
-                    <div className="text-xs text-[#991930]">
-                      {session.last_message?.substring(0, 50)}...
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Billing Tab */}
-      {activeTab === 'billing' && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-xl p-5 border border-[#e5e5e5]">
-            <h3 className="text-base font-semibold text-[#111] mb-3">Subscription Plans</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {Object.entries(PLANS).map(([id, plan]) => (
-                <div 
-                  key={id}
-                  className={`p-4 rounded-lg border ${
-                    user?.plan === id 
-                      ? 'border-[#991930] bg-[#991930]/5' 
-                      : 'border-[#e5e5e5]'
-                  }`}
-                >
-                  <div className="text-sm font-semibold text-[#111]">{plan.name}</div>
-                  <div className="text-lg font-bold text-[#991930]">{plan.price}</div>
-                  <button
-                    className="mt-2 w-full py-1.5 text-xs font-medium rounded-lg bg-[#991930] text-white hover:bg-[#a83d1f] transition-colors"
-                  >
-                    {user?.plan === id ? 'Current Plan' : 'Upgrade'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl p-5 border border-[#e5e5e5]">
-            <h3 className="text-base font-semibold text-[#111] mb-3">Payment History</h3>
-            <p className="text-sm text-[#6b6b6b]">No payments yet. Your payment history will appear here.</p>
-          </div>
-        </div>
-      )}
+      {/* Sign Out */}
+      <div className="text-center pt-4">
+        <button onClick={logout} className="text-sm text-[#6b6b6b] hover:text-[#991930] transition-colors">
+          Sign out
+        </button>
+      </div>
     </div>
   );
 }
