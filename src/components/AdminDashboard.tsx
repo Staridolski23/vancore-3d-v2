@@ -8,42 +8,64 @@ interface Client {
   email: string;
   company: string;
   plan: string;
-  status: string;
-  joined: string;
-  conversations: number;
-  clarityScore: number;
   subscription_status: string;
+  created_at: string;
+  email_verified: number;
+  credits: number;
 }
 
-const MOCK_CLIENTS: Client[] = [
-  { id: '1', name: 'Zhanet Topalova', email: 'office@vancoresys.com', company: 'VANCORE', plan: 'professional', status: 'active', joined: '2026-06-12', conversations: 12, clarityScore: 78, subscription_status: 'active' },
-  { id: '2', name: 'John Smith', email: 'john@acme.com', company: 'Acme Inc', plan: 'starter', status: 'active', joined: '2026-06-20', conversations: 3, clarityScore: 31, subscription_status: 'free' },
-  { id: '3', name: 'Maria Petrova', email: 'maria@techcorp.bg', company: 'TechCorp', plan: 'business', status: 'active', joined: '2026-05-15', conversations: 28, clarityScore: 65, subscription_status: 'active' },
-  { id: '4', name: 'Ivan Ivanov', email: 'ivan@startup.io', company: 'StartupXYZ', plan: 'starter', status: 'pending', joined: '2026-06-22', conversations: 0, clarityScore: 0, subscription_status: 'free' },
-  { id: '5', name: 'Coastal Hotels', email: 'info@hotels.bg', company: 'Coastal Hotel Group', plan: 'payg', status: 'active', joined: '2026-04-10', conversations: 15, clarityScore: 82, subscription_status: 'active' },
-  { id: '6', name: 'Metro Retail', email: 'contact@metro.com', company: 'Metro Retail', plan: 'professional', status: 'cancelled', joined: '2026-03-01', conversations: 22, clarityScore: 71, subscription_status: 'cancelled' },
-];
-
-const ANALYTICS = {
-  totalClients: 156,
-  activeSubscriptions: 89,
-  monthlyRevenue: 12400,
-  retentionRate: 92,
-  newThisWeek: 12,
-  veraQuestions: 2847,
-  veraConversations: 342,
-};
+interface DashboardMetrics {
+  totalClients: number;
+  activeSubscriptions: number;
+  totalCredits: number;
+  verifiedEmails: number;
+}
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'analytics' | 'messaging'>('dashboard');
+  const [clients, setClients] = useState<Client[]>([]);
+  const [metrics, setMetrics] = useState<DashboardMetrics>({ totalClients: 0, activeSubscriptions: 0, totalCredits: 0, verifiedEmails: 0 });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientSearch, setClientSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const filteredClients = MOCK_CLIENTS.filter(c => 
-    c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch('/api/admin/dashboard');
+      if (res.ok) {
+        const data = await res.json();
+        setMetrics(data);
+      }
+      
+      const clientsRes = await fetch('/api/admin/clients');
+      if (clientsRes.ok) {
+        const data = await clientsRes.json();
+        setClients(data.clients || []);
+      }
+    } catch (e) {
+      console.error('Failed to fetch data:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredClients = clients.filter(c => 
+    (c.name || '').toLowerCase().includes(clientSearch.toLowerCase()) ||
     c.email.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    c.company.toLowerCase().includes(clientSearch.toLowerCase())
+    (c.company || '').toLowerCase().includes(clientSearch.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-[#6b6b6b] text-sm">Loading...</div>
+      </div>
+    );
+  }
 
   if (selectedClient) {
     return (
@@ -57,7 +79,7 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Tab Navigation */}
-      <div className="flex gap-1 bg-[#111] p-1 rounded-lg">
+      <div className="flex gap-1 bg-[#111] p-1 rounded-lg overflow-x-auto">
         {[
           { key: 'dashboard', label: 'Dashboard', icon: '📊' },
           { key: 'clients', label: 'Clients', icon: '👥' },
@@ -67,7 +89,7 @@ export default function AdminDashboard() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as typeof activeTab)}
-            className={`flex-1 py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+            className={`flex-1 py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === tab.key
                 ? 'bg-[#991930] text-white'
                 : 'text-[#9a9a9a] hover:text-white hover:bg-white/5'
@@ -84,48 +106,33 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <MetricCard label="Total Clients" value={ANALYTICS.totalClients.toString()} change={`+${ANALYTICS.newThisWeek} this week`} />
-            <MetricCard label="Active Subs" value={ANALYTICS.activeSubscriptions.toString()} change="+8%" positive />
-            <MetricCard label="Revenue" value={`€${ANALYTICS.monthlyRevenue.toLocaleString()}`} change="+23%" positive />
-            <MetricCard label="Retention" value={`${ANALYTICS.retentionRate}%`} change="+2%" positive />
-          </div>
-
-          {/* Vera Usage */}
-          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
-            <h3 className="text-sm font-semibold text-white mb-3">🤖 Vera AI Usage</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-white">{ANALYTICS.veraQuestions.toLocaleString()}</div>
-                <div className="text-xs text-[#6b6b6b]">Total Questions</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-white">{ANALYTICS.veraConversations}</div>
-                <div className="text-xs text-[#6b6b6b]">Conversations</div>
-              </div>
-            </div>
+            <MetricCard label="Total Clients" value={metrics.totalClients.toString()} />
+            <MetricCard label="Active Subs" value={metrics.activeSubscriptions.toString()} />
+            <MetricCard label="Verified Emails" value={metrics.verifiedEmails.toString()} />
+            <MetricCard label="Total Credits" value={metrics.totalCredits.toString()} />
           </div>
 
           {/* Recent Clients */}
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
-            <h3 className="text-sm font-semibold text-white mb-3">Recent Client Activity</h3>
+            <h3 className="text-sm font-semibold text-white mb-3">Recent Clients</h3>
             <div className="space-y-2">
-              {MOCK_CLIENTS.slice(0, 4).map((client) => (
+              {clients.slice(0, 5).map((client) => (
                 <div key={client.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#991930]/20 flex items-center justify-center text-[#991930] text-xs font-semibold">
-                      {client.name.charAt(0)}
+                      {(client.name || client.email).charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div className="text-sm text-white">{client.name}</div>
-                      <div className="text-[10px] text-[#6b6b6b]">{client.company}</div>
+                      <div className="text-sm text-white">{client.name || client.email}</div>
+                      <div className="text-[10px] text-[#6b6b6b]">{client.company || 'No company'}</div>
                     </div>
                   </div>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                    client.status === 'active' ? 'bg-[#10b981]/20 text-[#10b981]' :
-                    client.status === 'pending' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
-                    'bg-red-500/20 text-red-500'
+                    client.subscription_status === 'active' ? 'bg-[#10b981]/20 text-[#10b981]' :
+                    client.email_verified ? 'bg-white/10 text-[#9a9a9a]' :
+                    'bg-[#f59e0b]/20 text-[#f59e0b]'
                   }`}>
-                    {client.status}
+                    {client.subscription_status === 'active' ? 'active' : client.email_verified ? 'free' : 'unverified'}
                   </span>
                 </div>
               ))}
@@ -137,15 +144,13 @@ export default function AdminDashboard() {
       {/* Clients Tab */}
       {activeTab === 'clients' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              value={clientSearch}
-              onChange={e => setClientSearch(e.target.value)}
-              placeholder="Search clients..."
-              className="flex-1 bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
-            />
-          </div>
+          <input
+            type="text"
+            value={clientSearch}
+            onChange={e => setClientSearch(e.target.value)}
+            placeholder="Search by name, email, or company..."
+            className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+          />
 
           <div className="bg-[#111] rounded-xl border border-white/5 overflow-hidden">
             <div className="overflow-x-auto">
@@ -154,8 +159,8 @@ export default function AdminDashboard() {
                   <tr className="border-b border-white/5">
                     <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Client</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b] hidden sm:table-cell">Plan</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b] hidden md:table-cell">Score</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b] hidden md:table-cell">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b] hidden lg:table-cell">Joined</th>
                     <th className="text-right px-4 py-3 text-xs font-medium text-[#6b6b6b]">Actions</th>
                   </tr>
                 </thead>
@@ -163,9 +168,9 @@ export default function AdminDashboard() {
                   {filteredClients.map((client) => (
                     <tr key={client.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="text-sm text-white">{client.name}</div>
+                        <div className="text-sm text-white">{client.name || client.email}</div>
                         <div className="text-[10px] text-[#6b6b6b]">{client.email}</div>
-                        <div className="text-[10px] text-[#6b6b6b] sm:hidden">{client.plan} • Score: {client.clarityScore}%</div>
+                        <div className="text-[10px] text-[#6b6b6b] sm:hidden">{client.plan} • {client.subscription_status}</div>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -178,21 +183,16 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#991930] rounded-full" style={{ width: `${client.clarityScore}%` }} />
-                          </div>
-                          <span className="text-xs text-white">{client.clarityScore}%</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          client.status === 'active' ? 'bg-[#10b981]/20 text-[#10b981]' :
-                          client.status === 'pending' ? 'bg-[#f59e0b]/20 text-[#f59e0b]' :
-                          'bg-red-500/20 text-red-500'
+                          client.subscription_status === 'active' ? 'bg-[#10b981]/20 text-[#10b981]' :
+                          client.email_verified ? 'bg-white/10 text-[#9a9a9a]' :
+                          'bg-[#f59e0b]/20 text-[#f59e0b]'
                         }`}>
-                          {client.status}
+                          {client.subscription_status === 'active' ? 'active' : client.email_verified ? 'free' : 'unverified'}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell text-xs text-[#9a9a9a]">
+                        {new Date(client.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="text-xs text-[#6b6b6b] text-center">
-            Showing {filteredClients.length} of {MOCK_CLIENTS.length} clients
+            Showing {filteredClients.length} of {clients.length} clients
           </div>
         </div>
       )}
@@ -219,32 +219,30 @@ export default function AdminDashboard() {
       {activeTab === 'analytics' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <MetricCard label="Monthly Revenue" value="€12,400" change="+23% vs last month" positive />
-            <MetricCard label="Active Clients" value="89" change="+12 this week" positive />
-            <MetricCard label="Churn Rate" value="8%" change="-2%" positive />
-            <MetricCard label="Vera Usage" value="2,847" change="+156% this month" positive />
-            <MetricCard label="Avg Clarity" value="64%" change="+8pts" positive />
-            <MetricCard label="Support Load" value="24" change="-12 tickets" positive />
+            <MetricCard label="Total Clients" value={metrics.totalClients.toString()} />
+            <MetricCard label="Active Subs" value={metrics.activeSubscriptions.toString()} />
+            <MetricCard label="Verified" value={metrics.verifiedEmails.toString()} />
+            <MetricCard label="Total Credits" value={metrics.totalCredits.toString()} />
+            <MetricCard label="Unverified" value={(metrics.totalClients - metrics.verifiedEmails).toString()} />
+            <MetricCard label="Conversion" value={metrics.totalClients > 0 ? Math.round((metrics.activeSubscriptions / metrics.totalClients) * 100) + '%' : '0%'} />
           </div>
 
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
-            <h3 className="text-sm font-semibold text-white mb-3">Revenue by Plan</h3>
+            <h3 className="text-sm font-semibold text-white mb-3">Plan Distribution</h3>
             <div className="space-y-3">
-              {[
-                { plan: 'Business (€99/mo)', count: 18, revenue: 1782, pct: 14 },
-                { plan: 'Professional (€49/mo)', count: 42, revenue: 2058, pct: 17 },
-                { plan: 'Pay-As-You-Go (€25)', count: 29, revenue: 725, pct: 6 },
-                { plan: 'Free/Starter', count: 67, revenue: 0, pct: 0 },
-              ].map((item) => (
-                <div key={item.plan} className="flex items-center gap-3">
-                  <div className="w-24 text-xs text-[#9a9a9a] truncate">{item.plan}</div>
-                  <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#991930] rounded-full" style={{ width: `${Math.max(item.pct, 3)}%` }} />
+              {['starter', 'payg', 'professional', 'business'].map((plan) => {
+                const count = clients.filter(c => c.plan === plan).length;
+                const pct = clients.length > 0 ? Math.round((count / clients.length) * 100) : 0;
+                return (
+                  <div key={plan} className="flex items-center gap-3">
+                    <div className="w-20 text-xs text-[#9a9a9a] capitalize">{plan}</div>
+                    <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#991930] rounded-full" style={{ width: `${Math.max(pct, 3)}%` }} />
+                    </div>
+                    <div className="w-12 text-right text-xs text-white">{count} ({pct}%)</div>
                   </div>
-                  <div className="w-20 text-right text-xs text-white">€{item.revenue.toLocaleString()}</div>
-                  <div className="w-8 text-right text-[10px] text-[#6b6b6b]">{item.count}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -257,8 +255,8 @@ export default function AdminDashboard() {
           <div className="space-y-3">
             <select className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50">
               <option value="">Select client...</option>
-              {MOCK_CLIENTS.map(c => (
-                <option key={c.id} value={c.email}>{c.name} ({c.email})</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>{c.name || c.email} ({c.email})</option>
               ))}
             </select>
             <input
@@ -281,12 +279,11 @@ export default function AdminDashboard() {
   );
 }
 
-function MetricCard({ label, value, change, positive }: { label: string; value: string; change: string; positive?: boolean }) {
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-[#111] rounded-xl p-4 border border-white/5">
       <div className="text-[10px] text-[#6b6b6b] uppercase tracking-wider mb-1">{label}</div>
       <div className="text-xl sm:text-2xl font-bold text-white">{value}</div>
-      <div className={`text-[10px] mt-1 ${positive ? 'text-[#10b981]' : 'text-[#f59e0b]'}`}>{change}</div>
     </div>
   );
 }
@@ -301,34 +298,36 @@ function AdminClientDetail({ client, onBack }: { client: Client; onBack: () => v
       <div className="bg-[#111] rounded-xl p-5 border border-white/5">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-[#991930]/20 flex items-center justify-center text-[#991930] text-lg font-bold">
-            {client.name.charAt(0)}
+            {(client.name || client.email).charAt(0).toUpperCase()}
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">{client.name}</h2>
-            <p className="text-sm text-[#6b6b6b]">{client.email} • {client.company}</p>
+            <h2 className="text-lg font-semibold text-white">{client.name || client.email}</h2>
+            <p className="text-sm text-[#6b6b6b]">{client.email} • {client.company || 'No company'}</p>
           </div>
           <span className={`ml-auto text-xs px-3 py-1 rounded-full ${
-            client.status === 'active' ? 'bg-[#10b981]/20 text-[#10b981]' : 'bg-[#f59e0b]/20 text-[#f59e0b]'
+            client.subscription_status === 'active' ? 'bg-[#10b981]/20 text-[#10b981]' :
+            client.email_verified ? 'bg-white/10 text-[#9a9a9a]' :
+            'bg-[#f59e0b]/20 text-[#f59e0b]'
           }`}>
-            {client.status}
+            {client.subscription_status}
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           <div className="bg-white/5 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">{client.conversations}</div>
-            <div className="text-[10px] text-[#6b6b6b]">Conversations</div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">{client.clarityScore}%</div>
-            <div className="text-[10px] text-[#6b6b6b]">Clarity Score</div>
-          </div>
-          <div className="bg-white/5 rounded-lg p-3 text-center">
             <div className="text-lg font-bold text-white">{client.plan}</div>
             <div className="text-[10px] text-[#6b6b6b]">Plan</div>
           </div>
           <div className="bg-white/5 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">{client.joined}</div>
+            <div className="text-lg font-bold text-white">{client.credits}</div>
+            <div className="text-[10px] text-[#6b6b6b]">Credits</div>
+          </div>
+          <div className="bg-white/5 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-white">{client.email_verified ? '✅' : '❌'}</div>
+            <div className="text-[10px] text-[#6b6b6b]">Verified</div>
+          </div>
+          <div className="bg-white/5 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-white">{new Date(client.created_at).toLocaleDateString()}</div>
             <div className="text-[10px] text-[#6b6b6b]">Joined</div>
           </div>
         </div>
