@@ -24,7 +24,9 @@ export default function CookieBanner() {
   useEffect(() => {
     const saved = localStorage.getItem(CONSENT_KEY);
     if (!saved) {
-      setVisible(true);
+      // Delay showing banner for better UX
+      const timer = setTimeout(() => setVisible(true), 1500);
+      return () => clearTimeout(timer);
     } else {
       try {
         setConsent(JSON.parse(saved));
@@ -46,78 +48,52 @@ export default function CookieBanner() {
     setShowCustomize(false);
   };
 
-  const acceptAll = () => {
-    saveConsent({ analytics: true, marketing: true });
-  };
-
-  const rejectNonEssential = () => {
-    saveConsent({ analytics: false, marketing: false });
-  };
-
-  const saveCustom = () => {
-    saveConsent({});
-  };
+  const acceptAll = () => saveConsent({ analytics: true, marketing: true });
+  const rejectNonEssential = () => saveConsent({ analytics: false, marketing: false });
+  const saveCustom = () => saveConsent({});
 
   if (!visible) return null;
 
   return (
     <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={() => {}} // Prevent closing by clicking outside
-      />
+      <div className="fixed inset-0 bg-black/40 z-40 sm:bg-black/50" />
       
-      {/* Banner */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
-          {/* Header */}
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl">🍪</span>
-              <h3 className="text-lg font-semibold text-white">Cookie Consent</h3>
+      {/* Mobile: Bottom Sheet, Desktop: Center Modal */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 sm:inset-0 sm:flex sm:items-center sm:justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md bg-[#0a0a0a] sm:rounded-2xl sm:border border-white/10 border-t border-white/10 rounded-t-2xl shadow-2xl overflow-hidden">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">🍪</span>
+              <h3 className="text-sm font-semibold text-white">Cookie Consent</h3>
             </div>
-            <p className="text-sm text-[#9a9a9a] leading-relaxed">
-              VANCORE uses cookies and similar technologies to enhance your experience, 
-              analyze website usage, and provide AI-powered business insights. 
+            <p className="text-xs text-[#9a9a9a] leading-relaxed leading-relaxed">
+              We use cookies to enhance your experience and provide AI-powered business insights. 
               We respect your privacy and comply with GDPR.
             </p>
           </div>
 
-          {/* Customize Options */}
           {showCustomize && (
-            <div className="px-6 pb-4 space-y-3 border-t border-white/5 pt-4">
+            <div className="px-4 pb-3 space-y-2 border-t border-white/5 pt-3 sm:px-5">
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium text-white">Necessary</div>
-                  <div className="text-[11px] text-[#6b6b6b]">Required for the website to function</div>
-                </div>
-                <div className="w-10 h-6 bg-[#991930] rounded-full flex items-center justify-end px-1">
+                <div className="text-xs font-medium text-white">Necessary</div>
+                <div className="w-9 h-5 bg-[#991930] rounded-full flex items-center justify-end px-0.5">
                   <div className="w-4 h-4 bg-white rounded-full" />
                 </div>
               </div>
-              
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium text-white">Analytics</div>
-                  <div className="text-[11px] text-[#6b6b6b]">Help us understand site usage</div>
-                </div>
+                <div className="text-xs font-medium text-white">Analytics</div>
                 <button
                   onClick={() => setConsent(c => ({ ...c, analytics: !c.analytics }))}
-                  className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${consent.analytics ? 'bg-[#991930]' : 'bg-white/10'}`}
+                  className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${consent.analytics ? 'bg-[#991930]' : 'bg-white/10'}`}
                 >
                   <div className={`w-4 h-4 bg-white rounded-full transition-transform ${consent.analytics ? 'translate-x-4' : ''}`} />
                 </button>
               </div>
-              
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium text-white">Marketing</div>
-                  <div className="text-[11px] text-[#6b6b6b]">Personalized business insights</div>
-                </div>
+                <div className="text-xs font-medium text-white">Marketing</div>
                 <button
                   onClick={() => setConsent(c => ({ ...c, marketing: !c.marketing }))}
-                  className={`w-10 h-6 rounded-full flex items-center px-1 transition-colors ${consent.marketing ? 'bg-[#991930]' : 'bg-white/10'}`}
+                  className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${consent.marketing ? 'bg-[#991930]' : 'bg-white/10'}`}
                 >
                   <div className={`w-4 h-4 bg-white rounded-full transition-transform ${consent.marketing ? 'translate-x-4' : ''}`} />
                 </button>
@@ -125,17 +101,16 @@ export default function CookieBanner() {
             </div>
           )}
 
-          {/* Buttons */}
-          <div className="px-6 pb-6 space-y-2">
+          <div className="p-3 sm:p-4 space-y-1.5">
             <button
               onClick={acceptAll}
-              className="w-full py-2.5 rounded-lg bg-[#991930] text-white text-sm font-semibold hover:bg-[#a83d1f] transition-colors"
+              className="w-full py-2.5 rounded-lg bg-[#991930] text-white text-sm font-semibold hover:bg-[#a83d1f] active:scale-[0.98] transition-all"
             >
               Accept All
             </button>
             <button
               onClick={rejectNonEssential}
-              className="w-full py-2.5 rounded-lg bg-white/5 text-white text-sm font-medium hover:bg-white/10 transition-colors border border-white/10"
+              className="w-full py-2.5 rounded-lg bg-white/5 text-white text-xs font-medium hover:bg-white/10 transition-colors border border-white/10"
             >
               Reject Non-Essential
             </button>
@@ -143,49 +118,31 @@ export default function CookieBanner() {
               onClick={() => setShowCustomize(!showCustomize)}
               className="w-full py-2 rounded-lg text-[#9a9a9a] text-xs font-medium hover:text-white transition-colors"
             >
-              {showCustomize ? 'Hide Options' : 'Customize ⚙️'}
+              {showCustomize ? 'Hide' : 'Customize ⚙️'}
             </button>
             {showCustomize && (
               <button
                 onClick={saveCustom}
-                className="w-full py-2.5 rounded-lg border border-[#991930]/30 text-[#991930] text-sm font-medium hover:bg-[#991930]/10 transition-colors"
+                className="w-full py-2 rounded-lg border border-[#991930]/30 text-[#991930] text-xs font-medium hover:bg-[#991930]/10 transition-colors"
               >
-                Save Preferences
+                Save
               </button>
             )}
           </div>
 
-          {/* Links */}
-          <div className="px-6 pb-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-white/5 pt-4">
-            <a href="/privacy" className="text-[11px] text-[#9a9a9a] hover:text-white transition-colors">
-              Privacy Policy
-            </a>
+          <div className="px-4 pb-3 flex items-center justify-center gap-3 border-t border-white/5 pt-2 sm:px-5 sm:pb-4">
+            <a href="/privacy" className="text-[10px] text-[#9a9a9a] hover:text-white transition-colors">Privacy</a>
             <span className="text-white/20">|</span>
-            <a href="/terms" className="text-[11px] text-[#9a9a9a] hover:text-white transition-colors">
-              Terms of Service
-            </a>
+            <a href="/terms" className="text-[10px] text-[#9a9a9a] hover:text-white transition-colors">Terms</a>
             <span className="text-white/20">|</span>
-            <a href="/cookies" className="text-[11px] text-[#9a9a9a] hover:text-white transition-colors">
-              Cookie Policy
-            </a>
+            <a href="/cookies" className="text-[10px] text-[#9a9a9a] hover:text-white transition-colors">Cookies</a>
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
-      `}</style>
     </>
   );
 }
 
-// Helper function to check if user has given consent
 export function hasConsent(type: 'analytics' | 'marketing'): boolean {
   if (typeof window === 'undefined') return false;
   const saved = localStorage.getItem(CONSENT_KEY);

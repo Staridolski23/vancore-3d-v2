@@ -250,26 +250,26 @@ export default function VeraChat() {
             </div>
 
             {/* GDPR Consent Checkboxes */}
-            <div className="space-y-2 pt-2">
-              <label className="flex items-start gap-2 cursor-pointer">
+            <div className="space-y-3 pt-2">
+              <label className="flex items-start gap-3 cursor-pointer py-1">
                 <input
                   type="checkbox"
                   checked={leadData.consentTerms}
                   onChange={e => setLeadData(p => ({ ...p, consentTerms: e.target.checked }))}
-                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-[#1a1a1a] text-[#991930] focus:ring-[#991930]/50"
+                  className="mt-0.5 w-5 h-5 rounded border-white/20 bg-[#1a1a1a] text-[#991930] focus:ring-[#991930]/50 flex-shrink-0"
                 />
-                <span className="text-[11px] text-[#9a9a9a] leading-relaxed">
+                <span className="text-xs sm:text-[11px] text-[#9a9a9a] leading-relaxed">
                   I agree to the <a href="/terms" className="text-[#991930] hover:underline" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="/privacy" className="text-[#991930] hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a> *
                 </span>
               </label>
-              <label className="flex items-start gap-2 cursor-pointer">
+              <label className="flex items-start gap-3 cursor-pointer py-1">
                 <input
                   type="checkbox"
                   checked={leadData.consentData}
                   onChange={e => setLeadData(p => ({ ...p, consentData: e.target.checked }))}
-                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-[#1a1a1a] text-[#991930] focus:ring-[#991930]/50"
+                  className="mt-0.5 w-5 h-5 rounded border-white/20 bg-[#1a1a1a] text-[#991930] focus:ring-[#991930]/50 flex-shrink-0"
                 />
-                <span className="text-[11px] text-[#9a9a9a] leading-relaxed">
+                <span className="text-xs sm:text-[11px] text-[#9a9a9a] leading-relaxed">
                   I consent to the processing of my personal data for AI business analysis purposes *
                 </span>
               </label>
