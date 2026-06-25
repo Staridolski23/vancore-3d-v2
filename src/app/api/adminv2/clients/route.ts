@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, verifyToken } from '@/lib/supabase';
 
-const ADMIN_EMAILS = [
-  'momchil@vancore.ai',
-  'zhanet@vancore.ai',
-  'office@vancoresys.com',
-];
+const ADMIN_EMAILS = ['momchil@vancore.ai', 'zhanet@vancore.ai', 'office@vancoresys.com'];
 
-// GET /api/adminv2/clients
+// GET /api/adminv2/clients - from Supabase users table
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -29,26 +25,32 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Use auth.admin.listUsers() to bypass RLS
-    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
+    // Get all users from Supabase auth
+    const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
     
-    if (usersError) {
-      return NextResponse.json({ error: usersError.message }, { status: 500 });
-    }
+    // Get profiles from users table
+    const { data: profiles } = await supabaseAdmin
+      .from('users')
+      .select('*');
 
-    // Transform to our Client format
-    const clients = (usersData?.users || []).map((u: any) => ({
-      id: u.id,
-      email: u.email || '',
-      name: u.user_metadata?.name || '',
-      company: u.user_metadata?.company || '',
-      plan: u.user_metadata?.plan || 'starter',
-      credits: u.user_metadata?.credits || 5,
-      subscription_status: u.user_metadata?.subscription_status || 'free',
-      role: u.user_metadata?.role || 'client',
-      email_verified: u.email_confirmed_at ? 1 : 0,
-      created_at: u.created_at,
-    }));
+    const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+
+    // Transform to Client format
+    const clients = (usersData?.users || []).map((u: any) => {
+      const profile = profileMap.get(u.id) || {};
+      return {
+        id: u.id,
+        email: u.email || '',
+        name: profile.name || u.user_metadata?.name || '',
+        company: profile.company || u.user_metadata?.company || '',
+        plan: profile.plan || 'starter',
+        credits: profile.credits ?? 5,
+        subscription_status: profile.subscription_status || 'free',
+        role: profile.role || (ADMIN_EMAILS.includes(u.email?.toLowerCase()) ? 'admin' : 'client'),
+        email_verified: u.email_confirmed_at ? 1 : 0,
+        created_at: u.created_at,
+      };
+    });
 
     return NextResponse.json({ clients });
   } catch (e: any) {

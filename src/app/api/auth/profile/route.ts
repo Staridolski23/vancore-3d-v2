@@ -15,17 +15,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    // Get user metadata directly from auth (no RLS issues)
+    // Get profile from Supabase users table
+    const { data: profile, error } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows found, which is OK for new users
+      console.error('Profile fetch error:', error);
+    }
+
     return NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
-        name: user.user_metadata?.name || '',
-        company: user.user_metadata?.company || '',
-        plan: user.user_metadata?.plan || 'starter',
-        credits: user.user_metadata?.credits || 5,
-        subscription_status: user.user_metadata?.subscription_status || 'free',
-        role: user.user_metadata?.role || 'client',
+        name: profile?.name || user.user_metadata?.name || '',
+        company: profile?.company || user.user_metadata?.company || '',
+        plan: profile?.plan || 'starter',
+        credits: profile?.credits ?? 5,
+        subscription_status: profile?.subscription_status || 'free',
+        role: profile?.role || 'client',
       },
     });
   } catch (e: any) {

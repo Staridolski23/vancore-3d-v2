@@ -85,13 +85,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    // Get metrics from auth.admin.listUsers() to bypass RLS
-    const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
-    const users = usersData?.users || [];
-    
+    // Get metrics from Supabase users table
+    const { data: profiles } = await supabaseAdmin
+      .from('users')
+      .select('id, role, subscription_status, email');
+
+    const users = profiles || [];
     const totalUsers = users.length;
-    const activeSubs = users.filter((u: any) => u.user_metadata?.subscription_status === 'active').length;
-    const verifiedEmails = users.filter((u: any) => u.email_confirmed_at).length;
+    const activeSubs = users.filter((u: any) => u.subscription_status === 'active').length;
+
+    // Get verified count from auth
+    const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const verifiedEmails = (authUsers?.users || []).filter((u: any) => u.email_confirmed_at).length;
 
     return NextResponse.json({
       totalClients: totalUsers,

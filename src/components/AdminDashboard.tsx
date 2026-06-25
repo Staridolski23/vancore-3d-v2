@@ -41,10 +41,21 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [editingContent, setEditingContent] = useState<SiteContent | null>(null);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
+  const [loadingContent, setLoadingContent] = useState(false);
 
   useEffect(() => {
     fetchData();
+    fetchContent();
   }, [propToken]);
+
+  const fetchContent = async () => {
+    setLoadingContent(true);
+    try {
+      const res = await fetch('/api/adminv2/content');
+      if (res.ok) { const data = await res.json(); setSiteContent(data.content || []); }
+    } catch (e) { console.error('Failed to fetch content:', e); }
+    finally { setLoadingContent(false); }
+  };
 
   const fetchData = async () => {
     try {
@@ -61,11 +72,6 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         const clientsRes = await fetch('/api/adminv2/clients', { headers });
         if (clientsRes.ok) { const data = await clientsRes.json(); setClients(data.clients || []); }
       } catch (e) { console.error('Failed to fetch clients:', e); }
-
-      try {
-        const contentRes = await fetch('/api/adminv2/content', { headers });
-        if (contentRes.ok) { const data = await contentRes.json(); setSiteContent(data.content || []); }
-      } catch (e) { console.error('Failed to fetch content:', e); }
     } catch (e) {
       console.error('Failed to fetch data:', e);
     } finally {
@@ -77,10 +83,9 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
     if (!editingContent) return;
     setSaving(true);
     try {
-      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
       const res = await fetch('/api/adminv2/content', {
         method: 'PUT',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: editingContent.id, value: editValue }),
       });
       if (res.ok) {
@@ -347,7 +352,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           {/* Add New Content */}
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
             <h3 className="text-sm font-semibold text-white mb-3">Add New Content</h3>
-            <AddContentForm token={propToken || ''} onAdded={fetchData} />
+            <AddContentForm onAdded={fetchContent} />
           </div>
         </div>
       )}
@@ -531,7 +536,7 @@ function MetricCard({ label, value, icon }: { label: string; value: string; icon
   );
 }
 
-function AddContentForm({ token, onAdded }: { token: string; onAdded: () => void }) {
+function AddContentForm({ onAdded }: { onAdded: () => void }) {
   const [section, setSection] = useState('hero');
   const [key, setKey] = useState('');
   const [value, setValue] = useState('');
@@ -545,7 +550,7 @@ function AddContentForm({ token, onAdded }: { token: string; onAdded: () => void
     try {
       await fetch('/api/adminv2/content', {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section, key, value, type }),
       });
       setKey('');
