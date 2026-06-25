@@ -2,7 +2,6 @@
 
 import AdminDashboard from '@/components/AdminDashboard';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 const ADMIN_EMAILS = [
   'momchil@vancore.ai',
@@ -11,19 +10,17 @@ const ADMIN_EMAILS = [
 ];
 
 export default function AdminPage() {
-  const router = useRouter();
   const [authenticated, setAuthenticated] = useState(false);
   const [token, setToken] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
 
-  // Check if already logged in
   useEffect(() => {
     const saved = localStorage.getItem('vancore_admin_token');
     if (saved) {
-      // Verify token
       fetch('/api/adminv2', {
         headers: { Authorization: `Bearer ${saved}` },
       }).then(res => {
@@ -33,7 +30,13 @@ export default function AdminPage() {
         } else {
           localStorage.removeItem('vancore_admin_token');
         }
-      }).catch(() => {});
+      }).catch(() => {
+        localStorage.removeItem('vancore_admin_token');
+      }).finally(() => {
+        setChecking(false);
+      });
+    } else {
+      setChecking(false);
     }
   }, []);
 
@@ -72,6 +75,14 @@ export default function AdminPage() {
     setToken('');
     localStorage.removeItem('vancore_admin_token');
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="text-[#6b6b6b] text-sm">Loading...</div>
+      </div>
+    );
+  }
 
   if (!authenticated) {
     return (

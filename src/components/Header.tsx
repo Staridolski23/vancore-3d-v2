@@ -59,6 +59,12 @@ export default function Header() {
               {link.label}
             </a>
           ))}
+          <a
+            href="/contact"
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-sans font-medium text-[#6b6b6b] hover:text-[#111] transition-colors"
+          >
+            Book a call
+          </a>
           <button
             onClick={handleSignIn}
             className="btn-hover inline-flex items-center gap-2 px-4 py-2 bg-[#991930] text-white text-sm font-sans font-medium"
@@ -102,6 +108,12 @@ export default function Header() {
                 {link.label}
               </a>
             ))}
+            <a
+              href="/contact"
+              className="py-3 text-base font-sans text-[#111] hover:text-[#991930] transition-colors border-b border-black/5"
+            >
+              Book a call
+            </a>
             <button
               onClick={handleSignIn}
               className="mt-3 inline-flex items-center justify-center gap-2 px-4 py-3 bg-[#991930] text-white text-base font-sans font-medium rounded-lg"
