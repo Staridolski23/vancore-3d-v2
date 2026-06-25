@@ -57,6 +57,7 @@ export default function AdminPage() {
 
       setToken(data.token);
       localStorage.setItem('vancore_admin_token', data.token);
+      document.cookie = 'vancore_admin_remember=1; max-age=' + (30 * 24 * 60 * 60) + '; path=/';
       setState('dashboard');
     } catch {
       setError('Connection error. Please try again.');

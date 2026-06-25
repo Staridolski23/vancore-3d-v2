@@ -7,6 +7,7 @@ interface Client {
   name: string;
   email: string;
   company: string;
+  phone: string;
   plan: string;
   role?: string;
   subscription_status: string;
@@ -206,7 +207,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                     </div>
                     <div>
                       <div className="text-sm text-white">{client.name || client.email}</div>
-                      <div className="text-[10px] text-[#6b6b6b]">{client.company || 'No company'}</div>
+                      <div className="text-[10px] text-[#6b6b6b]">{client.company || 'No company'} {client.phone ? '• ' + client.phone : ''}</div>
                     </div>
                   </div>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${
@@ -507,6 +508,8 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 <div>
                   <div className="text-lg font-semibold text-white">{selectedClient.name || selectedClient.email}</div>
                   <div className="text-sm text-[#6b6b6b]">{selectedClient.email}</div>
+                  {selectedClient.phone && <div className="text-xs text-[#9a9a9a] mt-0.5">📞 {selectedClient.phone}</div>}
+                  {selectedClient.company && <div className="text-xs text-[#9a9a9a0]">🏢 {selectedClient.company}</div>}
                 </div>
               </div>
 

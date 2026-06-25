@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
+  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,6 +48,8 @@ export default function LoginPage() {
       }
 
       localStorage.setItem('vancore_client_token', data.token);
+      // Also set a cookie for 30 days
+      document.cookie = 'vancore_remember=1; max-age=' + (30 * 24 * 60 * 60) + '; path=/';
 
       if (data.redirectTo) {
         window.location.href = data.redirectTo;
@@ -71,7 +74,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', email, password, name, company }),
+        body: JSON.stringify({ action: 'register', email, password, name, company, phone }),
       });
 
       const data = await res.json();
@@ -265,6 +268,17 @@ export default function LoginPage() {
                   value={company}
                   onChange={e => setCompany(e.target.value)}
                   placeholder="Company name"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                />
+              </div>
+              <div>
+                <label htmlFor="reg-phone" className="block text-xs text-[#6b6b6b] mb-1.5">Phone</label>
+                <input
+                  id="reg-phone"
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  placeholder="+359 888 123456"
                   className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
                 />
               </div>

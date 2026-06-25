@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
         email: user.email,
         name: profile?.name || user.user_metadata?.name || '',
         company: profile?.company || user.user_metadata?.company || '',
+        phone: profile?.phone || user.user_metadata?.phone || '',
         plan: profile?.plan || 'starter',
         credits: profile?.credits ?? 5,
         subscription_status: profile?.subscription_status || 'free',

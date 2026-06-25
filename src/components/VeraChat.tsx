@@ -189,8 +189,59 @@ export default function VeraChat() {
     window.location.href = `/client-portal?plan=${planId}&email=${encodeURIComponent(leadData.email)}&name=${encodeURIComponent(leadData.name)}`;
   };
 
-  // Step 0: Lead Capture Form
-  if (step === 0 && !leadSubmitted) {
+  // Check if user is logged in - skip lead capture
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('vancore_client_token');
+    if (token) {
+      fetch('/api/auth/profile', {
+        headers: { Authorization: 'Bearer ' + token },
+      }).then(res => {
+        if (res.ok) {
+          res.json().then(data => {
+            setIsLoggedIn(true);
+            setUserProfile(data.user);
+            setLeadData({
+              name: data.user.name || '',
+              company: data.user.company || '',
+              email: data.user.email || '',
+              phone: data.user.phone || '',
+              consentTerms: true,
+              consentData: true,
+              consentMarketing: false
+            });
+            // Skip lead capture and start chat
+            setLeadSubmitted(true);
+            setStep(1);
+            // Auto-start conversation
+            setTimeout(async () => {
+              const res = await fetch('/api/ai-analyst', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: 'Hello', sessionId: '' }),
+              });
+              const data = await res.json();
+              const assistantMsg: Message = { 
+                role: 'assistant', 
+                text: data.reply, 
+                ts: new Date().toISOString() 
+              };
+              setMessages([assistantMsg]);
+              setSessionId(data.sessionId || '');
+              setStep(data.step || 1);
+              setQuickReplies(data.quickReplies || null);
+              setPlaceholder(data.placeholder || '');
+            }, 500);
+          });
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
+  // Step 0: Lead Capture Form (only for non-logged-in users)
+  if (step === 0 && !leadSubmitted && !isLoggedIn) {
     return (
       <>
         <style jsx>{fadeStyle}</style>

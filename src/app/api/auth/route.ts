@@ -10,7 +10,7 @@ const ADMIN_EMAILS = [
 
 export async function POST(request: NextRequest) {
   try {
-    const { action, email, password, name, company } = await request.json();
+    const { action, email, password, name, company, phone } = await request.json();
 
     if (action === 'register') {
       const role = ADMIN_EMAILS.includes(email.toLowerCase()) ? 'admin' : 'client';
@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        email_confirm: true, // Auto-confirm for testing
-        user_metadata: { name, company, role },
+        email_confirm: true,
+        user_metadata: { name, company, phone, role },
       });
 
       if (error) {
@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
           email: data.user.email,
           name: data.user.user_metadata?.name || '',
           company: data.user.user_metadata?.company || '',
+          phone: data.user.user_metadata?.phone || '',
           plan: data.user.user_metadata?.plan || 'starter',
           credits: data.user.user_metadata?.credits || 5,
           subscription_status: data.user.user_metadata?.subscription_status || 'free',
