@@ -123,10 +123,10 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         <div className="space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <MetricCard label="Total Clients" value={metrics.totalClients.toString()} />
-            <MetricCard label="Active Subs" value={metrics.activeSubscriptions.toString()} />
-            <MetricCard label="Verified Emails" value={metrics.verifiedEmails.toString()} />
-            <MetricCard label="Total Credits" value={metrics.totalCredits.toString()} />
+            <MetricCard label="Total Clients" value={String(metrics.totalClients || 0)} />
+            <MetricCard label="Active Subs" value={String(metrics.activeSubscriptions || 0)} />
+            <MetricCard label="Verified Emails" value={String(metrics.verifiedEmails || 0)} />
+            <MetricCard label="Total Credits" value="0" />
           </div>
 
           {/* Recent Clients */}
@@ -236,12 +236,12 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       {activeTab === 'analytics' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <MetricCard label="Total Clients" value={metrics.totalClients.toString()} />
-            <MetricCard label="Active Subs" value={metrics.activeSubscriptions.toString()} />
-            <MetricCard label="Verified" value={metrics.verifiedEmails.toString()} />
-            <MetricCard label="Total Credits" value={metrics.totalCredits.toString()} />
-            <MetricCard label="Unverified" value={(metrics.totalClients - metrics.verifiedEmails).toString()} />
-            <MetricCard label="Conversion" value={metrics.totalClients > 0 ? Math.round((metrics.activeSubscriptions / metrics.totalClients) * 100) + '%' : '0%'} />
+            <MetricCard label="Total Clients" value={String(metrics.totalClients || 0)} />
+            <MetricCard label="Active Subs" value={String(metrics.activeSubscriptions || 0)} />
+            <MetricCard label="Verified" value={String(metrics.verifiedEmails || 0)} />
+            <MetricCard label="Total Credits" value="0" />
+            <MetricCard label="Unverified" value={String((metrics.totalClients || 0) - (metrics.verifiedEmails || 0))} />
+            <MetricCard label="Conversion" value={(metrics.totalClients || 0) > 0 ? Math.round(((metrics.activeSubscriptions || 0) / metrics.totalClients) * 100) + '%' : '0%'} />
           </div>
 
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
