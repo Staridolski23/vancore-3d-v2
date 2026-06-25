@@ -22,20 +22,14 @@ async function adminAuth(req: NextRequest) {
     return { error: 'Invalid token', status: 401 };
   }
 
-  // Check if user is admin
-  const { data: profile } = await supabaseAdmin
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  const isAdmin = profile?.role === 'admin' || ADMIN_EMAILS.includes(user.email?.toLowerCase() || '');
+  // Check if user is admin by email (simpler, no DB query needed)
+  const isAdmin = ADMIN_EMAILS.includes(user.email?.toLowerCase() || '');
   
   if (!isAdmin) {
     return { error: 'Admin access required', status: 403 };
   }
 
-  return { user, profile };
+  return { user, profile: { role: 'admin' } };
 }
 
 // POST /api/adminv2/login

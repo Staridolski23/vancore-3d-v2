@@ -1,44 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, verifyToken } from '@/lib/supabase';
 
-// Middleware to check admin auth
-async function adminAuth(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { error: 'Not authorized', status: 401 };
-  }
-
-  const token = authHeader.split(' ')[1];
-  const user = await verifyToken(token);
-  
-  if (!user) {
-    return { error: 'Invalid token', status: 401 };
-  }
-
-  const { data: profile } = await supabaseAdmin
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (profile?.role !== 'admin') {
-    return { error: 'Admin access required', status: 403 };
-  }
-
-  return { user, profile };
-}
+const ADMIN_EMAILS = [
+  'momchil@vancore.ai',
+  'zhanet@vancore.ai',
+  'office@vancoresys.com',
+];
 
 // GET /api/adminv2/clients
 export async function GET(request: NextRequest) {
   try {
-    const auth = await adminAuth(request);
-    if (auth.error) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const user = await verifyToken(token);
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    // Check if user is admin by email
+    const isAdmin = ADMIN_EMAILS.includes(user.email?.toLowerCase() || '');
+    
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
     const { data: clients, error } = await supabaseAdmin
       .from('users')
-      .select('*')
+      .select('id, email, name, company, plan, credits, subscription_status, role, created_at')
       .order('created_at', { ascending: false });
 
     if (error) {

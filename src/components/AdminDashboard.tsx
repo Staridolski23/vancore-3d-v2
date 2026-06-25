@@ -37,19 +37,31 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('vancore_admin_token') || '';
       
-      const headers: any = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      
-      const res = await fetch('/api/adminv2', { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setMetrics(data);
+      if (!token) {
+        setLoading(false);
+        return;
       }
       
-      const clientsRes = await fetch('/api/adminv2/clients', { headers });
-      if (clientsRes.ok) {
-        const data = await clientsRes.json();
-        setClients(data.clients || []);
+      const headers: any = { 'Authorization': `Bearer ${token}` };
+      
+      try {
+        const res = await fetch('/api/adminv2', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          setMetrics(data);
+        }
+      } catch (e) {
+        console.error('Failed to fetch metrics:', e);
+      }
+      
+      try {
+        const clientsRes = await fetch('/api/adminv2/clients', { headers });
+        if (clientsRes.ok) {
+          const data = await clientsRes.json();
+          setClients(data.clients || []);
+        }
+      } catch (e) {
+        console.error('Failed to fetch clients:', e);
       }
     } catch (e) {
       console.error('Failed to fetch data:', e);
