@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
         plan: profile?.plan || 'starter',
         credits: profile?.credits || 5,
         subscription_status: profile?.subscription_status || 'free',
+        role: profile?.role || 'client',
       },
     });
   } catch (e: any) {

@@ -94,25 +94,20 @@ export default function ClientPortal() {
     if (saved) {
       setToken(saved);
       setIsLoggedIn(true);
-      loadUserData(saved);
+      // Verify token is still valid by fetching profile
+      fetch('/api/auth/profile', {
+        headers: { Authorization: `Bearer ${saved}` },
+      }).then(res => {
+        if (res.ok) {
+          res.json().then(data => setUser(data.user));
+        } else {
+          localStorage.removeItem('vancore_client_token');
+          setToken(null);
+          setIsLoggedIn(false);
+        }
+      }).catch(() => {});
     }
   }, []);
-
-  const loadUserData = async (tok: string) => {
-    try {
-      const res = await fetch('/api/auth/profile', {
-        headers: { Authorization: `Bearer ${tok}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-      } else {
-        localStorage.removeItem('vancore_client_token');
-        setToken(null);
-        setIsLoggedIn(false);
-      }
-    } catch {}
-  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,8 +142,8 @@ export default function ClientPortal() {
       localStorage.setItem('vancore_client_token', data.token);
       if (data.user) setUser(data.user);
       
-      // Redirect based on role
-      if (data.redirectTo) {
+      // Redirect based on role (client portal handles client, admin goes to admin)
+      if (data.user?.role === 'admin' && data.redirectTo) {
         window.location.href = data.redirectTo;
       }
     } catch {
