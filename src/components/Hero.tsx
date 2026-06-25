@@ -10,14 +10,14 @@ export default function Hero() {
   const subtitle = section?.subtitle || 'A husband-and-wife consultancy for the messy, internal problems — the ones org charts hide and quarterly reports can\'t reach.';
 
   return (
-    <section className="relative bg-white min-h-screen flex items-center overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 py-24 md:py-32 w-full">
+    <section className="relative bg-white min-h-screen flex items-center overflow-hidden pt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-24 lg:py-32 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div className="max-w-xl">
             <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
               — VANCORE SYSTEMS / EST. 2026
             </div>
-            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl text-[#111] leading-[1.08] mb-8">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-[#111] leading-[1.08] mb-6 md:mb-8">
               {title.split(' ').map((word, i) => {
                 const accentWords = ['missing.'];
                 return (
