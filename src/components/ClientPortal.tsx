@@ -14,43 +14,41 @@ interface UserInfo {
 }
 
 export default function ClientPortal() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<'loading' | 'login' | 'dashboard'>('loading');
 
   useEffect(() => {
-    const saved = localStorage.getItem('vancore_client_token');
-    if (saved) {
-      fetch('/api/auth/profile', {
-        headers: { Authorization: 'Bearer ' + saved },
-      }).then(res => {
-        if (res.ok) {
-          res.json().then(data => {
-            setUser(data.user);
-            setIsLoggedIn(true);
-          });
-        } else {
-          localStorage.removeItem('vancore_client_token');
-          setIsLoggedIn(false);
-        }
-      }).catch(() => {
-        localStorage.removeItem('vancore_client_token');
-        setIsLoggedIn(false);
-      }).finally(() => {
-        setLoading(false);
-      });
-    } else {
-      setLoading(false);
+    const token = localStorage.getItem('vancore_client_token');
+    if (!token) {
+      setStatus('login');
+      return;
     }
+
+    fetch('/api/auth/profile', {
+      headers: { Authorization: 'Bearer ' + token },
+    }).then(res => {
+      if (res.ok) {
+        res.json().then(data => {
+          setUser(data.user);
+          setStatus('dashboard');
+        });
+      } else {
+        localStorage.removeItem('vancore_client_token');
+        setStatus('login');
+      }
+    }).catch(() => {
+      localStorage.removeItem('vancore_client_token');
+      setStatus('login');
+    });
   }, []);
 
   const logout = () => {
-    setIsLoggedIn(false);
     setUser(null);
     localStorage.removeItem('vancore_client_token');
+    setStatus('login');
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="text-[#6b6b6b] text-sm">Loading...</div>
@@ -58,17 +56,11 @@ export default function ClientPortal() {
     );
   }
 
-  if (!isLoggedIn) {
+  if (status === 'login') {
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+      window.location.replace('/login');
     }
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="text-center">
-          <p className="text-[#6b6b6b]">Redirecting to login...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const clarityScore = 31;
@@ -76,7 +68,6 @@ export default function ClientPortal() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Welcome Hero */}
       <div className="bg-gradient-to-r from-[#111] to-[#1a1a1a] rounded-2xl p-6 border border-white/5">
         <div className="flex items-center justify-between">
           <div>
@@ -89,7 +80,7 @@ export default function ClientPortal() {
           </div>
         </div>
         <div className="mt-4 h-2 bg-white/5 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-[#991930] to-[#c94f2b] rounded-full transition-all duration-1000" style={{ width: clarityScore + '%' }} />
+          <div className="h-full bg-gradient-to-r from-[#991930] to-[#c94f2b] rounded-full" style={{ width: clarityScore + '%' }} />
         </div>
         <div className="mt-4 flex gap-3">
           <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
@@ -101,7 +92,6 @@ export default function ClientPortal() {
         </div>
       </div>
 
-      {/* Active Plan & Usage */}
       <div className="bg-[#111] rounded-2xl p-6 border border-white/5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-white">Active Plan</h3>
@@ -136,7 +126,6 @@ export default function ClientPortal() {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <a href="/ai-analyst" className="p-4 bg-[#111] rounded-xl border border-white/5 hover:border-[#991930]/30 transition-colors text-center group">
           <div className="text-2xl mb-2">💬</div>
@@ -156,7 +145,6 @@ export default function ClientPortal() {
         </button>
       </div>
 
-      {/* Sign Out */}
       <div className="text-center pt-4">
         <button onClick={logout} className="text-sm text-[#6b6b6b] hover:text-[#991930] transition-colors">
           Sign out
