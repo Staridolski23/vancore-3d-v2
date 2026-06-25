@@ -1,7 +1,7 @@
 'use client';
 
 import AdminDashboard from '@/components/AdminDashboard';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const ADMIN_EMAILS = [
   'momchil@vancore.ai',
@@ -10,35 +10,37 @@ const ADMIN_EMAILS = [
 ];
 
 export default function AdminPage() {
-  const [authenticated, setAuthenticated] = useState(false);
+  const [state, setState] = useState<'loading' | 'login' | 'dashboard'>('loading');
   const [token, setToken] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('vancore_admin_token');
-    if (saved) {
-      fetch('/api/adminv2', {
-        headers: { Authorization: `Bearer ${saved}` },
-      }).then(res => {
+  const checkAuth = useCallback(async () => {
+    try {
+      const saved = localStorage.getItem('vancore_admin_token');
+      if (saved) {
+        const res = await fetch('/api/adminv2', {
+          headers: { Authorization: `Bearer ${saved}` },
+        });
         if (res.ok) {
           setToken(saved);
-          setAuthenticated(true);
+          setState('dashboard');
+          return;
         } else {
           localStorage.removeItem('vancore_admin_token');
         }
-      }).catch(() => {
-        localStorage.removeItem('vancore_admin_token');
-      }).finally(() => {
-        setChecking(false);
-      });
-    } else {
-      setChecking(false);
+      }
+    } catch {
+      localStorage.removeItem('vancore_admin_token');
     }
+    setState('login');
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,8 +63,8 @@ export default function AdminPage() {
       }
 
       setToken(data.token);
-      setAuthenticated(true);
       localStorage.setItem('vancore_admin_token', data.token);
+      setState('dashboard');
     } catch {
       setError('Connection error. Please try again.');
     } finally {
@@ -71,12 +73,12 @@ export default function AdminPage() {
   };
 
   const handleLogout = () => {
-    setAuthenticated(false);
     setToken('');
     localStorage.removeItem('vancore_admin_token');
+    setState('login');
   };
 
-  if (checking) {
+  if (state === 'loading') {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="text-[#6b6b6b] text-sm">Loading...</div>
@@ -84,7 +86,7 @@ export default function AdminPage() {
     );
   }
 
-  if (!authenticated) {
+  if (state === 'login') {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
