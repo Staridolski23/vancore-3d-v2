@@ -35,13 +35,18 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('/api/admin/dashboard');
+      const token = localStorage.getItem('vancore_admin_token') || '';
+      
+      const headers: any = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      
+      const res = await fetch('/api/adminv2', { headers });
       if (res.ok) {
         const data = await res.json();
         setMetrics(data);
       }
       
-      const clientsRes = await fetch('/api/admin/clients');
+      const clientsRes = await fetch('/api/adminv2/clients', { headers });
       if (clientsRes.ok) {
         const data = await clientsRes.json();
         setClients(data.clients || []);

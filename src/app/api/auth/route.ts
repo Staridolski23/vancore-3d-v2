@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { SignInWithPasswordCredentials } from '@supabase/supabase-js';
 
-// Admin emails list - add admin emails here
 const ADMIN_EMAILS = [
   'momchil@vancore.ai',
   'zhanet@vancore.ai',
@@ -15,19 +15,30 @@ export async function POST(request: NextRequest) {
     if (action === 'register') {
       const role = ADMIN_EMAILS.includes(email.toLowerCase()) ? 'admin' : 'client';
       
+      // Check if user already exists
+      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+      const userExists = existingUsers?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase());
+      
+      if (userExists) {
+        return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 });
+      }
+      
       const { data, error } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        email_confirm: false,
+        email_confirm: true, // Auto-confirm for testing
         user_metadata: { name, company, role },
       });
 
       if (error) {
+        if (error.message.includes('already registered') || error.message.includes('already exists')) {
+          return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 });
+        }
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
 
       if (data.user) {
-        await supabaseAdmin.from('users').insert({
+        await supabaseAdmin.from('users').upsert({
           id: data.user.id,
           email,
           name: name || '',
@@ -39,24 +50,10 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Auto-login after register
-      const { data: loginData, error: loginError } = await supabaseAdmin.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (loginError) {
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Registered. Please check your email to verify.',
-          needsVerification: true,
-        });
-      }
-
       return NextResponse.json({ 
         success: true, 
-        message: 'Registered. Please check your email to verify.',
-        needsVerification: true,
+        message: 'Registered successfully.',
+        autoConfirmed: true,
       });
     }
 
@@ -64,13 +61,12 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabaseAdmin.auth.signInWithPassword({
         email,
         password,
-      });
+      } as SignInWithPasswordCredentials);
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 401 });
       }
 
-      // Check if email is confirmed
       if (!data.user?.email_confirmed_at) {
         return NextResponse.json({ 
           error: 'Please verify your email first.', 
@@ -78,7 +74,6 @@ export async function POST(request: NextRequest) {
         }, { status: 403 });
       }
 
-      // Get user profile with role
       const { data: profile } = await supabaseAdmin
         .from('users')
         .select('*')
@@ -87,7 +82,6 @@ export async function POST(request: NextRequest) {
 
       const role = profile?.role || (ADMIN_EMAILS.includes(data.user!.email!.toLowerCase()) ? 'admin' : 'client');
       
-      // Update role if it was missing but email is admin
       if (!profile?.role && role === 'admin') {
         await supabaseAdmin.from('users').update({ role: 'admin' }).eq('id', data.user.id);
       }
@@ -111,15 +105,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'resend-verification') {
-      const { error } = await supabaseAdmin.auth.resend({
-        type: 'signup',
-        email,
-      });
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
-
+      const { error } = await supabaseAdmin.auth.resend({ type: 'signup', email });
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
       return NextResponse.json({ success: true, message: 'Verification email sent.' });
     }
 
