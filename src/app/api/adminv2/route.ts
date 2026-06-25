@@ -85,15 +85,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    // Get metrics from Supabase
-    const { count: totalUsers } = await supabaseAdmin.from('users').select('*', { count: 'exact', head: true });
-    const { count: activeSubs } = await supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active');
-    const { count: verifiedEmails } = await supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('role', 'client');
+    // Get metrics from auth.admin.listUsers() to bypass RLS
+    const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+    const users = usersData?.users || [];
+    
+    const totalUsers = users.length;
+    const activeSubs = users.filter((u: any) => u.user_metadata?.subscription_status === 'active').length;
+    const verifiedEmails = users.filter((u: any) => u.email_confirmed_at).length;
 
     return NextResponse.json({
-      totalClients: totalUsers || 0,
-      activeSubscriptions: activeSubs || 0,
-      verifiedEmails: verifiedEmails || 0,
+      totalClients: totalUsers,
+      activeSubscriptions: activeSubs,
+      verifiedEmails,
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

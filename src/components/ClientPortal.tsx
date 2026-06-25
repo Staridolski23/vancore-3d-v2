@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { API_URL } from '@/lib/api';
 
 interface UserInfo {
   id: string;
@@ -11,117 +10,54 @@ interface UserInfo {
   plan: string | null;
   credits: number | null;
   subscription_status: string | null;
-  subscription_end: string | null;
   role?: string;
 }
 
 export default function ClientPortal() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [authName, setAuthName] = useState('');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authCompany, setAuthCompany] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
-  const [needsVerification, setNeedsVerification] = useState(false);
-  const [verifyEmail, setVerifyEmail] = useState('');
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'chat' | 'billing' | 'settings'>('dashboard');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const saved = localStorage.getItem('vancore_client_token');
     if (saved) {
-      setToken(saved);
-      setIsLoggedIn(true);
       fetch('/api/auth/profile', {
-        headers: { Authorization: `Bearer ${saved}` },
+        headers: { Authorization: 'Bearer ' + saved },
       }).then(res => {
         if (res.ok) {
-          res.json().then(data => setUser(data.user));
+          res.json().then(data => {
+            setUser(data.user);
+            setIsLoggedIn(true);
+          });
         } else {
           localStorage.removeItem('vancore_client_token');
-          setToken(null);
           setIsLoggedIn(false);
         }
-      }).catch(() => {});
+      }).catch(() => {
+        localStorage.removeItem('vancore_client_token');
+        setIsLoggedIn(false);
+      }).finally(() => {
+        setLoading(false);
+      });
+    } else {
+      setLoading(false);
     }
   }, []);
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError('');
-    setAuthLoading(true);
-    setNeedsVerification(false);
-    setResendSuccess(false);
-    try {
-      const action = authMode === 'login' ? 'login' : 'register';
-      const body: any = { action, email: authEmail, password: authPassword };
-      if (authMode === 'register') {
-        body.name = authName;
-        body.company = authCompany;
-      }
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (data?.needsVerification) {
-        setAuthError('Please verify your email before logging in. Check your inbox for the verification link.');
-        setNeedsVerification(true);
-        setVerifyEmail(authEmail);
-        setAuthLoading(false);
-        return;
-      }
-      if (!res.ok || !data?.token) {
-        setAuthError(data?.error || (authMode === 'login' ? 'Invalid email or password.' : 'Registration failed.'));
-        return;
-      }
-      setToken(data.token);
-      setIsLoggedIn(true);
-      localStorage.setItem('vancore_client_token', data.token);
-      if (data.user) setUser(data.user);
-      
-      // Redirect based on role
-      if (data.user?.role === 'admin' && data.redirectTo) {
-        window.location.href = data.redirectTo;
-      }
-    } catch {
-      setAuthError('Connection error. Please try again.');
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   const logout = () => {
     setIsLoggedIn(false);
-    setToken(null);
     setUser(null);
     localStorage.removeItem('vancore_client_token');
-    setNeedsVerification(false);
-    setResendSuccess(false);
   };
 
-  const resendVerification = async () => {
-    setResendLoading(true);
-    setResendSuccess(false);
-    try {
-      await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'resend-verification', email: verifyEmail }),
-      });
-      setResendSuccess(true);
-    } catch {} finally {
-      setResendLoading(false);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4">
+        <div className="text-[#6b6b6b] text-sm">Loading...</div>
+      </div>
+    );
+  }
 
-  // Not logged in — redirect to unified login
   if (!isLoggedIn) {
     if (typeof window !== 'undefined') {
       window.location.href = '/login';
@@ -135,7 +71,6 @@ export default function ClientPortal() {
     );
   }
 
-  // Logged in — Dashboard
   const clarityScore = 31;
   const currentPlan = user?.plan || 'starter';
 
@@ -154,7 +89,7 @@ export default function ClientPortal() {
           </div>
         </div>
         <div className="mt-4 h-2 bg-white/5 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-[#991930] to-[#c94f2b] rounded-full transition-all duration-1000" style={{ width: `${clarityScore}%` }} />
+          <div className="h-full bg-gradient-to-r from-[#991930] to-[#c94f2b] rounded-full transition-all duration-1000" style={{ width: clarityScore + '%' }} />
         </div>
         <div className="mt-4 flex gap-3">
           <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">

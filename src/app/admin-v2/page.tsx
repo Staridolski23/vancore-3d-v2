@@ -3,12 +3,6 @@
 import AdminDashboard from '@/components/AdminDashboard';
 import { useState, useEffect } from 'react';
 
-const ADMIN_EMAILS = [
-  'momchil@vancore.ai',
-  'zhanet@vancore.ai',
-  'office@vancoresys.com',
-];
-
 export default function AdminPage() {
   const [state, setState] = useState<'loading' | 'login' | 'dashboard'>('loading');
   const [token, setToken] = useState('');
@@ -18,23 +12,27 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('vancore_admin_token');
-    if (saved) {
-      fetch('/api/adminv2', {
-        headers: { Authorization: `Bearer ${saved}` },
-      }).then(res => {
-        if (res.ok) {
-          setToken(saved);
-          setState('dashboard');
-        } else {
+    try {
+      const saved = localStorage.getItem('vancore_admin_token');
+      if (saved) {
+        fetch('/api/adminv2', {
+          headers: { Authorization: 'Bearer ' + saved },
+        }).then(res => {
+          if (res.ok) {
+            setToken(saved);
+            setState('dashboard');
+          } else {
+            localStorage.removeItem('vancore_admin_token');
+            setState('login');
+          }
+        }).catch(() => {
           localStorage.removeItem('vancore_admin_token');
           setState('login');
-        }
-      }).catch(() => {
-        localStorage.removeItem('vancore_admin_token');
+        });
+      } else {
         setState('login');
-      });
-    } else {
+      }
+    } catch {
       setState('login');
     }
   }, []);
@@ -149,7 +147,7 @@ export default function AdminPage() {
             Sign Out
           </button>
         </div>
-        <AdminDashboard />
+        <AdminDashboard token={token} />
       </div>
     </div>
   );

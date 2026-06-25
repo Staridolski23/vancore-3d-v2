@@ -74,18 +74,7 @@ export async function POST(request: NextRequest) {
         }, { status: 403 });
       }
 
-      const { data: profile } = await supabaseAdmin
-        .from('users')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      const role = profile?.role || (ADMIN_EMAILS.includes(data.user!.email!.toLowerCase()) ? 'admin' : 'client');
-      
-      if (!profile?.role && role === 'admin') {
-        await supabaseAdmin.from('users').update({ role: 'admin' }).eq('id', data.user.id);
-      }
-
+      const role = ADMIN_EMAILS.includes(data.user.email?.toLowerCase() || '') ? 'admin' : 'client';
       const redirectTo = role === 'admin' ? '/admin-v2' : '/client-portal';
 
       return NextResponse.json({
@@ -93,11 +82,11 @@ export async function POST(request: NextRequest) {
         user: {
           id: data.user.id,
           email: data.user.email,
-          name: profile?.name || data.user.user_metadata?.name || '',
-          company: profile?.company || data.user.user_metadata?.company || '',
-          plan: profile?.plan || 'starter',
-          credits: profile?.credits || 5,
-          subscription_status: profile?.subscription_status || 'free',
+          name: data.user.user_metadata?.name || '',
+          company: data.user.user_metadata?.company || '',
+          plan: data.user.user_metadata?.plan || 'starter',
+          credits: data.user.user_metadata?.credits || 5,
+          subscription_status: data.user.user_metadata?.subscription_status || 'free',
           role,
         },
         redirectTo,

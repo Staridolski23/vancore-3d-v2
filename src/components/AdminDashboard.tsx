@@ -21,7 +21,7 @@ interface DashboardMetrics {
   verifiedEmails: number;
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ token: propToken }: { token?: string }) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'analytics' | 'messaging'>('dashboard');
   const [clients, setClients] = useState<Client[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalClients: 0, activeSubscriptions: 0, totalCredits: 0, verifiedEmails: 0 });
@@ -31,18 +31,18 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [propToken]);
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('vancore_admin_token') || '';
+      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
       
       if (!token) {
         setLoading(false);
         return;
       }
       
-      const headers: any = { 'Authorization': `Bearer ${token}` };
+      const headers: any = { 'Authorization': 'Bearer ' + token };
       
       try {
         const res = await fetch('/api/adminv2', { headers });
