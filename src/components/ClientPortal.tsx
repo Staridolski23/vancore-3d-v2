@@ -100,7 +100,7 @@ export default function ClientPortal() {
 
   const loadUserData = async (tok: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/client/me`, {
+      const res = await fetch('/api/auth/profile', {
         headers: { Authorization: `Bearer ${tok}` },
       });
       if (res.ok) {
@@ -119,13 +119,13 @@ export default function ClientPortal() {
     setAuthError('');
     setAuthLoading(true);
     try {
-      const endpoint = authMode === 'login' ? '/api/client/login' : '/api/client/register';
-      const body: any = { email: authEmail, password: authPassword };
+      const action = authMode === 'login' ? 'login' : 'register';
+      const body: any = { action, email: authEmail, password: authPassword };
       if (authMode === 'register') {
         body.name = authName;
         body.company = authCompany;
       }
-      const res = await fetch(`${API_URL}${endpoint}`, {
+      const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -166,17 +166,16 @@ export default function ClientPortal() {
     setResendLoading(true);
     setResendSuccess(false);
     try {
-      await fetch(`${API_URL}/api/client/resend-verification`, {
+      await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: verifyEmail }),
+        body: JSON.stringify({ action: 'resend-verification', email: verifyEmail }),
       });
       setResendSuccess(true);
     } catch {} finally {
       setResendLoading(false);
     }
   };
-
   // Login/Register Form
   if (!isLoggedIn) {
     return (
