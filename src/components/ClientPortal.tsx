@@ -83,6 +83,10 @@ export default function ClientPortal() {
   const [authCompany, setAuthCompany] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'chat' | 'billing' | 'settings'>('dashboard');
 
   useEffect(() => {
@@ -127,6 +131,13 @@ export default function ClientPortal() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
+      if (data?.needsVerification) {
+        setAuthError('Please verify your email before logging in. Check your inbox for the verification link.');
+        setNeedsVerification(true);
+        setVerifyEmail(authEmail);
+        setAuthLoading(false);
+        return;
+      }
       if (!res.ok || !data?.token) {
         setAuthError(data?.error || (authMode === 'login' ? 'Invalid email or password.' : 'Registration failed.'));
         return;
@@ -147,6 +158,23 @@ export default function ClientPortal() {
     setToken(null);
     setUser(null);
     localStorage.removeItem('vancore_client_token');
+    setNeedsVerification(false);
+    setResendSuccess(false);
+  };
+
+  const resendVerification = async () => {
+    setResendLoading(true);
+    setResendSuccess(false);
+    try {
+      await fetch(`${API_URL}/api/client/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: verifyEmail }),
+      });
+      setResendSuccess(true);
+    } catch {} finally {
+      setResendLoading(false);
+    }
   };
 
   // Login/Register Form
@@ -206,6 +234,30 @@ export default function ClientPortal() {
               <input id="authPassword" type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="w-full bg-[#f7f6f2] border border-[#e5e5e5] rounded-lg px-4 py-2.5 text-sm text-[#111] placeholder:text-[#999] focus:outline-none focus:border-[#991930]/40" />
             </div>
             {authError && <p className="text-sm text-red-500">{authError}</p>}
+            
+            {needsVerification && (
+              <div className="bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-lg p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">📧</span>
+                  <div>
+                    <p className="text-sm text-[#111] font-medium">Email verification required</p>
+                    <p className="text-xs text-[#6b6b6b] mt-1">
+                      Please verify your email address <strong>{verifyEmail}</strong> before logging in. 
+                      Check your inbox for the verification link.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={resendVerification}
+                  disabled={resendLoading}
+                  className="w-full py-2 rounded-lg bg-[#f59e0b] text-white text-sm font-medium hover:bg-[#e08e0b] disabled:opacity-50 transition-colors"
+                >
+                  {resendLoading ? 'Sending...' : resendSuccess ? '✅ Email sent!' : 'Resend Verification Email'}
+                </button>
+              </div>
+            )}
+            
             <button type="submit" disabled={authLoading} className="w-full py-2.5 rounded-lg bg-[#991930] text-white font-semibold disabled:opacity-50 hover:bg-[#a83d1f] transition-colors">
               {authLoading ? 'Loading...' : authMode === 'login' ? 'Sign in' : 'Create Account'}
             </button>
