@@ -16,14 +16,36 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Admin required' }, { status: 403 });
     }
 
-    const { role } = await request.json();
+    const { role, plan, credits } = await request.json();
 
-    // Update user metadata in auth
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(params.id, {
-      user_metadata: { role }
-    });
+    // Build update object for auth metadata
+    const updateData: any = {};
+    if (role) updateData.role = role;
+    if (plan) updateData.plan = plan;
+    if (credits !== undefined) updateData.credits = credits;
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    // Update auth user metadata
+    if (Object.keys(updateData).length > 0) {
+      await supabaseAdmin.auth.admin.updateUserById(params.id, {
+        user_metadata: updateData
+      });
+    }
+
+    // Also update users table if it exists
+    try {
+      const dbUpdate: any = {};
+      if (role) dbUpdate.role = role;
+      if (plan) dbUpdate.plan = plan;
+      if (credits !== undefined) dbUpdate.credits = credits;
+      
+      if (Object.keys(dbUpdate).length > 0) {
+        dbUpdate.updated_at = new Date().toISOString();
+        await supabaseAdmin.from('users').update(dbUpdate).eq('id', params.id);
+      }
+    } catch (e) {
+      // Ignore if users table doesn't exist
+    }
+
     return NextResponse.json({ success: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

@@ -109,8 +109,39 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         body: JSON.stringify({ role: newRole }),
       });
       setClients(prev => prev.map(c => c.id === clientId ? { ...c, role: newRole } : c));
+      setSelectedClient(prev => prev ? { ...prev, role: newRole } : null);
     } catch (e) {
-      console.error('Failed to update client:', e);
+      console.error('Failed to update client role:', e);
+    }
+  };
+
+  const updateClientPlan = async (clientId: string, newPlan: string) => {
+    try {
+      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+      await fetch('/api/adminv2/clients/' + clientId, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: newPlan }),
+      });
+      setClients(prev => prev.map(c => c.id === clientId ? { ...c, plan: newPlan } : c));
+      setSelectedClient(prev => prev ? { ...prev, plan: newPlan } : null);
+    } catch (e) {
+      console.error('Failed to update client plan:', e);
+    }
+  };
+
+  const updateClientCredits = async (clientId: string, credits: number) => {
+    try {
+      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+      await fetch('/api/adminv2/clients/' + clientId, {
+        method: 'PATCH',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credits }),
+      });
+      setClients(prev => prev.map(c => c.id === clientId ? { ...c, credits } : c));
+      setSelectedClient(prev => prev ? { ...prev, credits } : null);
+    } catch (e) {
+      console.error('Failed to update client credits:', e);
     }
   };
 
@@ -495,6 +526,64 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 <div className="bg-white/5 rounded-lg p-3">
                   <div className="text-[10px] text-[#6b6b6b]">Joined</div>
                   <div className="text-sm text-white">{new Date(selectedClient.created_at).toLocaleDateString()}</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1.5">Plan</label>
+                <select
+                  value={selectedClient.plan || 'starter'}
+                  onChange={(e) => updateClientPlan(selectedClient.id, e.target.value)}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
+                >
+                  <option value="starter">Starter (Free)</option>
+                  <option value="professional">Professional (€49/mo)</option>
+                  <option value="business">Business (€99/mo)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1.5">Credits</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={selectedClient.credits || 0}
+                    onChange={(e) => setSelectedClient({ ...selectedClient, credits: parseInt(e.target.value) || 0 })}
+                    className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
+                  />
+                  <button
+                    onClick={() => updateClientCredits(selectedClient.id, selectedClient.credits || 0)}
+                    className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1.5">Add Credits</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    id="add-credits"
+                    placeholder="e.g. 10"
+                    className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                  />
+                  <button
+                    onClick={() => {
+                      const input = document.getElementById('add-credits') as HTMLInputElement;
+                      const amount = parseInt(input.value) || 0;
+                      if (amount > 0) {
+                        const newCredits = (selectedClient.credits || 0) + amount;
+                        setSelectedClient({ ...selectedClient, credits: newCredits });
+                        updateClientCredits(selectedClient.id, newCredits);
+                        input.value = '';
+                      }
+                    }}
+                    className="px-4 py-2 bg-[#10b981] text-white text-sm font-medium rounded-lg hover:bg-[#059669] transition-colors"
+                  >
+                    + Add
+                  </button>
                 </div>
               </div>
 

@@ -12,27 +12,25 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('vancore_admin_token');
-      if (saved) {
-        fetch('/api/adminv2', {
-          headers: { Authorization: 'Bearer ' + saved },
-        }).then(res => {
-          if (res.ok) {
-            setToken(saved);
-            setState('dashboard');
-          } else {
-            localStorage.removeItem('vancore_admin_token');
-            setState('login');
-          }
-        }).catch(() => {
+    const saved = localStorage.getItem('vancore_admin_token');
+    if (saved && saved.length > 20) {
+      // Quick check - if token exists and looks valid, show dashboard immediately
+      setToken(saved);
+      setState('dashboard');
+      
+      // Then verify in background
+      fetch('/api/adminv2', {
+        headers: { Authorization: 'Bearer ' + saved },
+      }).then(res => {
+        if (!res.ok) {
           localStorage.removeItem('vancore_admin_token');
           setState('login');
-        });
-      } else {
+        }
+      }).catch(() => {
+        localStorage.removeItem('vancore_admin_token');
         setState('login');
-      }
-    } catch {
+      });
+    } else {
       setState('login');
     }
   }, []);

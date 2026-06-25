@@ -99,6 +99,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Verification email sent.' });
     }
 
+    if (action === 'forgot-password') {
+      const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://www.vancoresys.com/login',
+      });
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ success: true, message: 'Password reset email sent.' });
+    }
+
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
