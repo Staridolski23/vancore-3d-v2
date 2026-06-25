@@ -146,6 +146,11 @@ export default function ClientPortal() {
       setIsLoggedIn(true);
       localStorage.setItem('vancore_client_token', data.token);
       if (data.user) setUser(data.user);
+      
+      // Redirect based on role
+      if (data.redirectTo) {
+        window.location.href = data.redirectTo;
+      }
     } catch {
       setAuthError('Connection error. Please try again.');
     } finally {
