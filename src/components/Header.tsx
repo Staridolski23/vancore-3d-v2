@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -14,6 +15,7 @@ const navLinks = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 80);
@@ -21,10 +23,13 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
   }, []);
+
+  const handleSignIn = () => {
+    router.push('/login');
+  };
 
   return (
     <header
@@ -54,33 +59,12 @@ export default function Header() {
               {link.label}
             </a>
           ))}
-          <a
-            href="/client-portal"
-            className="text-sm font-sans text-[#6b6b6b] hover:text-[#111] transition-colors"
-          >
-            Sign in
-          </a>
-          <a
-            href="/contact"
+          <button
+            onClick={handleSignIn}
             className="btn-hover inline-flex items-center gap-2 px-4 py-2 bg-[#991930] text-white text-sm font-sans font-medium"
           >
-            Book a call
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="rotate-[-45deg]"
-            >
-              <path d="M7 7h10v10" />
-              <path d="M7 17 17 7" />
-            </svg>
-          </a>
+            Sign in
+          </button>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -118,18 +102,12 @@ export default function Header() {
                 {link.label}
               </a>
             ))}
-            <a
-              href="/client-portal"
-              className="py-3 text-base font-sans text-[#111] hover:text-[#991930] transition-colors border-b border-black/5"
-            >
-              Sign in
-            </a>
-            <a
-              href="/contact"
+            <button
+              onClick={handleSignIn}
               className="mt-3 inline-flex items-center justify-center gap-2 px-4 py-3 bg-[#991930] text-white text-base font-sans font-medium rounded-lg"
             >
-              Book a call
-            </a>
+              Sign in
+            </button>
           </nav>
         </div>
       )}
