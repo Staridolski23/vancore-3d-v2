@@ -15,6 +15,7 @@ const navLinks = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<{ role?: string; name?: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,8 +28,37 @@ export default function Header() {
     setMobileOpen(false);
   }, []);
 
-  const handleSignIn = () => {
-    router.push('/login');
+  // Check login status
+  useEffect(() => {
+    const token = localStorage.getItem('vancore_client_token');
+    if (token) {
+      fetch('/api/auth/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(res => {
+        if (res.ok) {
+          res.json().then(data => setUser(data.user));
+        } else {
+          localStorage.removeItem('vancore_client_token');
+          setUser(null);
+        }
+      }).catch(() => setUser(null));
+    } else {
+      setUser(null);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('vancore_client_token');
+    setUser(null);
+    window.location.href = '/';
+  };
+
+  const handleDashboard = () => {
+    if (user?.role === 'admin') {
+      window.location.href = '/admin-v2';
+    } else {
+      window.location.href = '/client-portal';
+    }
   };
 
   return (
@@ -65,12 +95,38 @@ export default function Header() {
           >
             Book a call
           </a>
-          <button
-            onClick={handleSignIn}
-            className="btn-hover inline-flex items-center gap-2 px-4 py-2 bg-[#991930] text-white text-sm font-sans font-medium"
-          >
-            Sign in
-          </button>
+
+          {user ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDashboard}
+                className="btn-hover inline-flex items-center gap-2 px-4 py-2 bg-[#991930] text-white text-sm font-sans font-medium"
+              >
+                {user.role === 'admin' ? '🛡️ Admin' : '📊 Dashboard'}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-sans font-medium text-[#6b6b6b] hover:text-[#991930] border border-[#e5e5e5] hover:border-[#991930]/30 transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => router.push('/login')}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-sans font-medium text-[#6b6b6b] hover:text-[#111] transition-colors"
+              >
+                Sign in
+              </button>
+              <button
+                onClick={() => router.push('/login?tab=register')}
+                className="btn-hover inline-flex items-center gap-2 px-4 py-2 bg-[#991930] text-white text-sm font-sans font-medium"
+              >
+                Register
+              </button>
+            </div>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -114,12 +170,37 @@ export default function Header() {
             >
               Book a call
             </a>
-            <button
-              onClick={handleSignIn}
-              className="mt-3 inline-flex items-center justify-center gap-2 px-4 py-3 bg-[#991930] text-white text-base font-sans font-medium rounded-lg"
-            >
-              Sign in
-            </button>
+            {user ? (
+              <>
+                <button
+                  onClick={handleDashboard}
+                  className="mt-3 w-full py-3 bg-[#991930] text-white text-base font-sans font-medium rounded-lg"
+                >
+                  {user.role === 'admin' ? '🛡️ Admin Panel' : '📊 Dashboard'}
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="mt-2 w-full py-3 text-base font-sans font-medium text-[#6b6b6b] border border-[#e5e5e5] rounded-lg"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push('/login')}
+                  className="mt-3 w-full py-3 text-base font-sans font-medium text-[#111] border border-[#e5e5e5] rounded-lg"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => router.push('/login?tab=register')}
+                  className="mt-2 w-full py-3 bg-[#991930] text-white text-base font-sans font-medium rounded-lg"
+                >
+                  Register
+                </button>
+              </>
+            )}
           </nav>
         </div>
       )}

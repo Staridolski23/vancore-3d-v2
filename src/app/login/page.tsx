@@ -1,11 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type View = 'login' | 'register' | 'forgot-password' | 'verify-sent' | 'register-success';
 
 export default function LoginPage() {
-  const [view, setView] = useState<View>('login');
+  useRouter();
+  const [view, setView] = useState<View>(() => {
+    // Check URL for tab parameter
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'register') return 'register';
+    }
+    return 'login';
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
