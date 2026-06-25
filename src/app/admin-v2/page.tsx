@@ -1,7 +1,7 @@
 'use client';
 
 import AdminDashboard from '@/components/AdminDashboard';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 const ADMIN_EMAILS = [
   'momchil@vancore.ai',
@@ -17,30 +17,27 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const saved = localStorage.getItem('vancore_admin_token');
-      if (saved) {
-        const res = await fetch('/api/adminv2', {
-          headers: { Authorization: `Bearer ${saved}` },
-        });
+  useEffect(() => {
+    const saved = localStorage.getItem('vancore_admin_token');
+    if (saved) {
+      fetch('/api/adminv2', {
+        headers: { Authorization: `Bearer ${saved}` },
+      }).then(res => {
         if (res.ok) {
           setToken(saved);
           setState('dashboard');
-          return;
         } else {
           localStorage.removeItem('vancore_admin_token');
+          setState('login');
         }
-      }
-    } catch {
-      localStorage.removeItem('vancore_admin_token');
+      }).catch(() => {
+        localStorage.removeItem('vancore_admin_token');
+        setState('login');
+      });
+    } else {
+      setState('login');
     }
-    setState('login');
   }, []);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
