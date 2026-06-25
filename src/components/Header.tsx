@@ -115,7 +115,7 @@ export default function Header() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => router.push('/login')}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-sans font-medium text-[#6b6b6b] hover:text-[#111] transition-colors"
+                className="btn-hover inline-flex items-center gap-2 px-4 py-2 bg-[#991930] text-white text-sm font-sans font-medium"
               >
                 Sign in
               </button>
@@ -189,7 +189,7 @@ export default function Header() {
               <>
                 <button
                   onClick={() => router.push('/login')}
-                  className="mt-3 w-full py-3 text-base font-sans font-medium text-[#111] border border-[#e5e5e5] rounded-lg"
+                  className="mt-3 w-full py-3 bg-[#991930] text-white text-base font-sans font-medium rounded-lg"
                 >
                   Sign in
                 </button>
