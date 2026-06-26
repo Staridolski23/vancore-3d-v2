@@ -32,7 +32,7 @@ interface SiteContent {
 }
 
 interface Booking {
-  id: string;
+  id: number;
   date: string;
   time: string;
   name: string;
@@ -113,7 +113,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
     } catch (e) { console.error('Failed to fetch bookings:', e); }
   };
 
-  const updateBookingStatus = async (id: number, status: string) => {
+  const updateBookingStatus = async (id: number | string, status: string) => {
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
       await fetch('/api/bookings/' + id, {
@@ -590,7 +590,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                       <div className="text-[10px] text-[#6b6b6b]">{booking.description?.substring(0, 50)}...</div>
                       <div className="flex gap-2 mt-2">
                         {booking.status === 'new' && (
-                          <button onClick={() => updateBookingStatus(booking.id, 'confirmed')} className="px-3 py-1.5 text-xs bg-[#10b981] text-white rounded-lg">
+                          <button onClick={() => updateBookingStatus(booking.id && ('confirmed')} className="px-3 py-1.5 text-xs bg-[#10b981] text-white rounded-lg">
                             Confirm
                           </button>
                         )}
