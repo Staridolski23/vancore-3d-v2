@@ -31,8 +31,21 @@ interface SiteContent {
   updated_at: string;
 }
 
+interface Booking {
+  id: string;
+  date: string;
+  time: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  description: string;
+  status: string;
+  created_at: string;
+}
+
 export default function AdminDashboard({ token: propToken }: { token?: string }) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'content' | 'analytics' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'analytics' | 'settings'>('dashboard');
   const [clients, setClients] = useState<Client[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalClients: 0, activeSubscriptions: 0, verifiedEmails: 0 });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -43,10 +56,13 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [newBookingCount, setNewBookingCount] = useState(0);
 
   useEffect(() => {
     fetchData();
     fetchContent();
+    fetchBookings();
   }, [propToken]);
 
   const fetchContent = async () => {
@@ -56,6 +72,18 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       if (res.ok) { const data = await res.json(); setSiteContent(data.content || []); }
     } catch (e) { console.error('Failed to fetch content:', e); }
     finally { setLoadingContent(false); }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const res = await fetch('/api/bookings/upcoming');
+      if (res.ok) {
+        const data = await res.json();
+        setBookings(data.bookings || []);
+        const newCount = (data.bookings || []).filter((b: Booking) => b.status === 'new').length;
+        setNewBookingCount(newCount);
+      }
+    } catch (e) { console.error('Failed to fetch bookings:', e); }
   };
 
   const fetchData = async () => {
@@ -167,6 +195,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         {[
           { key: 'dashboard', label: 'Dashboard', icon: '📊' },
           { key: 'clients', label: 'Clients', icon: '👥' },
+          { key: 'bookings', label: 'Bookings', icon: '📅', badge: newBookingCount },
           { key: 'content', label: 'Site Content', icon: '✏️' },
           { key: 'analytics', label: 'Analytics', icon: '📈' },
           { key: 'settings', label: 'Settings', icon: '⚙️' },
@@ -174,14 +203,19 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as typeof activeTab)}
-            className={`flex-1 py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`flex-1 py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap relative ${
               activeTab === tab.key
                 ? 'bg-[#991930] text-white'
                 : 'text-[#9a9a9a] hover:text-white hover:bg-white/5'
             }`}
           >
-            <span className="mr-1.5">{tab.icon}</span>
+            <span className="mr-1">{tab.icon}</span>
             <span className="hidden sm:inline">{tab.label}</span>
+            {'badge' in tab && tab.badge ? (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#ef4444] text-white text-[9px] rounded-full flex items-center justify-center">
+                {tab.badge}
+              </span>
+            ) : null}
           </button>
         ))}
       </div>
@@ -431,6 +465,52 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bookings Tab */}
+      {activeTab === 'bookings' && (
+        <div className="space-y-4">
+          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-white">Upcoming Bookings</h3>
+              <button
+                onClick={fetchBookings}
+                className="px-3 py-1.5 text-xs text-[#9a9a9a] hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                ↻ Refresh
+              </button>
+            </div>
+            {bookings.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-3xl mb-2">📅</div>
+                <p className="text-sm text-[#6b6b6b]">No upcoming bookings</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {bookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/5">
+                    <div className="flex items-center gap-4">
+                      <div className="text-center min-w-[60px]">
+                        <div className="text-lg font-bold text-white">{new Date(booking.date).getDate()}</div>
+                        <div className="text-[10px] text-[#6b6b6b]">{new Date(booking.date).toLocaleDateString('en-US', { month: 'short' })}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-white font-medium">{booking.name}</div>
+                        <div className="text-xs text-[#6b6b6b]">{booking.email}</div>
+                        {booking.company && <div className="text-xs text-[#6b6b6b]">🏢 {booking.company}</div>}
+                        {booking.phone && <div className="text-xs text-[#6b6b6b]">📞 {booking.phone}</div>}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-[#991930]">{booking.time}</div>
+                      <div className="text-[10px] text-[#6b6b6b]">{booking.description?.substring(0, 50)}...</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

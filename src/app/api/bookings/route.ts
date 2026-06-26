@@ -1,37 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
-// GET /api/bookings?year=2026&month=5
+// GET /api/bookings/upcoming
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const year = parseInt(searchParams.get('year') || '0');
-    const month = parseInt(searchParams.get('month') || '0');
-
-    // Get bookings for the month
-    const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-    const endDate = `${year}-${String(month + 2).padStart(2, '0')}-01`;
+    const today = new Date().toISOString().split('T')[0];
 
     const { data, error } = await supabaseAdmin
       .from('bookings')
-      .select('date, time')
-      .gte('date', startDate)
-      .lt('date', endDate);
+      .select('*')
+      .gte('date', today)
+      .order('date', { ascending: true })
+      .order('time', { ascending: true })
+      .limit(20);
 
-    if (error && error.code !== 'PGRST116') {
+    if (error && error.code !== '42P01') {
       throw error;
     }
 
-    // Group by date
-    const bookings: Record<string, string[]> = {};
-    (data || []).forEach((b: any) => {
-      if (!bookings[b.date]) bookings[b.date] = [];
-      bookings[b.date].push(b.time);
-    });
-
-    return NextResponse.json({ bookings });
+    return NextResponse.json({ bookings: data || [] });
   } catch (e: any) {
-    return NextResponse.json({ bookings: {}, error: e.message });
+    return NextResponse.json({ bookings: [], error: e.message });
   }
 }
 
@@ -67,14 +56,13 @@ export async function POST(request: NextRequest) {
         phone: phone || '',
         company: company || '',
         description: description || '',
-        status: 'confirmed'
+        status: 'new'
       })
       .select()
       .single();
 
     if (error) {
       if (error.code === '42P01') {
-        // Table doesn't exist
         return NextResponse.json({ error: 'Booking system not configured yet' }, { status: 503 });
       }
       throw error;

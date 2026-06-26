@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 interface TimeSlot {
   time: string;
   available: boolean;
+  isPast: boolean;
 }
 
 interface DayStatus {
@@ -13,6 +14,7 @@ interface DayStatus {
   dayNum: number;
   isWeekend: boolean;
   isPast: boolean;
+  isToday: boolean;
   allBooked: boolean;
   slots: TimeSlot[];
 }
@@ -22,6 +24,11 @@ const WORK_HOURS = [
   '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
   '15:00', '15:30', '16:00', '16:30', '17:00'
 ];
+
+function getMinutesFromTime(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
 
 export default function BookingCalendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -38,6 +45,8 @@ export default function BookingCalendar() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   // Fetch bookings for current month
   useEffect(() => {
@@ -48,6 +57,30 @@ export default function BookingCalendar() {
       .then(data => setBookings(data.bookings || {}))
       .catch(() => {});
   }, [currentMonth]);
+
+  // Fetch user profile if logged in
+  useEffect(() => {
+    const token = localStorage.getItem('vancore_client_token');
+    if (token) {
+      fetch('/api/auth/profile', {
+        headers: { Authorization: 'Bearer ' + token },
+      }).then(res => {
+        if (res.ok) {
+          res.json().then(data => {
+            setIsLoggedIn(true);
+            setUserProfile(data.user);
+            setFormData(prev => ({
+              ...prev,
+              name: data.user.name || prev.name,
+              email: data.user.email || prev.email,
+              phone: data.user.phone || prev.phone,
+              company: data.user.company || prev.company,
+            }));
+          });
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -61,11 +94,13 @@ export default function BookingCalendar() {
     const adjustedStart = startDay === 0 ? 6 : startDay - 1; // Monday = 0
 
     for (let i = 0; i < adjustedStart; i++) {
-      days.push({ date: '', dayName: '', dayNum: 0, isWeekend: false, isPast: false, allBooked: false, slots: [] });
+      days.push({ date: '', dayName: '', dayNum: 0, isWeekend: false, isPast: false, isToday: false, allBooked: false, slots: [] });
     }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const currentTimeMinutes = new Date().getHours() * 60 + new Date().getMinutes();
 
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -73,10 +108,20 @@ export default function BookingCalendar() {
       const dayOfWeek = dayDate.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
       const isPast = dayDate < today;
+      const isToday = dateStr === todayStr;
 
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const bookedSlots = bookings[dateStr] || [];
-      const availableSlots = WORK_HOURS.filter(t => !bookedSlots.includes(t));
+      
+      // For today, filter out past time slots
+      const availableSlots = WORK_HOURS.filter(t => {
+        if (bookedSlots.includes(t)) return false;
+        if (isToday) {
+          return getMinutesFromTime(t) > currentTimeMinutes;
+        }
+        return true;
+      });
+      
       const allBooked = !isWeekend && !isPast && availableSlots.length === 0;
 
       days.push({
@@ -85,8 +130,13 @@ export default function BookingCalendar() {
         dayNum: d,
         isWeekend,
         isPast,
+        isToday,
         allBooked,
-        slots: WORK_HOURS.map(t => ({ time: t, available: !bookedSlots.includes(t) }))
+        slots: WORK_HOURS.map(t => ({
+          time: t,
+          available: !bookedSlots.includes(t) && (!isToday || getMinutesFromTime(t) > currentTimeMinutes),
+          isPast: isToday && getMinutesFromTime(t) <= currentTimeMinutes
+        }))
       });
     }
 
@@ -213,17 +263,21 @@ export default function BookingCalendar() {
               className={`
                 aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all
                 ${!day.date ? 'invisible' : ''}
+                ${day.isToday && !day.isWeekend && !day.allBooked ? 'bg-[#10b981] text-white cursor-pointer hover:bg-[#059669] ring-2 ring-[#f59e0b]' : ''}
                 ${day.isWeekend ? 'bg-[#374151] text-[#6b6b6b] cursor-not-allowed' : ''}
                 ${day.isPast && !day.isWeekend ? 'bg-[#1f2937] text-[#4b5563] cursor-not-allowed' : ''}
                 ${day.allBooked && !day.isWeekend && !day.isPast ? 'bg-[#ef4444] text-white cursor-not-allowed' : ''}
-                ${!day.isWeekend && !day.isPast && !day.allBooked ? 'bg-[#10b981] text-white cursor-pointer hover:bg-[#059669]' : ''}
+                ${!day.isWeekend && !day.isPast && !day.allBooked && !day.isToday ? 'bg-[#10b981] text-white cursor-pointer hover:bg-[#059669]' : ''}
                 ${selectedDate === day.date ? 'ring-2 ring-[#991930]' : ''}
               `}
             >
               {day.dayNum > 0 && (
                 <>
                   <span className="font-medium">{day.dayNum}</span>
-                  {day.allBooked && !day.isWeekend && !day.isPast && (
+                  {day.isToday && !day.isWeekend && (
+                    <span className="text-[7px] mt-0.5 font-bold text-[#f59e0b]">TODAY</span>
+                  )}
+                  {day.allBooked && !day.isWeekend && !day.isPast && !day.isToday && (
                     <span className="text-[8px] mt-0.5">Full</span>
                   )}
                 </>
@@ -252,7 +306,9 @@ export default function BookingCalendar() {
                     py-2 px-3 rounded-lg text-xs font-medium transition-all
                     ${slot.available
                       ? 'bg-[#10b981] text-white hover:bg-[#059669] cursor-pointer'
-                      : 'bg-[#374151] text-[#6b6b6b] cursor-not-allowed'
+                      : slot.isPast
+                        ? 'bg-[#1f2937] text-[#4b5563] cursor-not-allowed line-through'
+                        : 'bg-[#374151] text-[#6b6b6b] cursor-not-allowed'
                     }
                     ${selectedTime === slot.time ? 'ring-2 ring-[#991930]' : ''}
                   `}
