@@ -1,25 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, verifyToken } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const ADMIN_EMAILS = ['momchil@vancore.ai', 'zhanet@vancore.ai', 'office@vancoresys.com'];
-const DO_API = process.env.DO_API_URL || 'http://206.189.48.236:3001';
 
 async function isAdmin(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
   const token = authHeader.split(' ')[1];
-  const user = await verifyToken(token);
-  if (!user) return false;
-  return ADMIN_EMAILS.includes(user.email?.toLowerCase() || '') || user.user_metadata?.role === 'admin';
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+  if (error || !data?.user) return false;
+  return ADMIN_EMAILS.includes(data.user.email?.toLowerCase() || '');
 }
 
 // GET /api/adminv2/settings
 export async function GET(request: NextRequest) {
   try {
-    const res = await fetch(DO_API + '/api/settings');
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch {
+    const { data, error } = await supabaseAdmin
+      .from('settings')
+      .select('*')
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+
+    return NextResponse.json({ settings: data || {} });
+  } catch (e: any) {
     return NextResponse.json({ settings: {} });
   }
 }
@@ -33,15 +37,16 @@ export async function PUT(request: NextRequest) {
 
     const settings = await request.json();
 
-    // Save to DO backend
-    const res = await fetch(DO_API + '/api/settings', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settings),
-    });
+    // Upsert settings (single row with id=1)
+    const { data, error } = await supabaseAdmin
+      .from('settings')
+      .upsert({ id: 1, ...settings, updated_at: new Date().toISOString() })
+      .select()
+      .single();
 
-    const data = await res.json();
-    return NextResponse.json(data);
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, settings: data });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
@@ -56,29 +61,27 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const section = formData.get('section') as string;
-    const key = formData.get('key') as string;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Generate unique filename
+    // Upload to Supabase Storage
     const ext = file.name.split('.').pop();
-    const filename = `${section}/${key}-${Date.now()}.${ext}`;
+    const filename = `images/${Date.now()}.${ext}`;
 
-    // Save to DO backend
-    const uploadFormData = new FormData();
-    uploadFormData.append('file', file);
-    uploadFormData.append('filename', filename);
+    const { data, error } = await supabaseAdmin.storage
+      .from('media')
+      .upload(filename, file);
 
-    const res = await fetch(DO_API + '/api/upload', {
-      method: 'POST',
-      body: uploadFormData,
-    });
+    if (error) throw error;
 
-    const data = await res.json();
-    return NextResponse.json(data);
+    // Get public URL
+    const { data: urlData } = supabaseAdmin.storage
+      .from('media')
+      .getPublicUrl(filename);
+
+    return NextResponse.json({ success: true, url: urlData.publicUrl, path: filename });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

@@ -68,7 +68,25 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
     fetchData();
     fetchContent();
     fetchBookings();
+    loadSettings();
   }, [propToken]);
+
+  const loadSettings = async () => {
+    try {
+      const token = propToken || localStorage.getItem('vancore_client_token') || '';
+      const res = await fetch('/api/adminv2/settings', {
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.settings && Object.keys(data.settings).length > 0) {
+          setSettings(prev => ({ ...prev, ...data.settings }));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load settings:', e);
+    }
+  };
 
   const fetchContent = async () => {
     setLoadingContent(true);
@@ -89,6 +107,26 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         setNewBookingCount(newCount);
       }
     } catch (e) { console.error('Failed to fetch bookings:', e); }
+  };
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      const token = propToken || localStorage.getItem('vancore_client_token') || '';
+      const res = await fetch('/api/adminv2/settings', {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      if (res.ok) {
+        setSettingsSaved(true);
+        setTimeout(() => setSettingsSaved(false), 3000);
+      }
+    } catch (e) {
+      console.error('Failed to save settings:', e);
+    } finally {
+      setSavingSettings(false);
+    }
   };
 
   const fetchData = async () => {
@@ -628,18 +666,40 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
             <div className="space-y-4">
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1.5">Site Name</label>
-                <input type="text" defaultValue="VANCORE" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input
+                  type="text"
+                  value={settings.siteName || ''}
+                  onChange={e => setSettings(s => ({ ...s, siteName: e.target.value }))}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
+                />
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1.5">Contact Email</label>
-                <input type="email" defaultValue="hello@vancoresys.com" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input
+                  type="email"
+                  value={settings.contactEmail || ''}
+                  onChange={e => setSettings(s => ({ ...s, contactEmail: e.target.value }))}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
+                />
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1.5">Admin Emails (comma separated)</label>
-                <input type="text" defaultValue="momchil@vancore.ai, zhanet@vancore.ai, office@vancoresys.com" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input
+                  type="text"
+                  value={settings.adminEmails || ''}
+                  onChange={e => setSettings(s => ({ ...s, adminEmails: e.target.value }))}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
+                />
               </div>
-              <button className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                Save Settings
+              {settingsSaved && (
+                <p className="text-sm text-green-400">✓ Settings saved successfully!</p>
+              )}
+              <button
+                onClick={saveSettings}
+                disabled={savingSettings}
+                className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] disabled:opacity-50 transition-colors"
+              >
+                {savingSettings ? 'Saving...' : 'Save Settings'}
               </button>
             </div>
           </div>
