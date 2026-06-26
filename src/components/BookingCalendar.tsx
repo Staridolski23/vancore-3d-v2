@@ -207,22 +207,22 @@ export default function BookingCalendar() {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 mb-6 justify-center">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-[#10b981]"></div>
-          <span className="text-xs text-[#9a9a9a]">Available</span>
+      <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 justify-center">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="w-3 h-3 rounded bg-[#10b981]"></div>
+          <span className="text-[10px] sm:text-xs text-[#9a9a9a]">Available</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-[#ef4444]"></div>
-          <span className="text-xs text-[#9a9a9a]">Fully Booked</span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="w-3 h-3 rounded bg-[#ef4444]"></div>
+          <span className="text-[10px] sm:text-xs text-[#9a9a9a]">Fully Booked</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-[#374151]"></div>
-          <span className="text-xs text-[#9a9a9a]">Weekend</span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="w-3 h-3 rounded bg-[#374151]"></div>
+          <span className="text-[10px] sm:text-xs text-[#9a9a9a]">Weekend</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-[#1f2937]"></div>
-          <span className="text-xs text-[#9a9a9a]">Past</span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="w-3 h-3 rounded ring-1 ring-[#f59e0b]"></div>
+          <span className="text-[10px] sm:text-xs text-[#9a9a9a]">Today</span>
         </div>
       </div>
 
@@ -230,38 +230,38 @@ export default function BookingCalendar() {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-          className="px-4 py-2 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors"
+          className="px-2 sm:px-4 py-2 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors text-sm"
         >
-          ← Prev
+          ←
         </button>
-        <h3 className="text-lg font-semibold text-white">
+        <h3 className="text-base sm:text-lg font-semibold text-white">
           {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h3>
         <button
           onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-          className="px-4 py-2 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors"
+          className="px-2 sm:px-4 py-2 bg-white/5 text-white rounded-lg hover:bg-white/10 transition-colors text-sm"
         >
-          Next →
+          →
         </button>
       </div>
 
       {/* Calendar Grid */}
-      <div className="bg-[#111] rounded-xl border border-white/5 p-4">
+      <div className="bg-[#111] rounded-xl border border-white/5 p-2 sm:p-4">
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-            <div key={day} className="text-center text-xs text-[#6b6b6b] py-2">{day}</div>
+            <div key={day} className="text-center text-[9px] sm:text-xs text-[#6b6b6b] py-1 sm:py-2">{day}</div>
           ))}
         </div>
 
         {/* Days */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
           {days.map((day, i) => (
             <div
               key={i}
               onClick={() => handleDateClick(day)}
               className={`
-                aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all
+                aspect-square flex flex-col items-center justify-center rounded text-xs sm:text-sm transition-all min-h-[32px] sm:min-w-[40px]
                 ${!day.date ? 'invisible' : ''}
                 ${day.isToday && !day.isWeekend && !day.allBooked ? 'bg-[#10b981] text-white cursor-pointer hover:bg-[#059669] ring-2 ring-[#f59e0b]' : ''}
                 ${day.isWeekend ? 'bg-[#374151] text-[#6b6b6b] cursor-not-allowed' : ''}
@@ -275,10 +275,10 @@ export default function BookingCalendar() {
                 <>
                   <span className="font-medium">{day.dayNum}</span>
                   {day.isToday && !day.isWeekend && (
-                    <span className="text-[7px] mt-0.5 font-bold text-[#f59e0b]">TODAY</span>
+                    <span className="text-[6px] sm:text-[7px] mt-0.5 font-bold text-[#f59e0b]">TODAY</span>
                   )}
                   {day.allBooked && !day.isWeekend && !day.isPast && !day.isToday && (
-                    <span className="text-[8px] mt-0.5">Full</span>
+                    <span className="text-[6px] sm:text-[8px] mt-0.5">Full</span>
                   )}
                 </>
               )}
@@ -296,16 +296,16 @@ export default function BookingCalendar() {
           {selectedDay.slots.filter(s => s.available).length === 0 ? (
             <p className="text-sm text-[#ef4444]">No available slots for this day</p>
           ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
               {selectedDay.slots.map((slot) => (
                 <button
                   key={slot.time}
                   onClick={() => slot.available && handleTimeClick(slot.time)}
                   disabled={!slot.available}
                   className={`
-                    py-2 px-3 rounded-lg text-xs font-medium transition-all
+                    py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all
                     ${slot.available
-                      ? 'bg-[#10b981] text-white hover:bg-[#059669] cursor-pointer'
+                      ? 'bg-[#10b981] text-white hover:bg-[#059669] cursor-pointer active:scale-95'
                       : slot.isPast
                         ? 'bg-[#1f2937] text-[#4b5563] cursor-not-allowed line-through'
                         : 'bg-[#374151] text-[#6b6b6b] cursor-not-allowed'
@@ -328,7 +328,7 @@ export default function BookingCalendar() {
             Book: {selectedDay?.dayName}, {selectedDate} at {selectedTime}
           </h4>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs text-[#9a9a9a] mb-1">Full name *</label>
                 <input
@@ -337,7 +337,7 @@ export default function BookingCalendar() {
                   value={formData.name}
                   onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                   placeholder="John Doe"
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 sm:py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
                 />
               </div>
               <div>
@@ -348,7 +348,7 @@ export default function BookingCalendar() {
                   value={formData.email}
                   onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                   placeholder="you@company.com"
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 sm:py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
                 />
               </div>
               <div>
@@ -358,7 +358,7 @@ export default function BookingCalendar() {
                   value={formData.phone}
                   onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
                   placeholder="+359 888 123 456"
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 sm:py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
                 />
               </div>
               <div>
@@ -368,7 +368,7 @@ export default function BookingCalendar() {
                   value={formData.company}
                   onChange={e => setFormData(p => ({ ...p, company: e.target.value }))}
                   placeholder="Company name"
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 sm:py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
                 />
               </div>
             </div>
@@ -380,7 +380,7 @@ export default function BookingCalendar() {
                 value={formData.description}
                 onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
                 placeholder="Describe the topic you'd like to discuss..."
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50 resize-none"
+                className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 sm:py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50 resize-none"
               />
             </div>
 
@@ -388,7 +388,7 @@ export default function BookingCalendar() {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#991930] text-white text-sm font-semibold hover:bg-[#a83d1f] transition-colors"
+              className="w-full py-3 sm:py-2.5 rounded-lg bg-[#991930] text-white text-sm font-semibold hover:bg-[#a83d1f] active:scale-[0.98] transition-all"
             >
               Confirm Booking
             </button>
