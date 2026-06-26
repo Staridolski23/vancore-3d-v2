@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import ClientPortal from '@/components/ClientPortal';
 
 export default function ClientPortalPage() {
@@ -14,7 +15,13 @@ export default function ClientPortalPage() {
             Manage your analyses, bookings, and meetings with the VANCORE team.
           </p>
         </div>
-        <ClientPortal />
+        <Suspense fallback={
+          <div className="flex items-center justify-center py-20">
+            <div className="text-[#6b6b6b] text-sm">Loading...</div>
+          </div>
+        }>
+          <ClientPortal />
+        </Suspense>
       </div>
     </div>
   );
