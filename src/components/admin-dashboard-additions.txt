@@ -1,0 +1,18 @@
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+      await fetch('/api/adminv2/settings', {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 3000);
+    } catch (e) {
+      console.error('Failed to save settings:', e);
+    } finally {
+      setSavingSettings(false);
+    }
+  };

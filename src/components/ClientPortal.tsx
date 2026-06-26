@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import LiveChat from '@/components/LiveChat';
 
 interface UserInfo {
   id: string;
@@ -293,6 +294,9 @@ export default function ClientPortal() {
           </div>
         </div>
       )}
+
+      {/* Live Chat */}
+      <LiveChat />
     </div>
   );
 }

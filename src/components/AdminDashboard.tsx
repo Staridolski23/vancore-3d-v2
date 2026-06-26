@@ -58,6 +58,11 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [loadingContent, setLoadingContent] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [newBookingCount, setNewBookingCount] = useState(0);
+  const [settings, setSettings] = useState({ siteName: 'VANCORE', contactEmail: 'hello@vancoresys.com', adminEmails: 'momchil@vancore.ai, zhanet@vancore.ai, office@vancoresys.com' });
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [chatInput, setChatInput] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -197,6 +202,8 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           { key: 'clients', label: 'Clients', icon: '👥' },
           { key: 'bookings', label: 'Bookings', icon: '📅', badge: newBookingCount },
           { key: 'content', label: 'Site Content', icon: '✏️' },
+          { key: 'media', label: 'Media', icon: '🖼️' },
+          { key: 'chat', label: 'Live Chat', icon: '💬' },
           { key: 'analytics', label: 'Analytics', icon: '📈' },
           { key: 'settings', label: 'Settings', icon: '⚙️' },
         ].map((tab) => (
