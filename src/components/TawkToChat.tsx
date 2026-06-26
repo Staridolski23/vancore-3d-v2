@@ -2,26 +2,29 @@
 
 import { useEffect, useState } from 'react';
 
+const ADMIN_EMAILS = ['momchil@vancore.ai', 'zhanet@vancore.ai', 'office@vancoresys.com'];
+
 export default function TawkToChat() {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in (client has token but not admin)
+    // Check if user is logged in
     const token = localStorage.getItem('vancore_client_token');
-    if (token && token.length > 20) {
-      // Check if user is NOT admin by looking at profile
-      fetch('/api/auth/profile', {
-        headers: { Authorization: 'Bearer ' + token },
-      }).then(res => {
-        if (res.ok) {
-          res.json().then(data => {
-            // Only load tawk.to for non-admin users
-            if (data.user?.role !== 'admin' && !['momchil@vancore.ai', 'zhanet@vancore.ai', 'office@vancoresys.com'].includes(data.user?.email?.toLowerCase())) {
-              setShouldLoad(true);
-            }
-          });
-        }
-      }).catch(() => {});
+    if (!token || token.length < 20) return;
+
+    // Check if user is admin by decoding JWT payload (no API call needed)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const email = payload.email?.toLowerCase();
+      const isAdmin = ADMIN_EMAILS.includes(email);
+      
+      // Only load tawk.to for non-admin logged-in users
+      if (!isAdmin) {
+        setShouldLoad(true);
+      }
+    } catch {
+      // If we can't decode, still show chat (better safe than sorry)
+      setShouldLoad(true);
     }
   }, []);
 
