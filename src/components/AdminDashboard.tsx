@@ -472,6 +472,10 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       {/* Bookings Tab */}
       {activeTab === 'bookings' && (
         <div className="space-y-4">
+          {/* Mini Calendar View */}
+          <AdminBookingsCalendar bookings={bookings} />
+
+          {/* Upcoming Bookings List */}
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-white">Upcoming Bookings</h3>
@@ -784,4 +788,90 @@ function getRegistrationTimeline(clients: Client[]) {
     count,
     pct: Math.round((count / maxCount) * 100),
   }));
+}
+
+function AdminBookingsCalendar({ bookings }: { bookings: Booking[] }) {
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const getDaysInMonth = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const days: { dayNum: number; date: string; count: number; isToday: boolean; isWeekend: boolean }[] = [];
+
+    const startDay = firstDay.getDay();
+    const adjustedStart = startDay === 0 ? 6 : startDay - 1;
+
+    for (let i = 0; i < adjustedStart; i++) {
+      days.push({ dayNum: 0, date: '', count: 0, isToday: false, isWeekend: false });
+    }
+
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dayOfWeek = new Date(year, month, d).getDay();
+      const count = bookings.filter(b => b.date === dateStr).length;
+      days.push({
+        dayNum: d,
+        date: dateStr,
+        count,
+        isToday: dateStr === todayStr,
+        isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+      });
+    }
+
+    return days;
+  };
+
+  const days = getDaysInMonth();
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  return (
+    <div className="bg-[#111] rounded-xl p-5 border border-white/5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-white">Bookings Calendar</h3>
+        <div className="flex gap-2">
+          <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))} className="px-2 py-1 text-xs text-[#9a9a9a] hover:text-white bg-white/5 rounded">←</button>
+          <span className="text-xs text-white min-w-[100px] text-center">{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</span>
+          <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))} className="px-2 py-1 text-xs text-[#9a9a9a] hover:text-white bg-white/5 rounded">→</button>
+        </div>
+      </div>
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
+          <div key={d} className="text-center text-[10px] text-[#6b6b6b] py-1">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((day, i) => (
+          <div
+            key={i}
+            title={day.count > 0 ? `${day.count} booking(s)` : ''}
+            className={`
+              aspect-square flex flex-col items-center justify-center rounded text-xs
+              ${!day.dayNum ? 'invisible' : ''}
+              ${day.isWeekend && day.dayNum ? 'bg-[#374151] text-[#6b6b6b]' : ''}
+              ${day.count > 0 && !day.isWeekend ? 'bg-[#991930] text-white font-bold' : ''}
+              ${day.count === 0 && !day.isWeekend && day.dayNum ? 'bg-white/5 text-[#9a9a9a]' : ''}
+              ${day.isToday ? 'ring-2 ring-[#f59e0b]' : ''}
+            `}
+          >
+            {day.dayNum > 0 && (
+              <>
+                <span>{day.dayNum}</span>
+                {day.count > 0 && <span className="text-[7px]">{day.count}</span>}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-4 mt-3 justify-center">
+        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-[#991930]"></div><span className="text-[10px] text-[#6b6b6b]">Has bookings</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-white/5 border border-white/10"></div><span className="text-[10px] text-[#6b6b6b]">No bookings</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded ring-2 ring-[#f59e0b]"></div><span className="text-[10px] text-[#6b6b6b]">Today</span></div>
+      </div>
+    </div>
+  );
 }
