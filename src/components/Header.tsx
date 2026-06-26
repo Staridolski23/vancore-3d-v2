@@ -90,7 +90,7 @@ export default function Header() {
             </a>
           ))}
           <a
-            href="/contact"
+            href="/book-call"
             className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-sans font-medium text-[#6b6b6b] hover:text-[#111] transition-colors"
           >
             Book a call
