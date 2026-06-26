@@ -165,7 +165,7 @@ export default function Header() {
               </a>
             ))}
             <a
-              href="/contact"
+              href="/book-call"
               className="py-3 text-base font-sans text-[#111] hover:text-[#991930] transition-colors border-b border-black/5"
             >
               Book a call
