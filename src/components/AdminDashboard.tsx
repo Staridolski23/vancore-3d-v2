@@ -45,7 +45,7 @@ interface Booking {
 }
 
 export default function AdminDashboard({ token: propToken }: { token?: string }) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'analytics' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'chat' | 'analytics' | 'settings'>('dashboard');
   const [clients, setClients] = useState<Client[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalClients: 0, activeSubscriptions: 0, verifiedEmails: 0 });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -522,6 +522,100 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Media Tab */}
+      {activeTab === 'media' && (
+        <div className="space-y-4">
+          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
+            <h3 className="text-sm font-semibold text-white mb-4">Media Library</h3>
+            <p className="text-xs text-[#6b6b6b] mb-4">Upload and manage images used across your website.</p>
+            
+            {/* Upload Area */}
+            <div className="border-2 border-dashed border-white/10 rounded-lg p-8 text-center mb-4 hover:border-[#991930]/50 transition-colors">
+              <input
+                type="file"
+                id="media-upload"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+                  try {
+                    await fetch('/api/adminv2/upload-image', {
+                      method: 'POST',
+                      headers: { 'Authorization': 'Bearer ' + token },
+                      body: formData,
+                    });
+                    alert('Image uploaded successfully!');
+                  } catch {
+                    alert('Upload failed. Please try again.');
+                  }
+                }}
+              />
+              <label htmlFor="media-upload" className="cursor-pointer">
+                <div className="text-3xl mb-2">📁</div>
+                <p className="text-sm text-[#9a9a9a]">Click to upload or drag and drop</p>
+                <p className="text-[10px] text-[#6b6b6b] mt-1">PNG, JPG, SVG up to 10MB</p>
+              </label>
+            </div>
+
+            {/* Image Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="aspect-square bg-white/5 rounded-lg flex items-center justify-center text-[#6b6b6b] text-xs">
+                No images uploaded yet
+              </div>
+            </div>
+          </div>
+
+          {/* Current Site Images */}
+          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
+            <h3 className="text-sm font-semibold text-white mb-3">Current Site Images</h3>
+            <div className="space-y-2">
+              {['Hero Background', 'About Section', 'Services Icons', 'Work Case Studies', 'Team Photos'].map((item, i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-xs">🖼️</div>
+                    <span className="text-sm text-white">{item}</span>
+                  </div>
+                  <button className="px-3 py-1.5 text-xs text-[#991930] border border-[#991930]/30 rounded-lg hover:bg-[#991930]/10 transition-colors">
+                    Replace
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Chat Tab */}
+      {activeTab === 'chat' && (
+        <div className="space-y-4">
+          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-white">Active Chats</h3>
+              <span className="px-2 py-1 bg-[#10b981]/20 text-[#10b981] text-[10px] rounded-full">Live</span>
+            </div>
+            <div className="text-center py-8">
+              <div className="text-3xl mb-2">💬</div>
+              <p className="text-sm text-[#6b6b6b]">No active chats</p>
+              <p className="text-[10px] text-[#6b6b6b] mt-1">When clients send messages, they will appear here</p>
+            </div>
+          </div>
+
+          {/* Recent Conversations */}
+          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
+            <h3 className="text-sm font-semibold text-white mb-3">Recent Conversations</h3>
+            <div className="space-y-2">
+              <div className="text-center py-6 text-sm text-[#6b6b6b]">
+                No conversations yet
+              </div>
+            </div>
           </div>
         </div>
       )}
