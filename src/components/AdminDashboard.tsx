@@ -590,7 +590,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                       <div className="text-[10px] text-[#6b6b6b]">{booking.description?.substring(0, 50)}...</div>
                       <div className="flex gap-2 mt-2">
                         {booking.status === 'new' && (
-                          <button onClick={() => updateBookingStatus(booking.id && ('confirmed')} className="px-3 py-1.5 text-xs bg-[#10b981] text-white rounded-lg">
+                          <button onClick={() => updateBookingStatus(booking.id, 'confirmed')} className="px-3 py-1.5 text-xs bg-[#10b981] text-white rounded-lg">
                             Confirm
                           </button>
                         )}
