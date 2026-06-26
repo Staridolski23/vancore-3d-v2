@@ -8,13 +8,25 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const year = searchParams.get('year');
     const month = searchParams.get('month');
+    const upcoming = searchParams.get('upcoming');
 
-    let url = DO_API + '/api/bookings';
-    if (year && month) {
-      url += '?year=' + year + '&month=' + month;
+    let path = '/api/bookings';
+    const params = new URLSearchParams();
+    
+    if (upcoming === 'true') {
+      path = '/api/bookings/upcoming';
+    } else if (year && month) {
+      params.set('year', year);
+      params.set('month', month);
     }
 
-    const res = await fetch(url);
+    const queryString = params.toString();
+    const url = DO_API + path + (queryString ? '?' + queryString : '');
+
+    const res = await fetch(url, { 
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     const data = await res.json();
     return NextResponse.json(data);
   } catch (e: any) {
@@ -29,24 +41,6 @@ export async function POST(request: NextRequest) {
 
     const res = await fetch(DO_API + '/api/bookings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
-}
-
-// PATCH /api/bookings/[id] - proxy to DO server
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const body = await request.json();
-
-    const res = await fetch(DO_API + '/api/bookings/' + params.id, {
-      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });

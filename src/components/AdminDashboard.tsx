@@ -99,7 +99,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
   const fetchBookings = async () => {
     try {
-      const res = await fetch('/api/bookings/upcoming');
+      const res = await fetch('/api/bookings?upcoming=true');
       if (res.ok) {
         const data = await res.json();
         setBookings(data.bookings || []);
