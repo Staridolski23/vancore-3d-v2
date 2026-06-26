@@ -131,7 +131,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
   const fetchData = async () => {
     try {
-      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+      const token = propToken || localStorage.getItem('vancore_client_token') || '';
       if (!token) { setLoading(false); return; }
       const headers: any = { 'Authorization': 'Bearer ' + token };
 
@@ -174,7 +174,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
   const updateClientRole = async (clientId: string, newRole: string) => {
     try {
-      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+      const token = propToken || localStorage.getItem('vancore_client_token') || '';
       await fetch('/api/adminv2/clients/' + clientId, {
         method: 'PATCH',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -189,7 +189,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
   const updateClientPlan = async (clientId: string, newPlan: string) => {
     try {
-      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+      const token = propToken || localStorage.getItem('vancore_client_token') || '';
       await fetch('/api/adminv2/clients/' + clientId, {
         method: 'PATCH',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -204,7 +204,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
   const updateClientCredits = async (clientId: string, credits: number) => {
     try {
-      const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+      const token = propToken || localStorage.getItem('vancore_client_token') || '';
       await fetch('/api/adminv2/clients/' + clientId, {
         method: 'PATCH',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -583,7 +583,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                   if (!file) return;
                   const formData = new FormData();
                   formData.append('file', file);
-                  const token = propToken || localStorage.getItem('vancore_admin_token') || '';
+                  const token = propToken || localStorage.getItem('vancore_client_token') || '';
                   try {
                     await fetch('/api/adminv2/upload-image', {
                       method: 'POST',

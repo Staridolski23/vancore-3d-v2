@@ -1,74 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
 
-// GET /api/bookings/upcoming
+const DO_API = process.env.DO_API_URL || 'http://206.189.48.236:3001';
+
+// GET /api/bookings - proxy to DO server
 export async function GET(request: NextRequest) {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const { searchParams } = new URL(request.url);
+    const year = searchParams.get('year');
+    const month = searchParams.get('month');
 
-    const { data, error } = await supabaseAdmin
-      .from('bookings')
-      .select('*')
-      .gte('date', today)
-      .order('date', { ascending: true })
-      .order('time', { ascending: true })
-      .limit(20);
-
-    if (error && error.code !== '42P01') {
-      throw error;
+    let url = DO_API + '/api/bookings';
+    if (year && month) {
+      url += '?year=' + year + '&month=' + month;
     }
 
-    return NextResponse.json({ bookings: data || [] });
+    const res = await fetch(url);
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (e: any) {
     return NextResponse.json({ bookings: [], error: e.message });
   }
 }
 
-// POST /api/bookings
+// POST /api/bookings - proxy to DO server
 export async function POST(request: NextRequest) {
   try {
-    const { date, time, name, email, phone, company, description } = await request.json();
+    const body = await request.json();
 
-    if (!date || !time || !name || !email) {
-      return NextResponse.json({ error: 'Date, time, name and email are required' }, { status: 400 });
-    }
+    const res = await fetch(DO_API + '/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
 
-    // Check if slot is already booked
-    const { data: existing } = await supabaseAdmin
-      .from('bookings')
-      .select('id')
-      .eq('date', date)
-      .eq('time', time)
-      .single();
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
 
-    if (existing) {
-      return NextResponse.json({ error: 'This time slot is already booked' }, { status: 409 });
-    }
+// PATCH /api/bookings/[id] - proxy to DO server
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const body = await request.json();
 
-    // Create booking
-    const { data, error } = await supabaseAdmin
-      .from('bookings')
-      .insert({
-        date,
-        time,
-        name,
-        email,
-        phone: phone || '',
-        company: company || '',
-        description: description || '',
-        status: 'new'
-      })
-      .select()
-      .single();
+    const res = await fetch(DO_API + '/api/bookings/' + params.id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
 
-    if (error) {
-      if (error.code === '42P01') {
-        return NextResponse.json({ error: 'Booking system not configured yet' }, { status: 503 });
-      }
-      throw error;
-    }
-
-    return NextResponse.json({ success: true, booking: data });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
