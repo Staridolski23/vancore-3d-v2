@@ -31,7 +31,7 @@ export default function ClientPortal() {
     const token = localStorage.getItem('vancore_client_token');
     if (token) {
       fetch('/api/auth/profile', {
-        headers: { Authorization: *** ' + token },
+        headers: { Authorization: 'Bearer ' + token },
       }).then(res => {
         if (res.ok) {
           res.json().then(data => {
