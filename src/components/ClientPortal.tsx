@@ -18,7 +18,8 @@ interface UserInfo {
 export default function ClientPortal() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [status, setStatus] = useState<'loading' | 'login' | 'dashboard'>('loading');
-  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
+  const [bookings, setBookings] = useState<any[]>([]);
   const searchParams = useSearchParams();
 
   // Check if coming from Vera with plan selection
@@ -30,16 +31,20 @@ export default function ClientPortal() {
     const token = localStorage.getItem('vancore_client_token');
     if (token) {
       fetch('/api/auth/profile', {
-        headers: { Authorization: 'Bearer ' + token },
+        headers: { Authorization: *** ' + token },
       }).then(res => {
         if (res.ok) {
           res.json().then(data => {
             setUser(data.user);
             setStatus('dashboard');
-            // If coming from Vera with plan, switch to billing
             if (planParam) {
               setActiveTab('billing');
             }
+            // Fetch bookings
+            fetch('/api/bookings?email=' + data.user.email)
+              .then(r => r.json())
+              .then(data => setBookings(data.bookings || []))
+              .catch(() => setBookings([]));
           });
         } else {
           localStorage.removeItem('vancore_client_token');
@@ -83,9 +88,10 @@ export default function ClientPortal() {
       {/* Tab Navigation */}
       <div className="flex gap-1 bg-[#111] p-1 rounded-lg overflow-x-auto">
         {[
-          { key: 'overview', label: 'Overview', icon: '📊' },
+          { key: 'overview', label: 'Overview', icon: '�' },
+          { key: 'bookings', label: 'My Bookings', icon: '📅' },
           { key: 'reports', label: 'Reports', icon: '📄' },
-          { key: 'history', label: 'History', icon: '💬' },
+          { key: 'history', label: 'History', icon: '�' },
           { key: 'billing', label: 'Billing', icon: '💳' },
           { key: 'settings', label: 'Settings', icon: '⚙️' },
         ].map((tab) => (
