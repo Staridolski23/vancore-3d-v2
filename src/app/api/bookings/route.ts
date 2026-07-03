@@ -6,8 +6,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const upcoming = searchParams.get('upcoming');
-    const path = upcoming === 'true' ? '/api/bookings/upcoming' : '/api/bookings';
-    const url = DO_API + path;
+    const email = searchParams.get('email');
+    const year = searchParams.get('year');
+    const month = searchParams.get('month');
+
+    let path = '/api/bookings';
+    if (email) {
+      path = '/api/bookings/client/' + encodeURIComponent(email);
+    } else if (upcoming === 'true') {
+      path = '/api/bookings/upcoming';
+    }
+
+    const url = DO_API + path + (year && month && !email ? ('?year=' + year + '&month=' + month) : '');
     const res = await fetch(url, { cache: 'no-store' });
     const data = await res.json();
     return NextResponse.json(data);

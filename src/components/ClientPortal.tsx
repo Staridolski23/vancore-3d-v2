@@ -192,6 +192,48 @@ export default function ClientPortal() {
         </div>
       )}
 
+      {/* Bookings Tab */}
+      {activeTab === 'bookings' && (
+        <div className="space-y-4">
+          <div className="bg-[#111] rounded-xl p-6 border border-white/5">
+            <h3 className="text-base font-semibold text-white mb-4">My Bookings</h3>
+            {bookings.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-4xl mb-3">📅</div>
+                <p className="text-sm text-[#6b6b6b] mb-4">You don't have any bookings yet.</p>
+                <a href="/book-call" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
+                  Book a Call
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {bookings.map((booking: any) => (
+                  <div key={booking.id} className="p-4 bg-white/5 rounded-lg border border-white/5">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="text-sm font-medium text-white">{booking.date} @ {booking.time}</div>
+                        <div className="text-xs text-[#9a9a9a]">{booking.name} {booking.email && <span className="text-[#6b6b6b]">&lt;{booking.email}&gt;</span>}</div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                        booking.status === 'confirmed' ? 'bg-[#10b981]/20 text-[#10b981]' :
+                        booking.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                        booking.status === 'rescheduled' ? 'bg-blue-500/20 text-blue-400' :
+                        'bg-yellow-500/20 text-yellow-400'
+                      }`}>
+                        {booking.status || 'new'}
+                      </span>
+                    </div>
+                    {booking.company && <div className="text-xs text-[#6b6b6b] mb-1">🏢 {booking.company}</div>}
+                    {booking.phone && <div className="text-xs text-[#6b6b6b] mb-1">📞 {booking.phone}</div>}
+                    {booking.description && <div className="text-xs text-[#6b6b6b] mt-2 italic">"{booking.description}"</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Reports Tab */}
       {activeTab === 'reports' && (
         <div className="space-y-4">

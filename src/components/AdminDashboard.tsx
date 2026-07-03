@@ -116,10 +116,11 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const updateBookingStatus = async (id: number | string, status: string) => {
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
+      const booking = bookings.find(b => b.id == id);
       await fetch('/api/bookings/' + id, {
         method: 'PUT',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, date: booking?.date, time: booking?.time }),
       });
       fetchBookings();
     } catch (e) {
@@ -603,6 +604,52 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Propose Change Form */}
+      {proposeMode && selectedBooking && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#111] rounded-2xl p-6 border border-white/10 w-full max-w-md mx-4">
+            <h3 className="text-base font-semibold text-white mb-1">Propose Change</h3>
+            <p className="text-xs text-[#9a9a9a] mb-4">
+              {selectedBooking.name} &lt;{selectedBooking.email}&gt; — current: {selectedBooking.date} @ {selectedBooking.time}
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-[#9a9a9a] block mb-1">New date</label>
+                <input
+                  type="date"
+                  value={proposeDate}
+                  onChange={(e) => setProposeDate(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[#9a9a9a] block mb-1">New time</label>
+                <input
+                  type="time"
+                  value={proposeTime}
+                  onChange={(e) => setProposeTime(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+                />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={sendProposal}
+                  className="flex-1 px-3 py-2 bg-[#991930] text-white text-sm rounded-lg hover:bg-[#a83d1f] transition-colors"
+                >
+                  Send Proposal
+                </button>
+                <button
+                  onClick={() => { setProposeMode(false); setSelectedBooking(null); }}
+                  className="px-3 py-2 bg-white/5 text-white text-sm rounded-lg hover:bg-white/10 transition-colors border border-white/10"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
