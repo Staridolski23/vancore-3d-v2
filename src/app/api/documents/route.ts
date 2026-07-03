@@ -1,72 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, verifyToken } from '@/lib/supabase';
 
-// GET /api/documents - list user documents
+const DO_API = process.env.DO_API_URL || 'http://206.189.48.236:3001';
+
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const user = await verifyToken(token);
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const { data, error } = await supabaseAdmin
-      .from('documents')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error && error.code !== '42P01') throw error;
-
-    return NextResponse.json({ documents: data || [] });
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get('email');
+    const url = DO_API + '/api/documents' + (email ? ('?client_email=' + encodeURIComponent(email)) : '');
+    const res = await fetch(url, { cache: 'no-store' });
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ documents: [], error: e.message });
   }
 }
 
-// POST /api/documents - upload document metadata
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const user = await verifyToken(token);
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const { filename, originalName, size, type, description } = await request.json();
-
-    const { data, error } = await supabaseAdmin
-      .from('documents')
-      .insert({
-        user_id: user.id,
-        filename,
-        original_name: originalName,
-        size,
-        type,
-        description: description || '',
-        status: 'uploaded'
-      })
-      .select()
-      .single();
-
-    if (error) {
-      if (error.code === '42P01') {
-        return NextResponse.json({ error: 'Document system not configured' }, { status: 503 });
-      }
-      throw error;
-    }
-
-    return NextResponse.json({ success: true, document: data });
+    const body = await request.json();
+    const res = await fetch(DO_API + '/api/documents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

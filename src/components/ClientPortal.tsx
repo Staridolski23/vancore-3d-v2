@@ -18,8 +18,10 @@ interface UserInfo {
 export default function ClientPortal() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [status, setStatus] = useState<'loading' | 'login' | 'dashboard'>('loading');
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'documents' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
   const [bookings, setBookings] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const DO_API = 'http://206.189.48.236:3001';
   const searchParams = useSearchParams();
 
   // Check if coming from Vera with plan selection
@@ -45,6 +47,11 @@ export default function ClientPortal() {
               .then(r => r.json())
               .then(data => setBookings(data.bookings || []))
               .catch(() => setBookings([]));
+            // Fetch documents
+            fetch('/api/documents?email=' + data.user.email)
+              .then(r => r.json())
+              .then(data => setDocuments(data.documents || []))
+              .catch(() => setDocuments([]));
           });
         } else {
           localStorage.removeItem('vancore_client_token');
@@ -93,6 +100,7 @@ export default function ClientPortal() {
           { key: 'reports', label: 'Reports', icon: '📄' },
           { key: 'history', label: 'History', icon: '�' },
           { key: 'billing', label: 'Billing', icon: '💳' },
+          { key: 'documents', label: 'Documents', icon: '📁' },
           { key: 'settings', label: 'Settings', icon: '⚙️' },
         ].map((tab) => (
           <button
@@ -226,6 +234,35 @@ export default function ClientPortal() {
                     {booking.company && <div className="text-xs text-[#6b6b6b] mb-1">🏢 {booking.company}</div>}
                     {booking.phone && <div className="text-xs text-[#6b6b6b] mb-1">📞 {booking.phone}</div>}
                     {booking.description && <div className="text-xs text-[#6b6b6b] mt-2 italic">"{booking.description}"</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Documents Tab */}
+      {activeTab === 'documents' && (
+        <div className="space-y-4">
+          <div className="bg-[#111] rounded-xl p-6 border border-white/5">
+            <h3 className="text-base font-semibold text-white mb-4">Documents</h3>
+            {documents.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-4xl mb-3">📁</div>
+                <p className="text-sm text-[#6b6b6b] mb-4">You don't have any documents yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {documents.map((doc: any) => (
+                  <div key={doc.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
+                    <div>
+                      <div className="text-sm text-white">{doc.name}</div>
+                      <div className="text-xs text-[#6b6b6b]">{doc.filename}</div>
+                    </div>
+                    <a href={DO_API + '/documents/' + doc.filename} className="text-xs text-[#991930] hover:underline" target="_blank" rel="noreferrer">
+                      Download
+                    </a>
                   </div>
                 ))}
               </div>
