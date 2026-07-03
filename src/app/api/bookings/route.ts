@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 
 const DO_API = process.env.DO_API_URL || 'http://206.189.48.236:3001';
 
@@ -29,11 +30,26 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Auto-link booking to user profile by email
+    let clientId = '';
+    if (body.email) {
+      const { data } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', body.email)
+        .maybeSingle();
+      if (data?.id) {
+        clientId = data.id;
+      }
+    }
+
     const res = await fetch(DO_API + '/api/bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, client_id: clientId }),
     });
+
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch (e: any) {
