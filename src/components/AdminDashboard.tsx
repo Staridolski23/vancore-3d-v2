@@ -58,7 +58,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [loadingContent, setLoadingContent] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [newBookingCount, setNewBookingCount] = useState(0);
-  const [settings, setSettings] = useState({ siteName: 'VANCORE', contactEmail: 'hello@vancoresys.com', adminEmails: 'momchil@vancore.ai, zhanet@vancore.ai, office@vancoresys.com' });
+  const [settings, setSettings] = useState({ siteName: 'VANCORE', contactEmail: 'hello@vancoresys.com', adminEmails: 'momchil@vancore.ai, zhanet@vancore.ai, office@vancoresys.com', username: 'admin' });
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -760,6 +760,15 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                   type="text"
                   value={settings.siteName || ''}
                   onChange={e => setSettings(s => ({ ...s, siteName: e.target.value }))}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1.5">Username</label>
+                <input
+                  type="text"
+                  value={settings.username || ''}
+                  onChange={e => setSettings(s => ({ ...s, username: e.target.value }))}
                   className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
                 />
               </div>

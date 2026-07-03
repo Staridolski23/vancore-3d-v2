@@ -19,9 +19,9 @@ export default function PricingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { id: 'payg', name: 'Pay-As-You-Go', price: '€25', period: 'one-time', features: ['500 AI questions', 'No monthly commitment', 'Valid for 3 months', 'Basic support'], cta: 'Get Started' },
-              { id: 'professional', name: 'Professional', price: '€49/mo', period: 'billed monthly', features: ['Unlimited AI questions', 'Monthly business report', 'Client portal access', 'Priority support'], cta: 'Start Free Trial', highlighted: true },
-              { id: 'business', name: 'Business', price: '€99/mo', period: 'billed monthly', features: ['Everything in Professional', 'Weekly auto-analysis', '2 human consultant calls/month', 'Growth plan', 'API access'], cta: 'Contact Sales' },
+              { id: 'payg', name: 'Pay-As-You-Go', price: '€25', period: 'one-time', features: ['500 AI questions', 'No monthly commitment', 'Valid for 3 months', 'Basic support'], cta: 'Get Started', highlighted: false },
+              { id: 'professional', name: 'Professional', price: '€49/mo', period: 'billed monthly', features: ['Unlimited AI questions', 'Monthly business report', 'Client portal access', 'Priority support'], cta: 'Get Started', highlighted: true },
+              { id: 'business', name: 'Business', price: '€99/mo', period: 'billed monthly', features: ['Everything in Professional', 'Weekly auto-analysis', '2 human consultant calls/month', 'Growth plan', 'API access'], cta: 'Get Started', highlighted: false },
             ].map((plan) => (
               <div key={plan.id} className={`p-6 rounded-2xl border ${plan.highlighted ? 'border-[#991930] bg-[#991930]/10' : 'border-white/10 bg-[#111]'}`}>
                 {plan.highlighted && <div className="text-xs font-semibold text-[#991930] uppercase tracking-wider mb-3">Most Popular</div>}
