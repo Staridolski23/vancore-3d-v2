@@ -21,6 +21,7 @@ export default function ClientPortal() {
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'documents' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
   const [bookings, setBookings] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [reportContent, setReportContent] = useState('');
   const DO_API = 'http://206.189.48.236:3001';
   const searchParams = useSearchParams();
 
@@ -70,6 +71,20 @@ export default function ClientPortal() {
     setUser(null);
     localStorage.removeItem('vancore_client_token');
     setStatus('login');
+  };
+
+  const generateReport = async (): Promise<string> => {
+    try {
+      const res = await fetch('/api/ai-analyst', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Please generate a concise business status report for the logged-in client.' }),
+      });
+      const data = await res.json();
+      return data.reply || data.message || 'Report generation failed.';
+    } catch (e) {
+      return 'Error generating report.';
+    }
   };
 
   if (status === 'loading') {
@@ -275,15 +290,32 @@ export default function ClientPortal() {
       {activeTab === 'reports' && (
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
-            <h3 className="text-base font-semibold text-white mb-4">Your Reports</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-white">Your Reports</h3>
+              <button onClick={async () => {
+                const report = await generateReport();
+                setReportContent(report);
+              }} className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
+                Generate Report
+              </button>
+            </div>
             <div className="text-center py-12">
               <div className="text-4xl mb-3">📄</div>
               <p className="text-sm text-[#6b6b6b] mb-4">You don't have any reports yet.</p>
               <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                💬 Talk to Vera to Generate Report
+                Talk to Vera
               </a>
             </div>
           </div>
+          {reportContent && (
+            <div className="bg-[#111] rounded-xl p-6 border border-white/5">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-white">Generated Report</h4>
+                <button onClick={() => setReportContent('')} className="text-xs text-[#991930] hover:underline">Close</button>
+              </div>
+              <pre className="text-xs text-[#9a9a9a] whitespace-pre-wrap leading-relaxed">{reportContent}</pre>
+            </div>
+          )}
         </div>
       )}
 
