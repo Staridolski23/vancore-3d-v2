@@ -65,6 +65,9 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [proposeMode, setProposeMode] = useState(false);
   const [proposeDate, setProposeDate] = useState('');
   const [proposeTime, setProposeTime] = useState('');
+  const [addBookingMode, setAddBookingMode] = useState(false);
+  const [newBooking, setNewBooking] = useState({ name: '', email: '', phone: '', company: '', date: '', time: '', description: '' });
+  const [savingBooking, setSavingBooking] = useState(false);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [chatInput, setChatInput] = useState('');
 
@@ -138,8 +141,34 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         body: JSON.stringify({ date: proposeDate, time: proposeTime }),
       });
       if (res.ok) alert('Proposal sent to client!');
+      setProposeMode(false);
+      setSelectedBooking(null);
+      fetchBookings();
     } catch (e) {
       console.error('Failed to send proposal:', e);
+    }
+  };
+
+  const createBooking = async () => {
+    if (!newBooking.name || !newBooking.email || !newBooking.date || !newBooking.time) return;
+    setSavingBooking(true);
+    try {
+      const token = propToken || localStorage.getItem('vancore_client_token') || '';
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newBooking, status: 'confirmed' }),
+      });
+      if (res.ok) {
+        alert('Booking created!');
+        setAddBookingMode(false);
+        setNewBooking({ name: '', email: '', phone: '', company: '', date: '', time: '', description: '' });
+        fetchBookings();
+      }
+    } catch (e) {
+      console.error('Failed to create booking:', e);
+    } finally {
+      setSavingBooking(false);
     }
   };
 
@@ -558,12 +587,20 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-white">Upcoming Bookings</h3>
-              <button
-                onClick={fetchBookings}
-                className="px-3 py-1.5 text-xs text-[#9a9a9a] hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
-              >
-                ↻ Refresh
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setAddBookingMode(true)}
+                  className="px-3 py-1.5 text-xs bg-[#991930] text-white rounded-lg hover:bg-[#a83d1f] transition-colors"
+                >
+                  + Add Booking
+                </button>
+                <button
+                  onClick={fetchBookings}
+                  className="px-3 py-1.5 text-xs text-[#9a9a9a] hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  ↻ Refresh
+                </button>
+              </div>
             </div>
             {bookings.length === 0 ? (
               <div className="text-center py-8">
@@ -648,6 +685,53 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 >
                   Cancel
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Booking Form */}
+      {addBookingMode && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#111] rounded-2xl p-6 border border-white/10 w-full max-w-md mx-4">
+            <h3 className="text-base font-semibold text-white mb-4">New Booking</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-[#9a9a9a] block mb-1">Name</label>
+                <input type="text" value={newBooking.name} onChange={e => setNewBooking(s => ({ ...s, name: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label className="text-xs text-[#9a9a9a] block mb-1">Email</label>
+                <input type="email" value={newBooking.email} onChange={e => setNewBooking(s => ({ ...s, email: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label className="text-xs text-[#9a9a9a] block mb-1">Phone</label>
+                <input type="tel" value={newBooking.phone} onChange={e => setNewBooking(s => ({ ...s, phone: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label className="text-xs text-[#9a9a9a] block mb-1">Company</label>
+                <input type="text" value={newBooking.company} onChange={e => setNewBooking(s => ({ ...s, company: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-[#9a9a9a] block mb-1">Date</label>
+                  <input type="date" value={newBooking.date} onChange={e => setNewBooking(s => ({ ...s, date: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white" />
+                </div>
+                <div>
+                  <label className="text-xs text-[#9a9a9a] block mb-1">Time</label>
+                  <input type="time" value={newBooking.time} onChange={e => setNewBooking(s => ({ ...s, time: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-[#9a9a9a] block mb-1">Description</label>
+                <textarea value={newBooking.description} onChange={e => setNewBooking(s => ({ ...s, description: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white" rows={3} />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={createBooking} disabled={savingBooking} className="flex-1 px-3 py-2 bg-[#991930] text-white text-sm rounded-lg hover:bg-[#a83d1f] disabled:opacity-50 transition-colors">
+                  {savingBooking ? 'Creating...' : 'Create Booking'}
+                </button>
+                <button onClick={() => setAddBookingMode(false)} className="px-3 py-2 bg-white/5 text-white text-sm rounded-lg hover:bg-white/10 transition-colors border border-white/10">Cancel</button>
               </div>
             </div>
           </div>
