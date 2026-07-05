@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin-v2
+Disallow: /client-portal
+Disallow: /login
+Disallow: /api/
+Sitemap: https://www.vancoresys.com/sitemap.xml
