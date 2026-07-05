@@ -45,7 +45,7 @@ interface Booking {
 }
 
 export default function AdminDashboard({ token: propToken }: { token?: string }) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'chat' | 'analytics' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'analytics' | 'settings'>('dashboard');
   const [clients, setClients] = useState<Client[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalClients: 0, activeSubscriptions: 0, verifiedEmails: 0 });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -68,8 +68,6 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [addBookingMode, setAddBookingMode] = useState(false);
   const [newBooking, setNewBooking] = useState({ name: '', email: '', phone: '', company: '', date: '', time: '', description: '' });
   const [savingBooking, setSavingBooking] = useState(false);
-  const [chatMessages, setChatMessages] = useState<any[]>([]);
-  const [chatInput, setChatInput] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -799,33 +797,6 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                   </button>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Live Chat Tab */}
-      {activeTab === 'chat' && (
-        <div className="space-y-4">
-          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white">Active Chats</h3>
-              <span className="px-2 py-1 bg-[#10b981]/20 text-[#10b981] text-[10px] rounded-full">Live</span>
-            </div>
-            <div className="text-center py-8">
-              <div className="text-3xl mb-2">💬</div>
-              <p className="text-sm text-[#6b6b6b]">No active chats</p>
-              <p className="text-[10px] text-[#6b6b6b] mt-1">When clients send messages, they will appear here</p>
-            </div>
-          </div>
-
-          {/* Recent Conversations */}
-          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
-            <h3 className="text-sm font-semibold text-white mb-3">Recent Conversations</h3>
-            <div className="space-y-2">
-              <div className="text-center py-6 text-sm text-[#6b6b6b]">
-                No conversations yet
-              </div>
             </div>
           </div>
         </div>
