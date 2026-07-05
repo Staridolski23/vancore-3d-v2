@@ -1,9 +1,13 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CookieBanner from '@/components/CookieBanner';
 import TawkToChat from '@/components/TawkToChat';
+
+export const viewport: Viewport = {
+  themeColor: '#991930',
+};
 
 export const metadata: Metadata = {
   title: 'VANCORE — AI-Powered Business Analysis',

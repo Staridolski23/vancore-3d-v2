@@ -1,52 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const DO_API = process.env.DO_API_URL || 'http://206.189.48.236:3001';
+
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, company, message } = await request.json();
+    const body = await request.json();
+    const { sender_name, sender_email, subject, message } = body;
 
-    if (!name || !email || !message) {
-      return NextResponse.json({ error: 'Name, email and message are required' }, { status: 400 });
+    if (!sender_name || !sender_email || !subject || !message) {
+      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
-    // Send email via Zoho SMTP
-    const nodemailer = require('nodemailer');
-    
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.zoho.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.ZOHO_EMAIL,
-        pass: process.env.ZOHO_PASSWORD,
-      },
+    const res = await fetch(`${DO_API}/api/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sender_name, sender_email, subject, message }),
     });
 
-    const mailOptions = {
-      from: `"VANCORE Website" <${process.env.ZOHO_EMAIL || 'office@vancoresys.com'}>`,
-      to: 'hello@vancoresys.com',
-      subject: `New Contact Form: ${name} ${company ? `(${company})` : ''}`,
-      html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
-        <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
-        <hr>
-        <p><em>Sent from VANCORE website contact form</em></p>
-      `,
-      replyTo: email,
-    };
-
-    // Try to send email, but don't fail if SMTP is not configured
-    try {
-      await transporter.sendMail(mailOptions);
-    } catch (smtpError) {
-      console.log('SMTP not configured, logging contact form submission:', { name, email, company, message });
+    if (!res.ok) {
+      const error = await res.json();
+      return NextResponse.json({ error: error.error || 'Failed to send message' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: 'Message sent successfully' });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'Unknown error' }, { status: 500 });
   }
 }
