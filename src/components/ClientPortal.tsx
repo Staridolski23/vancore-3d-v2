@@ -22,7 +22,6 @@ export default function ClientPortal() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
   const [reportContent, setReportContent] = useState('');
-  const DO_API = 'http://206.189.48.236:3001';
   const searchParams = useSearchParams();
 
   // Check if coming from Vera with plan selection
@@ -275,7 +274,7 @@ export default function ClientPortal() {
                       <div className="text-sm text-white">{doc.name}</div>
                       <div className="text-xs text-[#6b6b6b]">{doc.filename}</div>
                     </div>
-                    <a href={DO_API + '/documents/' + doc.filename} className="text-xs text-[#991930] hover:underline" target="_blank" rel="noreferrer">
+                    <a href={'/api/documents/' + doc.filename} className="text-xs text-[#991930] hover:underline" target="_blank" rel="noreferrer">
                       Download
                     </a>
                   </div>
