@@ -110,10 +110,10 @@ export default function ClientPortal() {
       {/* Tab Navigation */}
       <div className="flex gap-1 bg-[#111] p-1 rounded-lg overflow-x-auto">
         {[
-          { key: 'overview', label: 'Overview', icon: '�' },
+          { key: 'overview', label: 'Overview', icon: '📋' },
           { key: 'bookings', label: 'My Bookings', icon: '📅' },
           { key: 'reports', label: 'Reports', icon: '📄' },
-          { key: 'history', label: 'History', icon: '�' },
+          { key: 'history', label: 'History', icon: '🕒' },
           { key: 'billing', label: 'Billing', icon: '💳' },
           { key: 'documents', label: 'Documents', icon: '📁' },
           { key: 'settings', label: 'Settings', icon: '⚙️' },

@@ -42,6 +42,14 @@ export default function Home() {
         <Services />
       </AnimatedSection>
       <AnimatedSection>
+        <div className="text-center py-12 bg-white">
+          <p className="text-lg text-[#6b6b6b] mb-6">Ready to see your business clearly?</p>
+          <a href="/pricing" className="inline-flex px-6 py-3 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
+            View Pricing
+          </a>
+        </div>
+      </AnimatedSection>
+      <AnimatedSection>
         <Work />
       </AnimatedSection>
       <AnimatedSection>
