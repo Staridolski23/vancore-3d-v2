@@ -49,6 +49,11 @@ export default function Services() {
               );
             })}
           </div>
+          <div className="mt-10 text-center">
+            <a href="/pricing" className="inline-flex px-6 py-3 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
+              View Pricing
+            </a>
+          </div>
         </div>
       </div>
     </section>

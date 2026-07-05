@@ -304,7 +304,6 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           { key: 'bookings', label: 'Bookings', icon: '📅', badge: newBookingCount },
           { key: 'content', label: 'Site Content', icon: '✏️' },
           { key: 'media', label: 'Media', icon: '🖼️' },
-          { key: 'chat', label: 'Live Chat', icon: '💬' },
           { key: 'analytics', label: 'Analytics', icon: '📈' },
           { key: 'settings', label: 'Settings', icon: '⚙️' },
         ].map((tab) => (
