@@ -108,6 +108,77 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Password reset email sent.' });
     }
 
+    if (action === 'change-password') {
+      const { email, currentPassword, newPassword } = await request.json();
+      if (!email || !currentPassword || !newPassword) {
+        return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+      }
+      if (newPassword.length < 6) {
+        return NextResponse.json({ error: 'New password must be at least 6 characters' }, { status: 400 });
+      }
+
+      const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      } as SignInWithPasswordCredentials);
+
+      if (authError || !authData.user) {
+        return NextResponse.json({ error: 'Current password is incorrect' }, { status: 401 });
+      }
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(authData.user.id, {
+        password: newPassword,
+      });
+
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message }, { status: 400 });
+      }
+
+      return NextResponse.json({ success: true, message: 'Password updated successfully.' });
+    }
+
+    if (action === 'update-profile') {
+      const { email, name, company, phone, vat_id } = await request.json();
+
+      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+      const user = existingUsers?.users?.find(u => u.email?.toLowerCase() === email?.toLowerCase());
+
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      const { error: profileError } = await supabaseAdmin
+        .from('users')
+        .upsert({
+          id: user.id,
+          email,
+          name: name || '',
+          company: company || '',
+          phone: phone || '',
+          vat_id: vat_id || '',
+          role: user.user_metadata?.role || 'client',
+        });
+
+      if (profileError) {
+        return NextResponse.json({ error: profileError.message }, { status: 400 });
+      }
+
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+        user_metadata: {
+          name: name || '',
+          company: company || '',
+          phone: phone || '',
+          vat_id: vat_id || '',
+        },
+      });
+
+      if (authError) {
+        return NextResponse.json({ error: authError.message }, { status: 400 });
+      }
+
+      return NextResponse.json({ success: true, message: 'Profile updated successfully.' });
+    }
+
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
