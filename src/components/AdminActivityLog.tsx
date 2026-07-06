@@ -22,15 +22,15 @@ export default function AdminActivityLog() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Дейности ({logs.length})</h2>
-      {loading ? <div className="text-center py-12 text-vancore-muted">Зареждане...</div> : (
+      <h2 className="text-xl font-bold">Activity ({logs.length})</h2>
+      {loading ? <div className="text-center py-12 text-vancore-muted">Loading...</div> : (
         <div className="space-y-2">
           {logs.map((log) => (
             <div key={log.id} className="glass rounded-xl p-4 border border-white/5 text-sm text-vancore-muted">
               <span className="text-vancore-light font-semibold">{log.action}</span> — {log.target} ({log.user}, {log.time})
             </div>
           ))}
-          {logs.length === 0 && <div className="text-center py-12 text-vancore-muted">Няма записи</div>}
+          {logs.length === 0 && <div className="text-center py-12 text-vancore-muted">No records found</div>}
         </div>
       )}
     </div>

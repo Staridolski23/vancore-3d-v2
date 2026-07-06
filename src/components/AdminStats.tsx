@@ -22,17 +22,18 @@ export default function AdminStats() {
   };
 
   const cards: { id: string; label: string; value: string; icon: string }[] = [
-    { id: 'leads', label: 'Лийдове', value: String(stats.leads), icon: '👥' },
-    { id: 'week', label: 'Нови тази седмица', value: String(stats.leads_week), icon: '📅' },
-    { id: 'sessions', label: 'AI сесии', value: String(stats.sessions), icon: '💬' },
-    { id: 'users', label: 'Потребители', value: String(stats.users), icon: '👤' },
+    { id: 'leads', label: 'Leads', value: String(stats.leads), icon: '👥' },
+    { id: 'week', label: 'New This Week', value: String(stats.leads_week), icon: '📅' },
+    { id: 'sessions', label: 'AI Sessions', value: String(stats.sessions), icon: '💬' },
+    { id: 'users', label: 'Users', value: String(stats.users), icon: '👤' },
   ];
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Статистики</h2>
+      <h2 className="text-2xl font-bold">Statistics</h2>
       {loading ? (
-        <div className="text-center py-12 text-vancore-muted">Зареждане...</div>
+        <div className="text-center py-12 text-vancore-muted">Loading...</div>
+      
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {cards.map((card) => (
