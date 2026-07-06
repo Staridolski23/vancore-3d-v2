@@ -9,6 +9,7 @@ interface UserInfo {
   email: string;
   company: string;
   phone: string;
+  vat_id?: string;
   plan: string | null;
   credits: number | null;
   subscription_status: string | null;
@@ -393,11 +394,57 @@ export default function ClientPortal() {
                 <input type="text" defaultValue={user?.company || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
               <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1">VAT ID</label>
+                <input type="text" defaultValue={user?.vat_id || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+              </div>
+              <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Phone</label>
                 <input type="tel" defaultValue={user?.phone || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
               <button className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
                 Save Changes
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-[#111] rounded-xl p-6 border border-white/5">
+            <h3 className="text-base font-semibold text-white mb-4">Change Password</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1">Current Password</label>
+                <input type="password" id="current-password" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+              </div>
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1">New Password</label>
+                <input type="password" id="new-password" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+              </div>
+              <button onClick={async () => {
+                const email = user?.email || '';
+                const currentPassword = (document.getElementById('current-password') as HTMLInputElement)?.value || '';
+                const newPassword = (document.getElementById('new-password') as HTMLInputElement)?.value || '';
+                if (!email || !currentPassword || !newPassword) {
+                  alert('All fields are required');
+                  return;
+                }
+                try {
+                  const res = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'change-password', email, currentPassword, newPassword }),
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(data.message || 'Password updated');
+                    (document.getElementById('current-password') as HTMLInputElement) ? (document.getElementById('current-password') as HTMLInputElement).value = '' : null;
+                    (document.getElementById('new-password') as HTMLInputElement) ? (document.getElementById('new-password') as HTMLInputElement).value = '' : null;
+                  } else {
+                    alert(data.error || 'Password change failed');
+                  }
+                } catch {
+                  alert('Password change failed. Please try again.');
+                }
+              }} className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
+                Update Password
               </button>
             </div>
           </div>
