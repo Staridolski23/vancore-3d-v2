@@ -8,6 +8,7 @@ import Methodology from '@/components/Methodology';
 import Services from '@/components/Services';
 import Work from '@/components/Work';
 import About from '@/components/About';
+import Testimonials from '@/components/Testimonials';
 import AIAnalyst from '@/components/AIAnalyst';
 import Contact from '@/components/Contact';
 import { useInView } from '@/hooks/useInView';
@@ -54,6 +55,9 @@ export default function Home() {
       </AnimatedSection>
       <AnimatedSection>
         <About />
+      </AnimatedSection>
+      <AnimatedSection>
+        <Testimonials />
       </AnimatedSection>
       <AnimatedSection>
         <AIAnalyst />
