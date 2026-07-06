@@ -68,6 +68,35 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [addBookingMode, setAddBookingMode] = useState(false);
   const [newBooking, setNewBooking] = useState({ name: '', email: '', phone: '', company: '', date: '', time: '', description: '' });
   const [savingBooking, setSavingBooking] = useState(false);
+  const [siteImages, setSiteImages] = useState<{ name: string; url: string }[]>([
+    { name: 'Hero Background', url: '/images/hero-bg.svg' },
+    { name: 'About Section', url: '/images/about-section.svg' },
+    { name: 'Services Icons', url: '/images/services-icons.svg' },
+    { name: 'Work Case Studies', url: '/images/work-case-studies.svg' },
+    { name: 'Team Photos', url: '/images/team-photos.svg' },
+  ]);
+
+  const replaceImage = async (name: string, file: File) => {
+    const token = propToken || localStorage.getItem('vancore_client_token') || '';
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch('/api/admin/media', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setSiteImages(prev => prev.map(img => img.name === name ? { ...img, url: data.url } : img));
+        alert('Image replaced successfully');
+      } else {
+        alert(data.error || 'Upload failed');
+      }
+    } catch {
+      alert('Upload failed. Please try again.');
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -756,12 +785,18 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                   formData.append('file', file);
                   const token = propToken || localStorage.getItem('vancore_client_token') || '';
                   try {
-                    await fetch('/api/adminv2/upload-image', {
+                    const res = await fetch('/api/admin/media', {
                       method: 'POST',
                       headers: { 'Authorization': 'Bearer ' + token },
                       body: formData,
                     });
-                    alert('Image uploaded successfully!');
+                    const data = await res.json();
+                    if (res.ok && data.url) {
+                      setSiteImages(prev => [...prev, { name: file.name, url: data.url }]);
+                      alert('Image uploaded successfully');
+                    } else {
+                      alert(data.error || 'Upload failed');
+                    }
                   } catch {
                     alert('Upload failed. Please try again.');
                   }
@@ -776,25 +811,45 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
             {/* Image Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              <div className="aspect-square bg-white/5 rounded-lg flex items-center justify-center text-[#6b6b6b] text-xs">
-                No images uploaded yet
-              </div>
+              {siteImages.length === 0 ? (
+                <div className="aspect-square bg-white/5 rounded-lg flex items-center justify-center text-[#6b6b6b] text-xs col-span-full">
+                  No images uploaded yet
+                </div>
+              ) : (
+                siteImages.map((img, i) => (
+                  <div key={i} className="aspect-square bg-white/5 rounded-lg border border-white/5 overflow-hidden">
+                    <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
           {/* Current Site Images */}
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
             <h3 className="text-sm font-semibold text-white mb-3">Current Site Images</h3>
+            <p className="text-xs text-[#6b6b6b] mb-4">Click Replace to update an image. All changes take effect after deployment.</p>
             <div className="space-y-2">
-              {['Hero Background', 'About Section', 'Services Icons', 'Work Case Studies', 'Team Photos'].map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              {siteImages.map((item, i) => (
+                <div key={item.name} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center text-xs">🖼️</div>
-                    <span className="text-sm text-white">{item}</span>
+                    <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center overflow-hidden">
+                      <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
+                    <span className="text-sm text-white">{item.name}</span>
                   </div>
-                  <button className="px-3 py-1.5 text-xs text-[#991930] border border-[#991930]/30 rounded-lg hover:bg-[#991930]/10 transition-colors">
+                  <label className="px-3 py-1.5 text-xs text-[#991930] border border-[#991930]/30 rounded-lg hover:bg-[#991930]/10 transition-colors cursor-pointer">
                     Replace
-                  </button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) replaceImage(item.name, file);
+                      }}
+                    />
+                  </label>
                 </div>
               ))}
             </div>
