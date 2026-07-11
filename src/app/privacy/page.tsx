@@ -68,13 +68,13 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-semibold text-[#111] mb-3">6. Data Sharing and Disclosure</h2>
-            <p className="mb-3">We may share your information with:</p>
+            <p className="mb-3">We share personal data only with processors necessary to deliver the Service, under agreements that protect your data. None of these processors are located outside the EU in a way that would bypass GDPR transfer rules.</p>
             <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Service Providers:</strong> Third-party vendors who assist in operating our Service (hosting, payment processing, analytics)</li>
-              <li><strong>Legal Requirements:</strong> When required by law, regulation, or legal process</li>
-              <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
+              <li><strong>Supabase</strong> — authentication and database hosting, EU region. <a href="https://supabase.com/dpa" className="text-[#991930] hover:underline">DPA</a></li>
+              <li><strong>Vercel</strong> — frontend hosting and edge delivery. <a href="https://vercel.com/legal/dpa" className="text-[#991930] hover:underline">DPA</a></li>
+              <li><strong>DigitalOcean</strong> — backend API hosting and file storage, Frankfurt region. <a href="https://www.digitalocean.com/legal/dpa" className="text-[#991930] hover:underline">DPA</a></li>
             </ul>
-            <p className="mt-3">We do not sell your personal data to third parties.</p>
+            <p className="mt-3">We do not sell your personal data. We do not share data for advertising purposes.</p>
           </section>
 
           <section>
@@ -112,8 +112,15 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg font-semibold text-[#111] mb-3">10. Data Security</h2>
             <p>
-              We implement appropriate technical and organizational measures to protect your personal data against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet or electronic storage is 100% secure.
+              We implement technical and organizational measures designed to protect personal data against unauthorized access, alteration, disclosure, or destruction. Specific controls include:
             </p>
+            <ul className="list-disc pl-6 mt-3 space-y-2">
+              <li><strong>Encryption in transit:</strong> All external connections use TLS 1.2 or higher through our hosting and CDN providers.</li>
+              <li><strong>Authentication:</strong> Portal and API access require authenticated sessions using JWT. Role-based access controls are applied where team environments are enabled.</li>
+              <li><strong>Audit logging:</strong> Administrative actions, booking changes, and document upload events are logged with timestamp, actor, and action.</li>
+              <li><strong>Backups:</strong> System and database backups are stored according to configured retention schedules. Backup integrity is verified periodically to support restoration within realistic timeframes.</li>
+              <li><strong>Security headers:</strong> The site applies security headers such as HSTS, CSP, and X-Frame-Options consistent with deployment platform capabilities.</li>
+            </ul>
           </section>
 
           <section>

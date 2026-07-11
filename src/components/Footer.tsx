@@ -62,7 +62,17 @@ export default function Footer() {
         </div>
 
         <div className="mt-5 pt-3 border-t border-[#e5e5e5] text-sm text-[#9a9a9a]">
-          {copyright}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              {copyright}
+            </div>
+            <nav className="flex flex-wrap gap-x-5 gap-y-1" aria-label="Legal navigation">
+              <a href="/privacy" className="hover:text-[#991930]">Privacy Policy</a>
+              <a href="/terms" className="hover:text-[#991930]">Terms of Service</a>
+              <a href="/cookies" className="hover:text-[#991930]">Cookie Policy</a>
+              <a href="/legal/compliance" className="hover:text-[#991930]">Legal & Compliance</a>
+            </nav>
+          </div>
         </div>
       </div>
     </footer>

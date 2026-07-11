@@ -145,16 +145,21 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
   const updateBookingStatus = async (id: number | string, status: string) => {
     try {
-      const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      const booking = bookings.find(b => b.id == id);
-      await fetch('/api/bookings/' + id, {
+      const token = localStorage.getItem('vancore_client_token') || propToken || '';
+      const res = await fetch('/api/bookings/' + id, {
         method: 'PUT',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, date: booking?.date, time: booking?.time }),
+        body: JSON.stringify({ status, date: '', time: '' }),
       });
-      fetchBookings();
+      if (res.ok) {
+        fetchBookings();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Failed to update booking');
+      }
     } catch (e) {
       console.error('Failed to update booking:', e);
+      alert('Failed to update booking');
     }
   };
 

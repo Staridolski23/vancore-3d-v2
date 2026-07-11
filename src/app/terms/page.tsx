@@ -1,4 +1,5 @@
 'use client';
+
 import Header from '@/components/Header';
 
 export default function TermsPage() {
@@ -7,115 +8,67 @@ export default function TermsPage() {
       <Header />
       <main className="max-w-4xl mx-auto px-6 py-20">
         <h1 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-8">Terms of Service</h1>
-        <p className="text-sm text-[#6b6b6b] mb-8">Last updated: June 2026</p>
-
+        <p className="text-sm text-[#6b6b6b] mb-8">Last updated: July 2026</p>
         <div className="space-y-8 text-sm text-[#333] leading-relaxed">
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">1. Acceptance of Terms</h2>
-            <p>
-              By accessing and using VANCORE&apos;s website, AI business analysis tools, and services (collectively, the &quot;Service&quot;), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">1. Agreement to Terms</h2>
+            <p>By accessing or using Vancore Systems’ website, client portal, or any related service, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you may not use the Service.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">2. Description of Service</h2>
-            <p>
-              VANCORE provides AI-powered business analysis tools, including an AI business analyst assistant (Vera), business diagnostic services, and related consulting services. The Service includes both free and paid subscription tiers.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">2. Services</h2>
+            <p>Vancore Systems provides business analysis, operational automation, booking management, document workflows, and AI-assisted reporting (collectively, the “Service”). Services are delivered through our website, client portal, and API integrations.</p>
+            <p className="mt-3">We reserve the right to modify, suspend, or discontinue any part of the Service at any time, with notice where reasonably possible.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">3. User Accounts</h2>
-            <p className="mb-3">
-              When you create an account, you agree to:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Provide accurate, current, and complete information</li>
-              <li>Maintain and promptly update your account information</li>
-              <li>Maintain the security of your password and account</li>
-              <li>Accept responsibility for all activities that occur under your account</li>
-              <li>Notify us immediately of any unauthorized use of your account</li>
-            </ul>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">3. Account Registration</h2>
+            <p>To use certain features, you must register for an account. You agree to provide accurate, current, and complete information during registration and to update such information as needed. You are responsible for safeguarding your credentials and for all activity under your account.</p>
           </section>
-
           <section>
             <h2 className="text-lg font-semibold text-[#111] mb-3">4. Acceptable Use</h2>
-            <p className="mb-3">You agree not to use the Service to:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Violate any applicable laws or regulations</li>
-              <li>Infringe upon the rights of others</li>
-              <li>Transmit malicious code or harmful content</li>
-              <li>Attempt to gain unauthorized access to our systems</li>
-              <li>Interfere with the proper functioning of the Service</li>
-              <li>Use the Service for competitive analysis or to build a competing product</li>
+            <p>You agree not to misuse the Service or help anyone else do so. Specifically, you will not:</p>
+            <ul className="list-disc pl-6 mt-3 space-y-2">
+              <li>attempt to gain unauthorized access to any portion of the Service or its systems;</li>
+              <li>use the Service for any unlawful, fraudulent, or harmful purpose;</li>
+              <li>reverse-engineer, decompile, or attempt to extract source code from the Service;</li>
+              <li>interfere with or disrupt the integrity or performance of the Service;</li>
+              <li>upload or transmit malicious code, spam, or infringing content.</li>
             </ul>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">5. AI-Generated Content</h2>
-            <p>
-              Our AI assistant (Vera) provides business analysis and recommendations based on the information you provide. AI-generated content is for informational purposes only and does not constitute professional advice. You should use your own judgment and consult with qualified professionals before making business decisions.
-            </p>
-            <p className="mt-3">
-              We do not guarantee the accuracy, completeness, or suitability of AI-generated recommendations for your specific situation.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">5. Booking and Payments</h2>
+            <p>Bookings made through the Service are subject to availability and confirmation. Fees, if applicable, are disclosed before confirmation. Payment terms are specified at the point of purchase. Cancellation and rescheduling policies may apply per booking or plan.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">6. Subscription and Payment</h2>
-            <p className="mb-3">
-              Paid subscriptions are billed monthly in advance. By subscribing, you agree to:
-            </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Pay the applicable subscription fees</li>
-              <li>Provide valid payment information</li>
-              <li>Allow automatic monthly billing until you cancel</li>
-            </ul>
-            <p className="mt-3">
-              Refunds are available within 14 days of purchase if you are not satisfied with the Service.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">6. Intellectual Property</h2>
+            <p>The Service and its original content, features, and functionality are owned by Vancore Systems and are protected by intellectual property laws. You retain ownership of the data you upload or create within the Service, subject to our right to process it for delivering the Service.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">7. Intellectual Property</h2>
-            <p>
-              The Service, including all content, features, and functionality, is owned by VANCORE and is protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works based on the Service without our prior written consent.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">7. Confidentiality</h2>
+            <p>We treat your business information as confidential. We do not share client data with third parties except as required to operate the Service (processors under GDPR Article 28) or as required by law.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">8. Limitation of Liability</h2>
-            <p>
-              To the maximum extent permitted by law, VANCORE shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, or business opportunities, arising from your use of the Service.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">8. Disclaimers</h2>
+            <p>The Service is provided on an “as is” and “as available” basis. We do not guarantee that the Service will be uninterrupted, timely, secure, or error-free. We do not warrant that results obtained from the use of the Service will be accurate or reliable.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">9. Termination</h2>
-            <p>
-              We may terminate or suspend your account at any time for violation of these terms. Upon termination, your right to use the Service will immediately cease. You may request export of your data within 30 days of termination.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">9. Limitation of Liability</h2>
+            <p>To the fullest extent permitted by law, Vancore Systems shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, goodwill, or data, arising out of or related to your use of the Service.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">10. Governing Law</h2>
-            <p>
-              These Terms are governed by the laws of Bulgaria. Any disputes arising from these Terms or the Service shall be resolved in the courts of Bulgaria.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">10. Indemnification</h2>
+            <p>You agree to indemnify and hold harmless Vancore Systems from any claim, liability, loss, damage, or expense arising from your use of the Service, violation of these Terms, or infringement of any third-party right.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">11. Changes to Terms</h2>
-            <p>
-              We reserve the right to modify these Terms at any time. We will notify you of material changes via email or through the Service. Your continued use of the Service after changes constitutes acceptance of the modified Terms.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">11. Governing Law</h2>
+            <p>These Terms are governed by and construed in accordance with the laws of the Republic of Bulgaria. Any disputes shall be resolved in the competent courts of Bulgaria, unless mandatory consumer protection rules provide otherwise.</p>
           </section>
-
           <section>
-            <h2 className="text-lg font-semibold text-[#111] mb-3">12. Contact</h2>
-            <p>
-              For questions about these Terms, please contact us at hello@vancoresys.com.
-            </p>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">12. Changes to Terms</h2>
+            <p>We may update these Terms from time to time. Continued use of the Service after changes constitute acceptance of the updated Terms. We will update the “Last updated” date and notify users of material changes.</p>
+          </section>
+          <section>
+            <h2 className="text-lg font-semibold text-[#111] mb-3">13. Contact</h2>
+            <p>For questions about these Terms, contact us at <a href="mailto:hello@vancoresys.com" className="text-[#991930] hover:underline">hello@vancoresys.com</a> or via our <a href="/contact" className="text-[#991930] hover:underline">contact page</a>.</p>
           </section>
         </div>
       </main>
