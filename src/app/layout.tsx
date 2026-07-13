@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CookieBanner from '@/components/CookieBanner';
 import TawkToChat from '@/components/TawkToChat';
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 
 export const viewport: Viewport = {
   themeColor: '#991930',
@@ -15,10 +16,12 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
+    apple: '/icons/icon-192.png',
   },
   alternates: {
     canonical: 'https://www.vancoresys.com',
   },
+  manifest: '/manifest.webmanifest',
   openGraph: {
     title: 'VANCORE — AI-Powered Business Analysis',
     description: 'A boutique business analysis consultancy. We help companies see clearly through their internal complexity — and act on what they find.',
@@ -53,6 +56,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body>
+        <ServiceWorkerRegister />
         <div className="content-layer">
           <Header />
           {children}

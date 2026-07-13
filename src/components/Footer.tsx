@@ -9,6 +9,7 @@ const navLinks = [
   { href: '/work', label: 'Work' },
   { href: '/about', label: 'About' },
   { href: '/ai-analyst', label: 'AI Analyst' },
+  { href: '/blog', label: 'Blog' },
   { href: '/faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ];
@@ -64,7 +65,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-5 pt-3 border-t border-[#e5e5e5] text-sm text-[#9a9a9a]">
+        <div className="mt-5 pt-3 border-t border-[#e5e5e5] text-sm text-[#4a4a4a]">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
               {copyright}

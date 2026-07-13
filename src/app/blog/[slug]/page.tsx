@@ -1,9 +1,15 @@
-'use client';
-
-import Header from '@/components/Header';
 import Link from 'next/link';
+import Header from '@/components/Header';
 
-const articles = {
+type Article = {
+  title: string;
+  date: string;
+  readTime: string;
+  tags: string[];
+  body: React.ReactNode;
+};
+
+const articles: Record<string, Article> = {
   'when-to-bring-in-a-business-analyst': {
     title: 'When to bring in a business analyst',
     date: '2026-04-18',
