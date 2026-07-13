@@ -104,13 +104,13 @@ export default function CookieBanner() {
           <div className="p-3 sm:p-4 space-y-1.5">
             <button
               onClick={acceptAll}
-              className="w-full py-2.5 rounded-lg bg-[#991930] text-white text-sm font-semibold hover:bg-[#a83d1f] active:scale-[0.98] transition-all"
+              className="w-full py-2.5 rounded-lg bg-white text-[#111] text-sm font-semibold border border-white/20 hover:bg-white/90 active:scale-[0.98] transition-all"
             >
               Accept All
             </button>
             <button
               onClick={rejectNonEssential}
-              className="w-full py-2.5 rounded-lg bg-white/5 text-white text-xs font-medium hover:bg-white/10 transition-colors border border-white/10"
+              className="w-full py-2.5 rounded-lg bg-transparent text-white text-sm font-semibold border border-white/20 hover:bg-white/10 active:scale-[0.98] transition-all"
             >
               Reject Non-Essential
             </button>

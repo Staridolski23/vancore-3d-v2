@@ -1,11 +1,10 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "http://206.189.48.236:3001/api/$1" },
-    { "source": "/privacy-policy", "destination": "/privacy" },
-    { "source": "/terms-of-service", "destination": "/terms" },
-    { "source": "/cookie-policy", "destination": "/cookies" },
-    { "source": "/legal-and-compliance", "destination": "/legal/compliance" },
-    { "source": "/book-a-call", "destination": "/book-call" }
+  "redirects": [
+    { "source": "/privacy-policy", "destination": "/privacy", "permanent": true },
+    { "source": "/terms-of-service", "destination": "/terms", "permanent": true },
+    { "source": "/cookie-policy", "destination": "/cookies", "permanent": true },
+    { "source": "/legal-and-compliance", "destination": "/legal/compliance", "permanent": true },
+    { "source": "/book-a-call", "destination": "/book-call", "permanent": true }
   ],
   "headers": [
     {
@@ -14,9 +13,7 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" }
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
     }
   ]

@@ -261,9 +261,10 @@ export default function VeraChat() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-[#9a9a9a] mb-1">Full name *</label>
+              <label htmlFor="vera-name" className="block text-xs text-[#9a9a9a] mb-1">Full name *</label>
                 <input
+                  id="vera-name"
+                  name="name"
                   value={leadData.name}
                   onChange={e => setLeadData(p => ({ ...p, name: e.target.value }))}
                   placeholder="John Doe"
@@ -271,8 +272,10 @@ export default function VeraChat() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-[#9a9a9a] mb-1">Company name</label>
+                <label htmlFor="vera-company" className="block text-xs text-[#9a9a9a] mb-1">Company name</label>
                 <input
+                  id="vera-company"
+                  name="company"
                   value={leadData.company}
                   onChange={e => setLeadData(p => ({ ...p, company: e.target.value }))}
                   placeholder="Company name"
@@ -280,8 +283,10 @@ export default function VeraChat() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-[#9a9a9a] mb-1">Email *</label>
+                <label htmlFor="vera-email" className="block text-xs text-[#9a9a9a] mb-1">Email *</label>
                 <input
+                  id="vera-email"
+                  name="email"
                   type="email"
                   value={leadData.email}
                   onChange={e => setLeadData(p => ({ ...p, email: e.target.value }))}
@@ -290,8 +295,10 @@ export default function VeraChat() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-[#9a9a9a] mb-1">Phone number</label>
+                <label htmlFor="vera-phone" className="block text-xs text-[#9a9a9a] mb-1">Phone number</label>
                 <input
+                  id="vera-phone"
+                  name="phone"
                   value={leadData.phone}
                   onChange={e => setLeadData(p => ({ ...p, phone: e.target.value }))}
                   placeholder="+359 888 123 456"
@@ -504,13 +511,16 @@ export default function VeraChat() {
             </div>
           ) : (
             <div className="flex gap-2">
+              <label htmlFor="vera-chat-input" className="sr-only">Type your message</label>
               <input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={placeholder || 'Type your message...'}
-                className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
-              />
+                  id="vera-chat-input"
+                  name="message"
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={placeholder || 'Type your message...'}
+                  className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
+                />
               <button
                 onClick={() => sendMessage(input)}
                 disabled={!input.trim() || isTyping}

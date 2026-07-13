@@ -2,7 +2,7 @@
 import { Calendar, Briefcase, TrendingUp, Users } from 'lucide-react';
 
 const items = [
-  { value: '8+', label: 'YEARS EMBEDDED', icon: Calendar },
+  { value: '6+', label: 'YEARS EMBEDDED', icon: Calendar },
   { value: '47', label: 'ENGAGEMENTS DELIVERED', icon: Briefcase },
   { value: '92%', label: 'CLIENT RETENTION', icon: TrendingUp },
   { value: '2', label: 'FOUNDERS, HANDS-ON', icon: Users },

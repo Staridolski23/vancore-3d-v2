@@ -15,7 +15,7 @@ export default function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div className="max-w-xl">
             <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
-              — VANCORE SYSTEMS / EST. 2026
+              — VANCORE SYSTEMS / SINCE 2020
             </div>
             <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-[#111] leading-[1.08] mb-6 md:mb-8">
               {title.split(' ').map((word, i) => {

@@ -50,7 +50,6 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: { children: React.ReactNode }) {
-  const gaId = process.env.NEXT_PUBLIC_GA4_ID;
   return (
     <html lang="en" className="scroll-smooth">
       <body>
@@ -61,21 +60,9 @@ export default function RootLayout({
         </div>
         <CookieBanner />
         <TawkToChat />
-        {gaId ? (
-          <>
-            <script async src={'https://www.googletagmanager.com/gtag/js?id=' + gaId} />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${gaId}', { anonymize_ip: true });
-                `,
-              }}
-            />
-          </>
-        ) : null}
+
+        {/* TODO: re-enable Google Analytics once a real NEXT_PUBLIC_GA4_ID is configured */}
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
