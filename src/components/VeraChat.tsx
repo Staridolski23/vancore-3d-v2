@@ -261,7 +261,8 @@ export default function VeraChat() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label htmlFor="vera-name" className="block text-xs text-[#9a9a9a] mb-1">Full name *</label>
+              <div>
+                <label htmlFor="vera-name" className="block text-xs text-[#9a9a9a] mb-1">Full name *</label>
                 <input
                   id="vera-name"
                   name="name"
