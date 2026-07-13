@@ -54,6 +54,7 @@ export default function Footer() {
               </div>
               <div className="space-y-1 text-base text-[#6b6b6b]">
                 <div>{email}</div>
+                <div>Sofia, Bulgaria</div>
                 <div>By appointment only.</div>
                 <a href="/client-portal" className="inline-flex items-center gap-1 hover:text-[#991930]">
                   Client Portal <span aria-hidden>→</span>

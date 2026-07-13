@@ -4,7 +4,6 @@ import { useInView } from '@/hooks/useInView';
 
 const items = [
   { name: 'Momchil Staridolski', role: 'CEO, MS Auto Solutions', text: 'VANCORE turned our scattered operations into a clear, actionable system. The AI analyst alone saved us hours every week.' },
-  { name: 'Zhanet Topalova', role: 'Co-Founder, VANCORE', text: 'Working with VANCORE is like having a senior consultant on call — structured, fast, and genuinely useful.' },
   { name: 'Mihail Petrov', role: 'Operations Director, Nordic Logistics', text: 'We finally have one source of truth for bookings, clients, and reporting. The platform paid for itself in the first month.' },
 ];
 

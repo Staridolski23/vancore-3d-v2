@@ -21,7 +21,7 @@ export default function Team() {
               Hands-on, not hands-off.
             </p>
             <p className="mt-5 font-sans text-sm text-[#6b6b6b] leading-relaxed max-w-md">
-              We&apos;re a husband-and-wife consultancy built for the problems that don&apos;t show up in standard dashboards.
+              We're a boutique consultancy built for the problems that don't show up in standard dashboards.
             </p>
           </div>
 
