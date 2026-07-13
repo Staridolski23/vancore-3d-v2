@@ -5,9 +5,11 @@ import { useSiteContent } from '@/hooks/useSiteContent';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
+  { href: '/pricing', label: 'Pricing' },
   { href: '/work', label: 'Work' },
   { href: '/about', label: 'About' },
   { href: '/ai-analyst', label: 'AI Analyst' },
+  { href: '/faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ];
 

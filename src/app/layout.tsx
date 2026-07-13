@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
   },
+  alternates: {
+    canonical: 'https://www.vancoresys.com',
+  },
   openGraph: {
     title: 'VANCORE — AI-Powered Business Analysis',
     description: 'A boutique business analysis consultancy. We help companies see clearly through their internal complexity — and act on what they find.',
@@ -47,6 +50,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: { children: React.ReactNode }) {
+  const gaId = process.env.NEXT_PUBLIC_GA4_ID;
   return (
     <html lang="en" className="scroll-smooth">
       <body>
@@ -57,15 +61,32 @@ export default function RootLayout({
         </div>
         <CookieBanner />
         <TawkToChat />
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_ID || ''}`} />
+        {gaId ? (
+          <>
+            <script async src={'https://www.googletagmanager.com/gtag/js?id=' + gaId} />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${gaId}', { anonymize_ip: true });
+                `,
+              }}
+            />
+          </>
+        ) : null}
         <script
+          type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${process.env.NEXT_PUBLIC_GA4_ID || ''}', { anonymize_ip: true });
-            `,
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'VANCORE',
+              url: 'https://www.vancoresys.com',
+              email: 'hello@vancoresys.com',
+              sameAs: [],
+            }),
           }}
         />
       </body>

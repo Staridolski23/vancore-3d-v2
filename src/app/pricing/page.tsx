@@ -23,11 +23,7 @@ export default function PricingPage() {
   }, []);
 
   const handlePlanClick = (planId: string) => {
-    if (!user) {
-      router.push(`/login?next=/book-call&plan=${planId}`);
-    } else {
-      router.push(`/book-call?plan=${planId}&pay=1`);
-    }
+    router.push(`/contact?plan=${planId}`);
   };
 
   return (
@@ -55,7 +51,7 @@ export default function PricingPage() {
                   ))}
                 </ul>
                 <button onClick={() => handlePlanClick(plan.id)} className={`w-full py-3 rounded-lg text-sm font-medium transition-colors ${plan.highlighted ? 'bg-[#991930] text-white hover:bg-[#a83d1f]' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
-                  {user ? 'Pay Now' : 'Login to Pay'}
+                  Book a call
                 </button>
               </div>
             ))}

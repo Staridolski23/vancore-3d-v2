@@ -1,5 +1,23 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "http://206.189.48.236:3001/api/$1" }
+    { "source": "/api/(.*)", "destination": "http://206.189.48.236:3001/api/$1" },
+    { "source": "/privacy-policy", "destination": "/privacy" },
+    { "source": "/terms-of-service", "destination": "/terms" },
+    { "source": "/cookie-policy", "destination": "/cookies" },
+    { "source": "/legal-and-compliance", "destination": "/legal/compliance" },
+    { "source": "/book-a-call", "destination": "/book-call" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" }
+      ]
+    }
   ]
 }

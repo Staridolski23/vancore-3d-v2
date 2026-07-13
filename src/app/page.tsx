@@ -5,6 +5,7 @@ import Hero from '@/components/Hero';
 import Stats from '@/components/Stats';
 import Industries from '@/components/Industries';
 import Methodology from '@/components/Methodology';
+import TrustBar from '@/components/TrustBar';
 import Services from '@/components/Services';
 import Work from '@/components/Work';
 import About from '@/components/About';
@@ -27,7 +28,7 @@ function AnimatedSection({ children, className = '' }: { children: React.ReactNo
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white text-[#111]">
+    <main id="main-content" className="min-h-screen bg-white text-[#111]">
       <Header />
       <Hero />
       <AnimatedSection>
@@ -38,6 +39,9 @@ export default function Home() {
       </AnimatedSection>
       <AnimatedSection>
         <Methodology />
+      </AnimatedSection>
+      <AnimatedSection>
+        <TrustBar />
       </AnimatedSection>
       <AnimatedSection>
         <Services />

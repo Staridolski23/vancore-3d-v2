@@ -96,3 +96,15 @@ h1, h2, h3, h4, .font-display {
 img {
   transition: opacity 0.3s ease;
 }
+
+/* Trust bar marquee */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
