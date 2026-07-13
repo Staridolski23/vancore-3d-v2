@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     siteName: 'VANCORE',
     images: [
       {
-        url: '/og-image.svg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'VANCORE — AI-Powered Business Analysis',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'VANCORE — AI-Powered Business Analysis',
     description: 'A boutique business analysis consultancy. We help companies see clearly through their internal complexity.',
-    images: ['/og-image.svg'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
