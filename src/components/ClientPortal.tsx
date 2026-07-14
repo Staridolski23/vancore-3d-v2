@@ -19,9 +19,10 @@ interface UserInfo {
 export default function ClientPortal() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [status, setStatus] = useState<'loading' | 'login' | 'dashboard'>('loading');
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'documents' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'reviews' | 'documents' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
   const [bookings, setBookings] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [reportContent, setReportContent] = useState('');
   const searchParams = useSearchParams();
 
@@ -53,6 +54,11 @@ export default function ClientPortal() {
               .then(r => r.json())
               .then(data => setDocuments(data.documents || []))
               .catch(() => setDocuments([]));
+            // Fetch reviews
+            fetch('/api/reviews?user_id=' + data.user.id)
+              .then(r => r.json())
+              .then(data => setReviews(data.reviews || []))
+              .catch(() => setReviews([]));
           });
         } else {
           localStorage.removeItem('vancore_client_token');
