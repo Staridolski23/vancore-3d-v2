@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LayoutGrid, Users, Calendar, FileText, BarChart3, Settings, Image as ImageIcon, Users as UsersIcon, CreditCard, CheckCircle, TrendingUp } from 'lucide-react';
+import { LayoutGrid, Users, Calendar, FileText, BarChart3, Settings, Image as ImageIcon, Users as UsersIcon, CreditCard, CheckCircle, TrendingUp, Star } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -46,10 +46,11 @@ interface Booking {
 }
 
 export default function AdminDashboard({ token: propToken }: { token?: string }) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'analytics' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'analytics' | 'settings' | 'reviews'>('dashboard');
   const [clients, setClients] = useState<Client[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalClients: 0, activeSubscriptions: 0, verifiedEmails: 0 });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [clientSearch, setClientSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [siteContent, setSiteContent] = useState<SiteContent[]>([]);
@@ -339,6 +340,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           { key: 'media', label: 'Media', icon: <ImageIcon key="media-icon" className="w-4 h-4" /> },
           { key: 'analytics', label: 'Analytics', icon: <BarChart3 key="analytics-icon" className="w-4 h-4" /> },
           { key: 'settings', label: 'Settings', icon: <Settings key="settings-icon" className="w-4 h-4" /> },
+          { key: 'reviews', label: 'Reviews', icon: <Star key="reviews-icon" className="w-4 h-4" /> },
         ].map((tab) => (
           <button
             key={tab.key}
