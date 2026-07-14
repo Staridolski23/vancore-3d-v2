@@ -26,7 +26,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
           <div className="md:max-w-xs">
             <div className="font-display text-lg text-[#111] mb-1">Vancore Systems</div>
-            <p className="text-base text-[#6b6b6b] leading-relaxed">
+            <p className="text-base text-[#4a4a4a] leading-relaxed">
               A <span className="text-[#991930] font-medium">boutique business</span> analysis & development consultancy.
             </p>
           </div>
@@ -41,7 +41,7 @@ export default function Footer() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="block text-base text-[#6b6b6b] hover:text-[#991930]"
+                    className="block text-base text-[#4a4a4a] hover:text-[#991930]"
                   >
                     {link.label}
                   </a>
@@ -53,7 +53,7 @@ export default function Footer() {
               <div className="text-xs font-sans font-semibold tracking-[0.15em] uppercase text-[#111] mb-2">
                 Contact
               </div>
-              <div className="space-y-1 text-base text-[#6b6b6b]">
+              <div className="space-y-1 text-base text-[#4a4a4a]">
                 <div>{email}</div>
                 <div>Sofia, Bulgaria</div>
                 <div>By appointment only.</div>
