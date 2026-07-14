@@ -1,5 +1,4 @@
 'use client';
-import Header from '@/components/Header';
 import { Hotel, ShoppingCart, Cpu, Truck, ArrowRight } from 'lucide-react';
 
 const cases = [
@@ -68,7 +67,6 @@ const cases = [
 export default function WorkPage() {
   return (
     <main className="min-h-screen bg-white text-[#111]">
-      <Header />
 
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-36 md:pb-24">

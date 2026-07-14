@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Header from '@/components/Header';
 
 type Article = {
   title: string;
@@ -104,7 +103,6 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
   if (!article) {
     return (
       <main className="min-h-screen bg-white text-[#111]">
-        <Header />
         <section className="pt-28 pb-16 md:pt-36 md:pb-24">
           <div className="max-w-7xl mx-auto px-6">
             <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-[#6b6b6b] hover:text-[#991930] mb-8">
@@ -124,7 +122,6 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 
   return (
     <main className="min-h-screen bg-white text-[#111]">
-      <Header />
 
       <article className="pt-28 pb-16 md:pt-36 md:pb-24 border-b border-[#e5e5e5]">
         <div className="max-w-7xl mx-auto px-6">

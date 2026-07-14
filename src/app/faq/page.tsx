@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
@@ -60,7 +59,6 @@ const faqs = [
 export default function FAQPage() {
   return (
     <main className="min-h-screen bg-white text-[#111]">
-      <Header />
       <section className="pt-28 pb-16 md:pt-36 md:pb-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">

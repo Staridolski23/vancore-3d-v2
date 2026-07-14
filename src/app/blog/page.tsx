@@ -1,4 +1,3 @@
-import Header from '@/components/Header';
 import Link from 'next/link';
 
 const articles = [
@@ -31,7 +30,6 @@ const articles = [
 export default function BlogPage() {
   return (
     <main className="min-h-screen bg-white text-[#111]">
-      <Header />
 
       <section className="pt-28 pb-16 md:pt-36 md:pb-24 border-b border-[#e5e5e5]">
         <div className="max-w-7xl mx-auto px-6">

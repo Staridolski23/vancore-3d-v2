@@ -1,6 +1,5 @@
 'use client';
 
-import Header from '@/components/Header';
 
 const practices = [
   {
@@ -35,7 +34,6 @@ const industries = [
 export default function ServicesPage() {
   return (
     <main className="min-h-screen bg-white text-[#111]">
-      <Header />
 
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-36 md:pb-24">

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 export default function PricingPage() {
@@ -28,7 +27,6 @@ export default function PricingPage() {
 
   return (
     <main className="min-h-screen bg-[#0a0a0a]">
-      <Header />
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">

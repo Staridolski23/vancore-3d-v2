@@ -1,5 +1,4 @@
 'use client';
-import Header from '@/components/Header';
 import { Users, MessageCircle, Ear, Handshake } from 'lucide-react';
 
 const team = [
@@ -27,7 +26,6 @@ const values = [
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-white text-[#111]">
-      <Header />
 
       {/* Hero */}
       <section className="pt-28 pb-16 md:pt-36 md:pb-24">

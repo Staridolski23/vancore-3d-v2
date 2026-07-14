@@ -1,11 +1,9 @@
 'use client';
 
-import Header from '@/components/Header';
 
 export default function LegalCompliancePage() {
   return (
     <div className="min-h-screen bg-white text-[#111]">
-      <Header />
       <main className="max-w-4xl mx-auto px-6 py-20">
         <h1 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-8">Legal & Compliance</h1>
         <p className="text-sm text-[#6b6b6b] mb-8">Last updated: July 2026</p>

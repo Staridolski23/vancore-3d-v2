@@ -1,6 +1,5 @@
 'use client';
 
-import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Stats from '@/components/Stats';
 import Industries from '@/components/Industries';
@@ -29,7 +28,6 @@ function AnimatedSection({ children, className = '' }: { children: React.ReactNo
 export default function Home() {
   return (
     <main id="main-content" className="min-h-screen bg-white text-[#111]">
-      <Header />
       <Hero />
       <AnimatedSection>
         <Stats />
