@@ -70,7 +70,45 @@ export default function ClientPortal() {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('vancore_client_token');
+    localStorage.removeItem('vancore_client_bearer');
     setStatus('login');
+  };
+
+  const downloadICS = (booking: any) => {
+    try {
+      const dateStr = String(booking.date || '').trim();
+      const timeStr = String(booking.time || '').trim();
+      if (!dateStr || !timeStr) return;
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const [hour, minute] = timeStr.split(':').map(Number);
+      const start = new Date(year || 1970, (month || 1) - 1, day || 1, hour || 0, minute || 0);
+      const end = new Date(start.getTime() + (60 * 60 * 1000));
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const formatDT = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+      const ics = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//VANCORE//NONSGML Client Portal//EN',
+        'BEGIN:VEVENT',
+        `DTSTART:${formatDT(start)}`,
+        `DTEND:${formatDT(end)}`,
+        `SUMMARY:VANCORE Consultation`,
+        `DESCRIPTION:Booked consultation via vancoresys.com`,
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\n');
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `vancore-booking-${dateStr}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('ICS download failed', e);
+    }
   };
 
   const generateReport = async (): Promise<string> => {
@@ -246,6 +284,11 @@ export default function ClientPortal() {
                         {booking.status || 'new'}
                       </span>
                     </div>
+                    {booking.status === 'confirmed' && (
+                      <button onClick={() => downloadICS(booking)} className="text-xs text-[#991930] hover:underline mt-2">
+                        Add to Calendar
+                      </button>
+                    )}
                     {booking.company && <div className="text-xs text-[#6b6b6b] mb-1">🏢 {booking.company}</div>}
                     {booking.phone && <div className="text-xs text-[#6b6b6b] mb-1">📞 {booking.phone}</div>}
                     {booking.description && <div className="text-xs text-[#6b6b6b] mt-2 italic">"{booking.description}"</div>}
