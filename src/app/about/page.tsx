@@ -79,7 +79,7 @@ export default function AboutPage() {
             {team.map((t) => (
               <div key={t.name} className="border border-white/5 rounded-sm p-6 md:p-8 hover:border-[#991930]/30 transition-colors">
                 <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-[#991930]/30">
-                  <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
+                  <img src={t.photo} alt={t.name} className="w-full h-full object-cover" loading="lazy" />
                 </div>
                 <h3 className="font-display text-2xl text-white mb-1">{t.name}</h3>
                 <div className="text-[#991930] text-sm font-sans mb-3">{t.role}</div>

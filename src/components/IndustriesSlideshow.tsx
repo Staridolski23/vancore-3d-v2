@@ -76,7 +76,7 @@ export default function IndustriesSlideshow() {
           <div className="flex items-center gap-4 mb-6">
             <div className="w-14 h-14 rounded-full bg-[#1a1a1a] border-2 border-[#991930]/30 flex items-center justify-center overflow-hidden">
               {slide.photo ? (
-                <img src={slide.photo} alt={slide.founderName} className="w-full h-full object-cover" />
+                <img src={slide.photo} alt={slide.founderName} className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <span className="font-display text-lg text-[#991930]">{slide.founderName.charAt(0)}</span>
               )}
@@ -116,7 +116,7 @@ export default function IndustriesSlideshow() {
         <div className="h-[350px] lg:h-[400px] bg-[#050505] flex items-center justify-center p-8">
           <div className="w-full h-full rounded-sm overflow-hidden bg-[#0a0a0a] border border-white/5 flex items-center justify-center">
             {slide.photo ? (
-              <img src={slide.photo} alt={slide.founderName} className="w-full h-full object-cover" />
+              <img src={slide.photo} alt={slide.founderName} className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <div className="text-center p-8">
                 <div className="w-20 h-20 rounded-full bg-[#1a1a1a] border-2 border-[#991930]/30 flex items-center justify-center mx-auto mb-4">

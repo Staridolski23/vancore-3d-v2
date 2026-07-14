@@ -33,7 +33,7 @@ export default function SectionCarousel({ slides }: SectionCarouselProps) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-white/10 bg-white/5">
       <div className="relative h-48 w-full">
-        {current.image && <img src={current.image} alt={current.title} className="h-full w-full object-cover" />}
+        {current.image && <img src={current.image} alt={current.title} className="h-full w-full object-cover" loading="lazy" />}
         <div className="absolute inset-0 bg-black/50" />
         <div className="absolute inset-0 flex flex-col justify-end p-5">
           <h3 className="text-lg font-bold text-white">{current.title}</h3>

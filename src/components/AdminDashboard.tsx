@@ -823,7 +823,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
               ) : (
                 siteImages.map((img, i) => (
                   <div key={i} className="aspect-square bg-white/5 rounded-lg border border-white/5 overflow-hidden">
-                    <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                    <img src={img.url} alt={img.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 ))
               )}
@@ -839,7 +839,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 <div key={item.name} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center overflow-hidden">
-                      <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                     </div>
                     <span className="text-sm text-white">{item.name}</span>
                   </div>
