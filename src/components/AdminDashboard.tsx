@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { LayoutGrid, Users, Calendar, FileText, BarChart3, Settings, Image as ImageIcon, Users as UsersIcon, CreditCard, CheckCircle, TrendingUp } from 'lucide-react';
 
 interface Client {
   id: string;
@@ -331,13 +332,13 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       {/* Tab Navigation */}
       <div className="flex gap-1 bg-[#111] p-1 rounded-lg overflow-x-auto">
         {[
-          { key: 'dashboard', label: 'Dashboard', icon: '📊' },
-          { key: 'clients', label: 'Clients', icon: '👥' },
-          { key: 'bookings', label: 'Bookings', icon: '📅', badge: newBookingCount },
-          { key: 'content', label: 'Site Content', icon: '✏️' },
-          { key: 'media', label: 'Media', icon: '🖼️' },
-          { key: 'analytics', label: 'Analytics', icon: '📈' },
-          { key: 'settings', label: 'Settings', icon: '⚙️' },
+          { key: 'dashboard', label: 'Dashboard', icon: <LayoutGrid key="dashboard-icon" className="w-4 h-4" /> },
+          { key: 'clients', label: 'Clients', icon: <Users key="clients-icon" className="w-4 h-4" /> },
+          { key: 'bookings', label: 'Bookings', icon: <Calendar key="bookings-icon" className="w-4 h-4" />, badge: newBookingCount },
+          { key: 'content', label: 'Site Content', icon: <FileText key="content-icon" className="w-4 h-4" /> },
+          { key: 'media', label: 'Media', icon: <ImageIcon key="media-icon" className="w-4 h-4" /> },
+          { key: 'analytics', label: 'Analytics', icon: <BarChart3 key="analytics-icon" className="w-4 h-4" /> },
+          { key: 'settings', label: 'Settings', icon: <Settings key="settings-icon" className="w-4 h-4" /> },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -348,7 +349,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 : 'text-[#9a9a9a] hover:text-white hover:bg-white/5'
             }`}
           >
-            <span className="mr-1">{tab.icon}</span>
+            <span className="mr-1 flex items-center justify-center">{tab.icon}</span>
             <span className="hidden sm:inline">{tab.label}</span>
             {'badge' in tab && tab.badge ? (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#ef4444] text-white text-[9px] rounded-full flex items-center justify-center">
@@ -363,9 +364,9 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <MetricCard label="Total Clients" value={String(metrics.totalClients || 0)} icon="👥" />
-            <MetricCard label="Active Subs" value={String(metrics.activeSubscriptions || 0)} icon="💳" />
-            <MetricCard label="Verified" value={String(metrics.verifiedEmails || 0)} icon="✅" />
+            <MetricCard label="Total Clients" value={String(metrics.totalClients || 0)} icon={<UsersIcon className="w-5 h-5" />} />
+            <MetricCard label="Active Subs" value={String(metrics.activeSubscriptions || 0)} icon={<CreditCard className="w-5 h-5" />} />
+            <MetricCard label="Verified" value={String(metrics.verifiedEmails || 0)} icon={<CheckCircle className="w-5 h-5" />} />
           </div>
 
           {/* Recent Clients */}
@@ -566,10 +567,10 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       {activeTab === 'analytics' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <MetricCard label="Total Clients" value={String(metrics.totalClients || 0)} icon="👥" />
-            <MetricCard label="Active Subs" value={String(metrics.activeSubscriptions || 0)} icon="💳" />
-            <MetricCard label="Verified" value={String(metrics.verifiedEmails || 0)} icon="✅" />
-            <MetricCard label="Conversion" value={(metrics.totalClients || 0) > 0 ? Math.round(((metrics.activeSubscriptions || 0) / metrics.totalClients) * 100) + '%' : '0%'} icon="📈" />
+            <MetricCard label="Total Clients" value={String(metrics.totalClients || 0)} icon={<UsersIcon className="w-5 h-5" />} />
+            <MetricCard label="Active Subs" value={String(metrics.activeSubscriptions || 0)} icon={<CreditCard className="w-5 h-5" />} />
+            <MetricCard label="Verified" value={String(metrics.verifiedEmails || 0)} icon={<CheckCircle className="w-5 h-5" />} />
+            <MetricCard label="Conversion" value={(metrics.totalClients || 0) > 0 ? Math.round(((metrics.activeSubscriptions || 0) / metrics.totalClients) * 100) + '%' : '0%'} icon={<TrendingUp className="w-5 h-5" />} />
           </div>
 
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
@@ -1076,7 +1077,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   );
 }
 
-function MetricCard({ label, value, icon }: { label: string; value: string; icon?: string }) {
+function MetricCard({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
   return (
     <div className="bg-[#111] rounded-xl p-4 border border-white/5">
       {icon && <div className="text-xl mb-1">{icon}</div>}
