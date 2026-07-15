@@ -59,6 +59,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [saving, setSaving] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [reviewFilter, setReviewFilter] = useState<'all' | 'pending_approval' | 'published' | 'rejected'>('all');
   const [newBookingCount, setNewBookingCount] = useState(0);
   const [settings, setSettings] = useState({ siteName: 'VANCORE', contactEmail: 'hello@vancoresys.com', adminEmails: 'momchil@vancore.ai, zhanet@vancore.ai, office@vancoresys.com', username: 'admin' });
   const [savingSettings, setSavingSettings] = useState(false);
@@ -105,7 +106,12 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
     fetchContent();
     fetchBookings();
     loadSettings();
+    fetchReviews();
   }, [propToken]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [reviewFilter]);
 
   const loadSettings = async () => {
     try {
@@ -143,6 +149,19 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         setNewBookingCount(newCount);
       }
     } catch (e) { console.error('Failed to fetch bookings:', e); }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const token = propToken || localStorage.getItem('vancore_client_token') || '';
+      const res = await fetch('/api/reviews?' + new URLSearchParams({ status: reviewFilter }).toString(), {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReviews(data.reviews || []);
+      }
+    } catch (e) { console.error('Failed to fetch reviews:', e); }
   };
 
   const updateBookingStatus = async (id: number | string, status: string) => {
@@ -1072,6 +1091,53 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reviews Tab */}
+      {activeTab === 'reviews' && (
+        <div className="space-y-4">
+          <div className="bg-[#111] rounded-xl p-5 border border-white/5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-white">Client Reviews</h3>
+              <select value={reviewFilter} onChange={e => setReviewFilter(e.target.value as any)} className="bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#991930]/50">
+                <option value="all">All</option>
+                <option value="pending_approval">Pending</option>
+                <option value="published">Published</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            {reviews.length === 0 ? (
+              <p className="text-xs text-[#6b6b6b]">No reviews yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {reviews.filter(r => reviewFilter === 'all' || r.status === reviewFilter).map((review: any) => (
+                  <div key={review.id} className="p-3 bg-white/5 rounded-lg border border-white/5">
+                    <div className="flex items-center justify-between mb-1">
+                      <div>
+                        <div className="text-sm text-white">{review.title || 'Untitled'}</div>
+                        <div className="text-xs text-[#9a9a9a]">{'⭐'.repeat(review.rating || 0)} {review.user_id}</div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${review.status === 'published' ? 'bg-[#10b981]/20 text-[#10b981]' : review.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{review.status}</span>
+                    </div>
+                    <div className="text-xs text-[#6b6b6b] mb-2">{review.body}</div>
+                    {review.status !== 'published' && review.status !== 'rejected' && (
+                      <div className="flex gap-2">
+                        <button onClick={async () => {
+                          await fetch('/api/reviews/' + review.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') }, body: JSON.stringify({ status: 'published', published_at: new Date().toISOString() }) });
+                          fetchReviews();
+                        }} className="px-3 py-1 bg-[#10b981] text-white text-xs rounded-lg hover:bg-[#059669] transition-colors">Approve</button>
+                        <button onClick={async () => {
+                          await fetch('/api/reviews/' + review.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') }, body: JSON.stringify({ status: 'rejected', published_at: new Date().toISOString() }) });
+                          fetchReviews();
+                        }} className="px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors">Reject</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

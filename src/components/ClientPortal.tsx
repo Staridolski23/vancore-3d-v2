@@ -23,6 +23,11 @@ export default function ClientPortal() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewBody, setReviewBody] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState('');
   const [reportContent, setReportContent] = useState('');
   const searchParams = useSearchParams();
 
@@ -117,6 +122,46 @@ export default function ClientPortal() {
     }
   };
 
+  const submitReview = async () => {
+    if (!reviewBody.trim()) return;
+    setSubmittingReview(true);
+    setReviewMessage('');
+    try {
+      const token = localStorage.getItem('vancore_client_token');
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token,
+        },
+        body: JSON.stringify({
+          user_id: user?.id,
+          booking_id: null,
+          rating: reviewRating,
+          title: reviewTitle.trim() || null,
+          body: reviewBody.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setReviewTitle('');
+        setReviewBody('');
+        setReviewRating(5);
+        setReviewMessage('Thanks! Your review is awaiting approval.');
+        fetch('/api/reviews?user_id=' + user?.id)
+          .then(r => r.json())
+          .then(data => setReviews(data.reviews || []))
+          .catch(() => {});
+      } else {
+        setReviewMessage(data.error || 'Failed to submit review.');
+      }
+    } catch (e) {
+      setReviewMessage('Error submitting review.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   const generateReport = async (): Promise<string> => {
     try {
       const res = await fetch('/api/ai-analyst', {
@@ -156,6 +201,7 @@ export default function ClientPortal() {
         {[
           { key: 'overview', label: 'Overview', icon: '📋' },
           { key: 'bookings', label: 'My Bookings', icon: '📅' },
+          { key: 'reviews', label: 'Reviews', icon: '⭐' },
           { key: 'reports', label: 'Reports', icon: '📄' },
           { key: 'history', label: 'History', icon: '🕒' },
           { key: 'billing', label: 'Billing', icon: '💳' },
@@ -247,9 +293,9 @@ export default function ClientPortal() {
               <div className="text-2xl mb-2">💬</div>
               <div className="text-sm text-white font-medium group-hover:text-[#991930] transition-colors">Chat History</div>
             </button>
-            <button onClick={() => setActiveTab('billing')} className="p-4 bg-[#111] rounded-xl border border-white/5 hover:border-[#991930]/30 transition-colors text-center group">
-              <div className="text-2xl mb-2">💳</div>
-              <div className="text-sm text-white font-medium group-hover:text-[#991930] transition-colors">Billing</div>
+            <button onClick={() => setActiveTab('reviews')} className="p-4 bg-[#111] rounded-xl border border-white/5 hover:border-[#991930]/30 transition-colors text-center group">
+              <div className="text-2xl mb-2">⭐</div>
+              <div className="text-sm text-white font-medium group-hover:text-[#991930] transition-colors">Reviews</div>
             </button>
             <button onClick={() => setActiveTab('settings')} className="p-4 bg-[#111] rounded-xl border border-white/5 hover:border-[#991930]/30 transition-colors text-center group">
               <div className="text-2xl mb-2">⚙️</div>
@@ -327,6 +373,54 @@ export default function ClientPortal() {
                     <a href={'/api/documents/' + doc.filename} className="text-xs text-[#991930] hover:underline" target="_blank" rel="noreferrer">
                       Download
                     </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Reviews Tab */}
+      {activeTab === 'reviews' && (
+        <div className="space-y-4">
+          <div className="bg-[#111] rounded-xl p-6 border border-white/5">
+            <h3 className="text-base font-semibold text-white mb-4">Write a Review</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1">Rating</label>
+                <select value={reviewRating} onChange={e => setReviewRating(Number(e.target.value))} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50">
+                  {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} / 5</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1">Title</label>
+                <input value={reviewTitle} onChange={e => setReviewTitle(e.target.value)} placeholder="Short headline" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50" />
+              </div>
+              <div>
+                <label className="block text-xs text-[#6b6b6b] mb-1">Review</label>
+                <textarea value={reviewBody} onChange={e => setReviewBody(e.target.value)} rows={4} placeholder="Share your experience working with VANCORE..." className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50 resize-none" />
+              </div>
+              <button onClick={submitReview} disabled={submittingReview} className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors disabled:opacity-50">
+                {submittingReview ? 'Submitting...' : 'Submit Review'}
+              </button>
+              {reviewMessage && <p className="text-xs text-[#9a9a9a]">{reviewMessage}</p>}
+            </div>
+          </div>
+          <div className="bg-[#111] rounded-xl p-6 border border-white/5">
+            <h3 className="text-base font-semibold text-white mb-4">Your Reviews</h3>
+            {reviews.length === 0 ? (
+              <p className="text-sm text-[#6b6b6b]">You haven't submitted any reviews yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {reviews.map((review: any) => (
+                  <div key={review.id} className="p-3 bg-white/5 rounded-lg border border-white/5">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="text-sm text-white">{review.title || 'Untitled'}</div>
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${review.status === 'published' ? 'bg-[#10b981]/20 text-[#10b981]' : 'bg-yellow-500/20 text-yellow-400'}`}>{review.status}</span>
+                    </div>
+                    <div className="text-xs text-[#9a9a9a]">{'⭐'.repeat(review.rating || 0)}</div>
+                    <div className="text-xs text-[#6b6b6b] mt-1">{review.body}</div>
                   </div>
                 ))}
               </div>
