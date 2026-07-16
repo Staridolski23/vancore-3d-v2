@@ -65,17 +65,42 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-5 pt-3 border-t border-[#e5e5e5] text-sm text-[#4a4a4a]">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              {copyright}
+        <div className="mt-5 pt-3 border-t border-[#e5e5e5]">
+          <div className="flex flex-wrap items-center gap-2 mb-4" aria-label="Trust badges">
+            {['GDPR-aligned','EU-hosted','AES-256','JWT+RBAC','TLS 1.2+','Audit logging'].map(item => (
+              <span key={item} className="px-2.5 py-1 rounded-full border border-[#d1d1d1] bg-white text-xs font-medium text-[#111]">{item}</span>
+            ))}
+          </div>
+          <div className="text-sm text-[#4a4a4a]">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                {copyright}
+              </div>
+              <nav className="flex flex-wrap gap-x-5 gap-y-1" aria-label="Legal navigation">
+                <a href="/privacy" className="hover:text-[#991930]">Privacy Policy</a>
+                <a href="/terms" className="hover:text-[#991930]">Terms of Service</a>
+                <a href="/cookies" className="hover:text-[#991930]">Cookie Policy</a>
+                <a href="/legal/compliance" className="hover:text-[#991930]">Legal & Compliance</a>
+              </nav>
             </div>
-            <nav className="flex flex-wrap gap-x-5 gap-y-1" aria-label="Legal navigation">
-              <a href="/privacy" className="hover:text-[#991930]">Privacy Policy</a>
-              <a href="/terms" className="hover:text-[#991930]">Terms of Service</a>
-              <a href="/cookies" className="hover:text-[#991930]">Cookie Policy</a>
-              <a href="/legal/compliance" className="hover:text-[#991930]">Legal & Compliance</a>
-            </nav>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-[#e5e5e5] text-xs text-[#6b6b6b] space-y-2">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+            <div className="space-y-1">
+              <div><span className="font-medium">Data processing in the EU.</span> Supabase EU + DigitalOcean Frankfurt.</div>
+              <div><span className="font-medium">Encryption:</span> AES-256 at rest, TLS 1.2+ in transit.</div>
+              <div><span className="font-medium">Authentication:</span> JWT with role-based access control (RBAC) and session expiry.</div>
+              <div><span className="font-medium">Backups:</span> Automated daily backups with point-in-time recovery where supported.</div>
+              <div><span className="font-medium">Policy review:</span> Operational policies under continuous improvement; official certification roadmap in preparation.</div>
+            </div>
+            <div className="space-y-1">
+              <div><span className="font-medium">Processors & links:</span></div>
+              <div>• Supabase — supabase.com/privacy</div>
+              <div>• Vercel — vercel.com/legal/privacy-policy</div>
+              <div>• DigitalOcean — digitalocean.com/legal/privacy-policy</div>
+            </div>
           </div>
         </div>
       </div>
