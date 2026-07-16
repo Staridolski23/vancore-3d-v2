@@ -5,6 +5,9 @@ import { useSiteContent } from '@/hooks/useSiteContent';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
+  { href: '/industries/horeca', label: 'HoReCa' },
+  { href: '/industries/logistics', label: 'Logistics' },
+  { href: '/industries/ecommerce', label: 'E-commerce' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/work', label: 'Work' },
   { href: '/about', label: 'About' },
@@ -36,14 +39,26 @@ export default function Footer() {
               Navigate
             </div>
             <div className="grid grid-cols-2 gap-x-4">
-              <nav className="space-y-0.5" aria-label="Footer navigation">
-                {navLinks.slice(0, Math.ceil(navLinks.length / 2)).map((link) => (
-                  <a key={link.href} href={link.href} className="block text-sm text-[#4a4a4a] hover:text-[#991930]">{link.label}</a>
+              <nav className="space-y-1" aria-label="Footer navigation">
+                {navLinks.slice(0, 5).map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="block text-sm text-[#4a4a4a] hover:text-[#991930]"
+                  >
+                    {link.label}
+                  </a>
                 ))}
               </nav>
-              <nav className="space-y-0.5" aria-label="Footer navigation">
-                {navLinks.slice(Math.ceil(navLinks.length / 2)).map((link) => (
-                  <a key={link.href} href={link.href} className="block text-sm text-[#4a4a4a] hover:text-[#991930]">{link.label}</a>
+              <nav className="space-y-1" aria-label="Footer navigation">
+                {navLinks.slice(5).map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="block text-sm text-[#4a4a4a] hover:text-[#991930]"
+                  >
+                    {link.label}
+                  </a>
                 ))}
               </nav>
             </div>
