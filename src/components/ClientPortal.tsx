@@ -28,6 +28,8 @@ export default function ClientPortal() {
   const [reviewRating, setReviewRating] = useState(5);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewMessage, setReviewMessage] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
+  const [penaltyWarning, setPenaltyWarning] = useState<string | null>(null);
   const [reportContent, setReportContent] = useState('');
   const searchParams = useSearchParams();
 
@@ -160,6 +162,59 @@ export default function ClientPortal() {
     } finally {
       setSubmittingReview(false);
     }
+  };
+
+  const parseDateTime = (dateStr: string, timeStr: string) => {
+    const d = String(dateStr || '').trim();
+    const t = String(timeStr || '').trim();
+    if (!d || !t) return null;
+    const [year, month, day] = d.split('-').map(Number);
+    const [hour, minute] = t.split(':').map(Number);
+    return new Date(year || 1970, (month || 1) - 1, day || 1, hour || 0, minute || 0);
+  };
+
+  const confirmBooking = async (id: string | number) => {
+    const token = localStorage.getItem('vancore_client_token');
+    await fetch('/api/bookings/' + id, {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'confirmed', confirmed_at: new Date().toISOString() }),
+    });
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'confirmed', confirmed_at: new Date().toISOString() } : b));
+  };
+
+  const cancelBooking = async (id: string | number, dateStr: string, timeStr: string) => {
+    const when = parseDateTime(dateStr, timeStr);
+    const now = new Date();
+    let penalty = false;
+    if (when) {
+      const hoursUntil = (when.getTime() - now.getTime()) / (1000 * 60 * 60);
+      penalty = hoursUntil < 24;
+    }
+    const reason = window.prompt('Please provide a reason for cancellation') || '';
+    if (!reason) return;
+    const token = localStorage.getItem('vancore_client_token');
+    await fetch('/api/bookings/' + id, {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled', cancellation_reason: reason, penalty_applied: penalty }),
+    });
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled', cancellation_reason: reason, penalty_applied: penalty } : b));
+    setPenaltyWarning(penalty ? 'This booking was cancelled less than 24h before the session. A penalty may apply.' : null);
+  };
+
+  const requestBookingChange = async (id: string | number) => {
+    const newDate = prompt('New date (YYYY-MM-DD)');
+    if (!newDate) return;
+    const newTime = prompt('New time (HH:MM)');
+    if (!newTime) return;
+    const token = localStorage.getItem('vancore_client_token');
+    await fetch('/api/bookings/' + id + '/propose', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: newDate, time: newTime, status: 'rescheduled' }),
+    });
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'rescheduled' } : b));
   };
 
   const generateReport = async (): Promise<string> => {
@@ -341,6 +396,22 @@ export default function ClientPortal() {
                         Add to Calendar
                       </button>
                     )}
+                    {booking.status === 'new' && (
+                      <button onClick={() => confirmBooking(booking.id)} className="text-xs text-[#10b981] hover:underline mt-2">
+                        Confirm
+                      </button>
+                    )}
+                    {(booking.status === 'new' || booking.status === 'confirmed') && (
+                      <>
+                        <button onClick={() => requestBookingChange(booking.id)} className="text-xs text-[#3b82f6] hover:underline mt-2 ml-3">
+                          Request change
+                        </button>
+                        <button onClick={() => cancelBooking(booking.id, booking.date, booking.time)} className="text-xs text-red-400 hover:underline mt-2 ml-3">
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                    {penaltyWarning && <p className="text-xs text-red-400 mt-2">{penaltyWarning}</p>}
                     {booking.company && <div className="text-xs text-[#6b6b6b] mb-1">🏢 {booking.company}</div>}
                     {booking.phone && <div className="text-xs text-[#6b6b6b] mb-1">📞 {booking.phone}</div>}
                     {booking.description && <div className="text-xs text-[#6b6b6b] mt-2 italic">"{booking.description}"</div>}
