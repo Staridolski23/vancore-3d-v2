@@ -5,9 +5,6 @@ import { useSiteContent } from '@/hooks/useSiteContent';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
-  { href: '/industries/horeca', label: 'HoReCa' },
-  { href: '/industries/logistics', label: 'Logistics' },
-  { href: '/industries/ecommerce', label: 'E-commerce' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/work', label: 'Work' },
   { href: '/about', label: 'About' },
@@ -26,8 +23,8 @@ export default function Footer() {
   return (
     <footer className="bg-[#f7f6f2] border-t border-[#e5e5e5]">
       <div className="max-w-7xl mx-auto px-6 py-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="col-span-2 md:col-span-1">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          <div>
             <div className="font-display text-lg text-[#111] mb-1">Vancore Systems</div>
             <p className="text-xs text-[#6b6b6b] leading-relaxed mb-2">
               A <span className="text-[#991930] font-medium">boutique business</span> analysis & development consultancy.
@@ -38,11 +35,8 @@ export default function Footer() {
               ))}
             </div>
             <div className="text-[10px] text-[#6b6b6b] mt-1.5 space-y-0.5">
-              <div>Data in EU: Supabase EU + DigitalOcean Frankfurt.</div>
-              <div>AES-256 at rest, TLS 1.2+ in transit.</div>
-              <div>JWT + RBAC with session expiry.</div>
-              <div>Automated daily backups.</div>
-              <div>Policy review ongoing; certification roadmap in preparation.</div>
+              <div>Data in EU: Supabase EU + DigitalOcean Frankfurt. AES-256 at rest, TLS 1.2+ in transit. JWT + RBAC with session expiry.</div>
+              <div>Automated daily backups. Policy review ongoing; certification roadmap in preparation.</div>
               <div>Processors: Supabase · Vercel · DigitalOcean</div>
             </div>
           </div>
@@ -53,12 +47,12 @@ export default function Footer() {
             </div>
             <div className="grid grid-cols-2 gap-x-4">
               <nav className="space-y-0.5" aria-label="Footer navigation">
-                {navLinks.slice(0, 5).map((link) => (
+                {navLinks.slice(0, Math.ceil(navLinks.length / 2)).map((link) => (
                   <a key={link.href} href={link.href} className="block text-xs text-[#4a4a4a] hover:text-[#991930]">{link.label}</a>
                 ))}
               </nav>
               <nav className="space-y-0.5" aria-label="Footer navigation">
-                {navLinks.slice(5).map((link) => (
+                {navLinks.slice(Math.ceil(navLinks.length / 2)).map((link) => (
                   <a key={link.href} href={link.href} className="block text-xs text-[#4a4a4a] hover:text-[#991930]">{link.label}</a>
                 ))}
               </nav>

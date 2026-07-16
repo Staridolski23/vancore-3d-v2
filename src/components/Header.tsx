@@ -6,9 +6,6 @@ import { useRouter } from 'next/navigation';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
-  { href: '/industries/horeca', label: 'HoReCa' },
-  { href: '/industries/logistics', label: 'Logistics' },
-  { href: '/industries/ecommerce', label: 'E-commerce' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/work', label: 'Work' },
   { href: '/about', label: 'About' },
