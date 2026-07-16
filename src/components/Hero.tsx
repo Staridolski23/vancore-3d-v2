@@ -7,7 +7,7 @@ export default function Hero() {
   const section = getSection('hero');
 
   const title = section?.title || 'The clarity your company has been missing.';
-  const subtitle = section?.subtitle || 'A husband-and-wife consultancy for the messy, internal problems — the ones org charts hide and quarterly reports can\'t reach.';
+  const subtitle = section?.subtitle || 'A boutique consultancy for the messy, internal problems — the ones org charts hide and quarterly reports can\'t reach.';
 
   return (
     <section className="relative bg-white min-h-screen flex items-center overflow-hidden pt-16">
