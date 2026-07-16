@@ -24,8 +24,7 @@ export default function CookieBanner() {
   useEffect(() => {
     const saved = localStorage.getItem(CONSENT_KEY);
     if (!saved) {
-      // Delay showing banner for better UX
-      const timer = setTimeout(() => setVisible(true), 1500);
+      const timer = setTimeout(() => setVisible(true), 500);
       return () => clearTimeout(timer);
     } else {
       try {
