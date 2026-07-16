@@ -7,12 +7,14 @@ const team = [
     role: 'Co-founder & Strategy Lead',
     focus: 'Business strategy, change enablement, client relations',
     photo: '/team/zhanet.jpg',
+    linkedin: 'https://www.linkedin.com/in/zhanet-topalova/',
   },
   {
     name: 'Momchil Staridolski',
     role: 'Co-founder & Lead Analyst',
     focus: 'Operations, process re-engineering, financial diagnostics',
     photo: '/team/momchil.jpg',
+    linkedin: 'https://www.linkedin.com/in/momchil-staridolski/',
   },
 ];
 
@@ -81,7 +83,13 @@ export default function AboutPage() {
                 </div>
                 <h3 className="font-display text-2xl text-white mb-1">{t.name}</h3>
                 <div className="text-[#991930] text-sm font-sans mb-3">{t.role}</div>
-                <p className="font-sans text-sm text-[#9a9a9a] leading-relaxed">{t.focus}</p>
+                <p className="font-sans text-sm text-[#9a9a9a] leading-relaxed mb-4">{t.focus}</p>
+                {t.linkedin && (
+                  <a href={t.linkedin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs text-[#9a9a9a] hover:text-[#991930] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    LinkedIn
+                  </a>
+                )}
               </div>
             ))}
           </div>
