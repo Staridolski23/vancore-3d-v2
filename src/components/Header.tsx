@@ -70,14 +70,8 @@ export default function Header() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#111] text-white flex items-center justify-center font-display text-lg font-bold">
-              V
-            </div>
-            <div className="leading-none">
-              <img src="/images/logo-navy.png" alt="Vancore Systems" className="h-10 w-auto" />
-              <div className="text-[9px] font-sans font-semibold text-[#6b6b6b] tracking-[0.22em] uppercase">Systems</div>
-            </div>
+          <a href="/" className="flex items-center">
+            <img src="/images/logo-navy.png" alt="Vancore Systems" className="h-16 w-auto" />
           </a>
 
           <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
