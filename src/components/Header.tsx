@@ -75,7 +75,7 @@ export default function Header() {
               V
             </div>
             <div className="leading-none">
-              <div className="font-display text-lg font-semibold text-[#111] tracking-wide">Vancore</div>
+              <img src="/images/logo-navy.png" alt="Vancore Systems" className="h-10 w-auto" />
               <div className="text-[9px] font-sans font-semibold text-[#6b6b6b] tracking-[0.22em] uppercase">Systems</div>
             </div>
           </a>
