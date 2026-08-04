@@ -11,13 +11,17 @@ export default function Hero() {
 
   return (
     <section className="relative bg-white min-h-screen flex items-center overflow-hidden pt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-24 lg:py-32 w-full">
+      <div className="absolute inset-0">
+        <img src="/images/hero-bg-split.jpg" alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-24 lg:py-32 w-full relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div className="max-w-xl">
-            <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
+            <div className="text-white text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
               — VANCORE SYSTEMS / SINCE 2020
             </div>
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-[#111] leading-[1.08] mb-6 md:mb-8">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-[1.08] mb-6 md:mb-8">
               {title.split(' ').map((word, i) => {
                 const accentWords = ['missing.'];
                 return (
@@ -32,12 +36,12 @@ export default function Hero() {
                 );
               })}
             </h1>
-            <p className="font-sans text-base md:text-lg text-[#6b6b6b] leading-relaxed">
+            <p className="font-sans text-base md:text-lg text-gray-200 leading-relaxed">
               {subtitle}
             </p>
             <div className="flex flex-wrap gap-2 mt-4">
               {['EU-hosted', 'GDPR-aligned', 'AES-256', 'JWT+RBAC'].map(item => (
-                <span key={item} className="px-2 py-1 rounded-full border border-[#d1d1d1] bg-white text-[11px] font-medium text-[#111]">{item}</span>
+                <span key={item} className="px-2 py-1 rounded-full border border-white/30 bg-black/30 text-white text-[11px] font-medium">{item}</span>
               ))}
             </div>
           </div>
