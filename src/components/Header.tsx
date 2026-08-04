@@ -71,7 +71,7 @@ export default function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <a href="/" className="flex items-center -my-6">
-            <img src="/images/logo-navy.png" alt="Vancore Systems" className="h-28 w-auto" />
+            <img src="/images/logo-black.jpg" alt="Vancore Systems" className="h-28 w-auto" />
           </a>
 
           <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
