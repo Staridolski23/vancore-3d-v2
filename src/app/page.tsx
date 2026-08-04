@@ -4,7 +4,6 @@ import Hero from '@/components/Hero';
 import Stats from '@/components/Stats';
 import Industries from '@/components/Industries';
 import Methodology from '@/components/Methodology';
-import TrustBar from '@/components/TrustBar';
 import TrustSection from '@/components/TrustSection';
 import Services from '@/components/Services';
 import Work from '@/components/Work';
@@ -38,9 +37,6 @@ export default function Home() {
       </AnimatedSection>
       <AnimatedSection>
         <Methodology />
-      </AnimatedSection>
-      <AnimatedSection>
-        <TrustBar />
       </AnimatedSection>
       <AnimatedSection>
         <Services />
