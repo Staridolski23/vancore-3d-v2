@@ -35,6 +35,11 @@ export default function Hero() {
             <p className="font-sans text-base md:text-lg text-[#6b6b6b] leading-relaxed">
               {subtitle}
             </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              {['EU-hosted', 'GDPR-aligned', 'AES-256', 'JWT+RBAC'].map(item => (
+                <span key={item} className="px-2 py-1 rounded-full border border-[#d1d1d1] bg-white text-[11px] font-medium text-[#111]">{item}</span>
+              ))}
+            </div>
           </div>
 
           <div className="relative">

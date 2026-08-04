@@ -37,7 +37,7 @@ export default function Footer() {
             <div className="text-[10px] text-[#6b6b6b] mt-1.5 space-y-0.5">
               <div>Data in EU: Supabase EU + DigitalOcean Frankfurt. AES-256 at rest, TLS 1.2+ in transit. JWT + RBAC with session expiry.</div>
               <div>Automated daily backups. Policy review ongoing; certification roadmap in preparation.</div>
-              <div>Processors: Supabase · Vercel · DigitalOcean</div>
+              <div>Processors: <a href="https://supabase.com/privacy" target="_blank" rel="noopener" className="underline hover:text-[#991930]">Supabase</a> · <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener" className="underline hover:text-[#991930]">Vercel</a> · <a href="https://digitalocean.com/legal/privacy-policy" target="_blank" rel="noopener" className="underline hover:text-[#991930]">DigitalOcean</a></div>
             </div>
           </div>
 
