@@ -20,7 +20,7 @@ export default function Hero() {
           <div className="text-white text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-6">
             — VANCORE SYSTEMS / SINCE 2020
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-[1.08] mb-6 md:mb-8">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white leading-[1.08] mb-6 md:mb-8">
             {title.split(' ').map((word, i) => {
               const accentWords = ['missing.'];
               return (
