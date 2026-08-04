@@ -25,7 +25,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-5">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
           <div>
-            <img src="/images/logo-black.jpg" alt="Vancore Systems" className="h-24 w-auto -my-2 mb-1" />
+            <img src="/images/logo-transparent.png" alt="Vancore Systems" className="h-24 w-auto -my-2 mb-1" />
             <p className="text-xs text-[#6b6b6b] leading-relaxed mb-2">
               A <span className="text-[#991930] font-medium">boutique business</span> analysis & development consultancy.
             </p>
