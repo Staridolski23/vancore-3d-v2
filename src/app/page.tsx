@@ -5,6 +5,7 @@ import Stats from '@/components/Stats';
 import Industries from '@/components/Industries';
 import Methodology from '@/components/Methodology';
 import TrustBar from '@/components/TrustBar';
+import TrustSection from '@/components/TrustSection';
 import Services from '@/components/Services';
 import Work from '@/components/Work';
 import About from '@/components/About';
@@ -43,6 +44,9 @@ export default function Home() {
       </AnimatedSection>
       <AnimatedSection>
         <Services />
+      </AnimatedSection>
+      <AnimatedSection>
+        <TrustSection />
       </AnimatedSection>
       <AnimatedSection>
         <div className="text-center py-12 bg-white">
