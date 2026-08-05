@@ -91,8 +91,6 @@ export default function VeraChat() {
   const submitLead = async () => {
     if (!leadData.name.trim() || !leadData.email.trim()) return;
     
-    setIsTyping(true);
-    
     try {
       await fetch('/api/ai-analyst', {
         method: 'POST',
@@ -106,6 +104,7 @@ export default function VeraChat() {
     
     setLeadSubmitted(true);
     setStep(1);
+    setIsTyping(false);
     
     setTimeout(async () => {
       const res = await fetch('/api/ai-analyst', {
@@ -128,7 +127,6 @@ export default function VeraChat() {
       setStep(data.step || 1);
       setQuickReplies(data.quickReplies || null);
       setPlaceholder(data.placeholder || '');
-      setIsTyping(false);
     }, 500);
   };
 
