@@ -23,7 +23,7 @@ export default function AIAnalyst() {
             <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed max-w-md">
               Vera is our AI business analyst. In five to seven sharp questions, she maps the contours of your problem and prepares a brief so our human consultants arrive informed — not introducing themselves.
             </p>
-            <Link href="/ai-analyst">
+            <a href="#ai-analyst" className="inline-flex">
               <button className="btn-hover inline-flex items-center gap-2 mt-8 px-5 py-3 bg-[#991930] text-white text-sm font-sans font-medium">
               Talk to Vera
               <svg
@@ -42,7 +42,7 @@ export default function AIAnalyst() {
                 <path d="M7 17 17 7" />
               </svg>
             </button>
-            </Link>
+            </a>
           </div>
           <div className="border border-[#e5e5e5] rounded-sm overflow-hidden">
             <div className="bg-[#f7f6f2] px-4 py-3 border-b border-[#e5e5e5] flex items-center gap-2">
