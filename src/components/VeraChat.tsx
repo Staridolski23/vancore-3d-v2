@@ -347,8 +347,7 @@ export default function VeraChat() {
             
             <button
               onClick={submitLead}
-              disabled={!leadData.name.trim() || !leadData.email.trim() || !leadData.consentTerms || !leadData.consentData}
-              className="w-full py-3 rounded-lg bg-[#991930] text-white font-semibold hover:bg-[#a83d1f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-3 rounded-lg bg-[#991930] text-white font-semibold hover:bg-[#a83d1f] transition-colors"
             >
               Start My Free AI Analysis
             </button>
