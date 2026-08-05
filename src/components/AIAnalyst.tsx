@@ -23,7 +23,7 @@ export default function AIAnalyst() {
             <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed max-w-md">
               Vera is our AI business analyst. In five to seven sharp questions, she maps the contours of your problem and prepares a brief so our human consultants arrive informed — not introducing themselves.
             </p>
-            <a href="#ai-analyst" className="inline-flex">
+            <a href="/contact" className="inline-flex">
               <button className="btn-hover inline-flex items-center gap-2 mt-8 px-5 py-3 bg-[#991930] text-white text-sm font-sans font-medium">
               Talk to Vera
               <svg
