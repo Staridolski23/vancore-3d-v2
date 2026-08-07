@@ -108,3 +108,38 @@ img {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Larger touch targets */
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+  
+  /* Better spacing */
+  .space-y-3 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Footer mobile */
+  footer {
+    font-size: 14px;
+  }
+  
+  /* Prevent horizontal scroll */
+  * {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Better input focus */
+  input:focus, textarea:focus, select:focus {
+    outline: 2px solid #991930;
+    outline-offset: 2px;
+  }
+}
