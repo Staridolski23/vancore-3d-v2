@@ -1,6 +1,10 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+const MODEL = 'liquid/lfm-2.5-2.6b:free';
+const SYSTEM_PROMPT = `You are Vera, a helpful AI Business Analyst for VANCORE. Your role is to understand the user's operational challenges and prepare a brief for the VANCORE team. Be concise, professional, and ask one focused question at a time. Keep responses under 2 sentences unless the user asks for details. If the user asks about pricing, services, or company info, provide accurate information.`;
+
 type KnowledgeBase = {
   faq: { keywords: string[]; answer: string }[];
   defaultFallback: string;
@@ -59,6 +63,52 @@ function nextStep(currentStep: number): number {
   return currentStep + 1;
 }
 
+async function askOpenRouter(message: string): Promise<{ reply: string; step: number } | null> {
+  if (!OPENROUTER_API_KEY) return null;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://www.vancoresys.com',
+        'X-Title': 'VANCORE AI Analyst',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: message },
+        ],
+        max_tokens: 200,
+        temperature: 0.7,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('OpenRouter error:', res.status, errorText);
+      return null;
+    }
+
+    const data = await res.json();
+    const reply = data?.choices?.[0]?.message?.content?.trim() || '';
+    if (!reply) return null;
+    return { reply, step: 7 };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.error('OpenRouter timeout/network error:', error);
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -82,12 +132,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const reply = matchAnswer(message);
+    const openRouterResult = await askOpenRouter(message);
+    const reply = openRouterResult?.reply ?? matchAnswer(message);
+    const newStep = openRouterResult ? (openRouterResult.step || step) : nextStep(step);
 
     return new Response(
       JSON.stringify({
         reply,
-        step: nextStep(step),
+        step: newStep,
         sessionId: sessionId || 'session-' + Date.now(),
         quickReplies: [],
         placeholder: 'Type your answer...',
@@ -119,7 +171,9 @@ export async function GET() {
     JSON.stringify({
       ok: true,
       endpoint: '/api/ai-analyst',
-      mode: 'knowledge-base',
+      mode: 'hybrid',
+      model: MODEL,
+      hasOpenRouterKey: !!OPENROUTER_API_KEY,
     }),
     {
       status: 200,
