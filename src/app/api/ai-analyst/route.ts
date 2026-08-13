@@ -230,20 +230,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Try knowledge base first for reliability
-    const kbReply = matchAnswer(message);
-    const isKbMatch = kbReply !== KNOWLEDGE_BASE.defaultFallback;
+    // Primary: OpenRouter LLM
+    let reply = '';
+    let newStep = step;
 
-    // Fallback to OpenRouter only if no KB match
-    let reply = kbReply;
-    let newStep = nextStep(step);
-
-    if (!isKbMatch) {
-      const openRouterResult = await askOpenRouter(message);
-      if (openRouterResult) {
-        reply = openRouterResult.reply;
-        newStep = openRouterResult.step || step;
-      }
+    const openRouterResult = await askOpenRouter(message);
+    if (openRouterResult) {
+      reply = openRouterResult.reply;
+      newStep = openRouterResult.step || step;
+    } else {
+      // Fallback only if OpenRouter fails
+      reply = matchAnswer(message);
+      newStep = nextStep(step);
     }
 
     return new Response(
