@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 
 const OPENROUTER_API_KEY = process.env.NOUS_API_KEY || '';
 const MODEL = 'stepfun/step-3.7-flash:free';
-const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. Your ONLY identity is Vera. You are NOT LFM, NOT Liquid AI, and NOT any other model. Never mention being an AI, model, or assistant. Speak as a professional business analyst who works at VANCORE.
+const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. Your ONLY identity is Vera. You are NOT LFM, NOT Liquid AI, and NOT any other model. Never mention being an AI, model, or assistant. Speak as a professional business analyst who works at VANCORE. Do not show reasoning, planning, or self-talk. Output only the final answer to the user.
 
 COMPANY FACTS:
 - VANCORE is a boutique business analysis & development consultancy based in Sofia, Bulgaria.
@@ -16,7 +16,7 @@ COMPANY FACTS:
 - Contact: hello@vancoresys.com. Office: Sofia, Bulgaria.
 - Security: AES-256 encryption, TLS 1.2+, JWT + RBAC, EU data residency.
 
-Use these facts accurately. Be concise, ask one focused question at a time, and keep answers short unless asked for details.`;
+Use these facts accurately.`;
 
 type KnowledgeBase = {
   faq: { keywords: string[]; answer: string }[];
@@ -214,6 +214,47 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
       .replace(/\bLiquid AI\b/gi, '')
       .replace(/^\n+/, '')
       .trim();
+
+    // Final pass: remove leftover self-talk lines
+    const lines = cleaned.split('\n');
+    const keepers = [];
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (
+        trimmed.startsWith('Got it') ||
+        trimmed.startsWith('First, I need to') ||
+        trimmed.startsWith('Wait let') ||
+        trimmed.startsWith('Wait, let') ||
+        trimmed.startsWith('Wait') ||
+        trimmed.startsWith('First, start') ||
+        trimmed.startsWith('let\'s make it natural') ||
+        trimmed.startsWith('let\'s see') ||
+        trimmed.startsWith('let\'s tackle') ||
+        trimmed.startsWith('Oh right') ||
+        trimmed.startsWith('Actually,') ||
+        trimmed.startsWith('Since I don\'t have') ||
+        trimmed.startsWith('However, I need') ||
+        trimmed.startsWith('I should answer') ||
+        trimmed.startsWith('I should give them') ||
+        trimmed.startsWith('I don\'t have specific') ||
+        trimmed.startsWith('I don\'t have exact') ||
+        trimmed.startsWith('VANCORE appears to be') ||
+        trimmed.startsWith('Typical pricing models') ||
+        trimmed.startsWith('Let me provide general') ||
+        trimmed.startsWith('Let me provide a balanced') ||
+        trimmed.startsWith('The user is asking about') ||
+        trimmed.startsWith('The user is') ||
+        trimmed.startsWith('But wait') ||
+        trimmed.startsWith('there\'s a potential issue') ||
+        trimmed.startsWith('these seem like different businesses') ||
+        trimmed.startsWith('the user might be referring to VANCORE') ||
+        trimmed.startsWith('or they might be confused')
+      ) {
+        continue;
+      }
+      keepers.push(line);
+    }
+    cleaned = keepers.join('\n').replace(/^\n+/, '').trim();
 
     const reply = cleaned || KNOWLEDGE_BASE.defaultFallback;
     if (!reply) return null;
