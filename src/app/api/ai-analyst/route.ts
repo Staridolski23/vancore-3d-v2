@@ -3,30 +3,33 @@ export const dynamic = 'force-dynamic';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const MODEL = 'liquid/lfm-2.5-2.6b:free';
-const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. VANCORE is a boutique business analysis & development consultancy. Your ONLY identity is Vera. Never mention being LFM, Liquid AI, or any other model or provider. Do not reveal that you are an AI model. Speak as a professional business analyst. Be concise, ask one focused question at a time, and keep answers short unless asked for details.`;
+const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. VANCORE is a boutique business analysis & development consultancy based in Sofia, Bulgaria. Your ONLY identity is Vera. You are NOT LFM, NOT Liquid AI, and NOT any other model. Never mention being an AI, model, or assistant. Speak as a professional business analyst who works at VANCORE. Be concise, ask one focused question at a time, and keep answers short unless asked for details.`;
 
 type KnowledgeBase = {
   faq: { keywords: string[]; answer: string }[];
+  companyInfo: string;
+  teamInfo: string;
+  processInfo: string;
   defaultFallback: string;
 };
 
 const KNOWLEDGE_BASE: KnowledgeBase = {
   faq: [
     {
-      keywords: ['price', 'pricing', 'cost', 'how much', 'package', 'plan', 'subscription'],
-      answer: 'Our plans start from €499/month for Starter, €999/month for Growth, and €1,999/month for Scale. We also offer a 14-day free trial.',
+      keywords: ['price', 'pricing', 'cost', 'how much', 'package', 'plan', 'subscription', 'rates'],
+      answer: 'Our plans start from €499/month for Starter, €999/month for Growth, and €1,999/month for Scale. We also offer a 14-day free trial. All prices exclude VAT where applicable.',
     },
     {
-      keywords: ['service', 'services', 'what do you do', 'offer', 'solutions'],
+      keywords: ['service', 'services', 'what do you do', 'offer', 'solutions', 'specialize'],
       answer: 'We specialize in Business Analysis, Process Re-engineering, Change Management, and Implementation Support. We help companies clarify operations, reduce chaos, and improve delivery.',
     },
     {
-      keywords: ['contact', 'email', 'phone', 'reach', 'book', 'call', 'meeting'],
-      answer: 'You can reach us at hello@vancoresys.com or book a call through our website. We usually respond within 24 hours.',
+      keywords: ['contact', 'email', 'phone', 'reach', 'book', 'call', 'meeting', 'hello'],
+      answer: 'You can reach us at hello@vancoresys.com or book a call through our website. We usually respond within 24 hours. Our office is in Sofia, Bulgaria.',
     },
     {
-      keywords: ['team', 'who are you', 'about', 'company', 'vancore'],
-      answer: 'VANCORE is a boutique consultancy focused on messy internal problems — the ones org charts hide and reports cannot reach.',
+      keywords: ['team', 'who are you', 'about', 'company', 'vancore', 'tell me about'],
+      answer: 'VANCORE is a boutique business analysis & development consultancy. We help companies see clearly through internal complexity — and act on what they find. We operate at the intersection of operations, technology, and people.',
     },
     {
       keywords: ['implementation', 'timeline', 'duration', 'how long', 'weeks', 'months'],
@@ -37,24 +40,73 @@ const KNOWLEDGE_BASE: KnowledgeBase = {
       answer: 'Every plan includes ongoing support. Growth and Scale plans get faster response times and optional check-ins.',
     },
     {
-      keywords: ['industry', 'sector', 'horeca', 'retail', 'e-commerce', 'logistics'],
+      keywords: ['industry', 'sector', 'horeca', 'retail', 'e-commerce', 'logistics', 'work with'],
       answer: 'We work across HoReCa, retail, e-commerce, logistics, and B2B services. Our methods are industry-agnostic, but we bring relevant benchmarks.',
     },
     {
       keywords: ['result', 'guarantee', 'outcome', 'roi', 'benefit', 'value'],
       answer: 'We focus on measurable outcomes: fewer bottlenecks, clearer ownership, shorter cycles, and better handoffs. Results depend on scope and client commitment.',
     },
+    {
+      keywords: ['founder', 'ceo', 'momchil', 'zhanet', 'team', 'who runs', 'leadership'],
+      answer: 'VANCORE was founded by Momchil Staridolski and Zhanet Topalova. Momchil is the CEO with strong operations and tech background. Zhanet is Co-Founder with expertise in business analysis, strategic planning, and process optimization.',
+    },
+    {
+      keywords: ['method', 'process', 'how do you work', 'approach', 'steps', 'framework'],
+      answer: 'Our method has 4 steps: Discovery → Diagnosis → Design → Deployment. We start small, ask sharp questions, and listen longer. Then we move to structured change and rollout.',
+    },
+    {
+      keywords: ['trial', 'free', 'test', 'try'],
+      answer: 'We offer a 14-day free trial on all plans. No credit card required to start.',
+    },
+    {
+      keywords: ['book', 'appointment', 'schedule', 'call', 'meeting'],
+      answer: 'You can book a call through our website or email hello@vancoresys.com. We usually respond within 24 hours.',
+    },
+    {
+      keywords: ['security', 'gdpr', 'data', 'privacy', 'encryption'],
+      answer: 'We take data security seriously. Our stack uses AES-256 encryption, TLS 1.2+, JWT authentication with role-based access control, and EU data residency through Supabase EU and DigitalOcean Frankfurt.',
+    },
+    {
+      keywords: ['client portal', 'portal', 'login', 'dashboard'],
+      answer: 'Clients get access to a dedicated portal where they can track bookings, documents, reviews, and reports. Sign in is available from the top right.',
+    },
+    {
+      keywords: ['years', 'experience', 'since', 'history'],
+      answer: 'VANCORE was founded in 2020 and has since delivered 47+ engagements with 92% client retention. We have 6+ years of embedded operational experience.',
+    },
   ],
+  companyInfo: `VANCORE Systems is a boutique business analysis & development consultancy founded in 2020 and based in Sofia, Bulgaria. We help companies see clearly through internal complexity — and act on what they find. Our tagline: "The clarity your company has been missing." We operate at the intersection of operations, technology, and people. We stay small by design so we can stay close to the work. Key metrics: 47+ engagements delivered, 92% client retention, 2 founders hands-on. Contact: hello@vancoresys.com`,
+  teamInfo: `VANCORE was founded by Momchil Staridolski (CEO) and Zhanet Topalova (Co-Founder). Momchil has strong operations and tech background. Zhanet has expertise in business analysis, strategic planning, and process optimization. Both are hands-on and involved in engagements.`,
+  processInfo: `Our 4-step method: 1) Discovery - we start small, ask sharp questions, and listen longer; 2) Diagnosis - we analyze every process and identify bottlenecks; 3) Design - we redesign workflows and optimize schedules; 4) Deployment - we implement structured change and rollout.`,
   defaultFallback: 'Thanks for the details. To give you a useful, specific answer, I’d recommend a short discovery call. You can book one on our website or email hello@vancoresys.com.',
 };
 
 function matchAnswer(message: string): string {
   const lower = message.toLowerCase();
+
+  // Direct FAQ match
   for (const item of KNOWLEDGE_BASE.faq) {
     if (item.keywords.some((keyword) => lower.includes(keyword))) {
       return item.answer;
     }
   }
+
+  // Company info
+  if (lower.includes('company') || lower.includes('about') || lower.includes('who are you') || lower.includes('tell me about vancore')) {
+    return KNOWLEDGE_BASE.companyInfo;
+  }
+
+  // Team info
+  if (lower.includes('founder') || lower.includes('ceo') || lower.includes('momchil') || lower.includes('zhanet') || lower.includes('team') || lower.includes('leadership')) {
+    return KNOWLEDGE_BASE.teamInfo;
+  }
+
+  // Process info
+  if (lower.includes('method') || lower.includes('process') || lower.includes('approach') || lower.includes('framework') || lower.includes('how do you work')) {
+    return KNOWLEDGE_BASE.processInfo;
+  }
+
   return KNOWLEDGE_BASE.defaultFallback;
 }
 
@@ -84,7 +136,7 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: message },
         ],
-        max_tokens: 200,
+        max_tokens: 300,
         temperature: 0.7,
       }),
       signal: controller.signal,
@@ -103,7 +155,6 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
     const reasoningReply = data?.choices?.[0]?.message?.reasoning_details?.[0]?.text?.trim() || '';
     const combined = rawReply || reasoningReply || '';
 
-    // Remove internal reasoning/self-talk from the response
     let cleaned = combined;
     const badOpeners = [
       'The user is asking about',
@@ -116,6 +167,12 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
       'The user is',
       'Actually, looking at my system prompt',
       'Since I don\'t have real-time access',
+      'I should answer this directly',
+      'I don\'t have exact current',
+      'VANCORE appears to be',
+      'Typical pricing models',
+      'I should give them accurate',
+      'Let me provide general',
     ];
     for (const opener of badOpeners) {
       const idx = cleaned.indexOf(opener);
@@ -128,7 +185,7 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
         }
       }
     }
-    // Remove model/identity leaks
+
     cleaned = cleaned
       .replace(/I'm LFM[^\n]*/gi, '')
       .replace(/built by Liquid AI[^\n]*/gi, '')
@@ -136,10 +193,11 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
       .replace(/VANCORE \(VANCORE\)[^\n]*/gi, '')
       .replace(/on-device intelligence[^\n]*/gi, '')
       .replace(/\bLFM\b/gi, '')
-      .replace(/\bLiquid AI\b/gi, '');
-    cleaned = cleaned.replace(/^\n+/, '').trim();
+      .replace(/\bLiquid AI\b/gi, '')
+      .replace(/^\n+/, '')
+      .trim();
 
-    const reply = cleaned || 'Thanks for your question. To give you a useful, specific answer, I’d recommend a short discovery call. You can book one on our website or email hello@vancoresys.com.';
+    const reply = cleaned || KNOWLEDGE_BASE.defaultFallback;
     if (!reply) return null;
     return { reply, step: 7 };
   } catch (error) {
