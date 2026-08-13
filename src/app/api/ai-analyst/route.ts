@@ -101,7 +101,19 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
     const data = await res.json();
     const rawReply = data?.choices?.[0]?.message?.content?.trim() || '';
     const reasoningReply = data?.choices?.[0]?.message?.reasoning_details?.[0]?.text?.trim() || '';
-    const reply = rawReply || reasoningReply || '';
+    const combined = rawReply || reasoningReply || '';
+
+    // Remove internal reasoning/self-talk from the response
+    const cleanReply = combined
+      .replace(/^(The user is asking about.*?)(?=\n\n|\Z)/gis, '')
+      .replace(/^(However, I need to be careful.*?)(?=\n\n|\Z)/gis, '')
+      .replace(/^(I should answer based on.*?)(?=\n\n|\Z)/gis, '')
+      .replace(/^(Let me provide a balanced.*?)(?=\n\n|\Z)/gis, '')
+      .replace(/^(I don't have specific.*?)(?=\n\n|\Z)/gis, '')
+      .replace(/^(\n)+/, '')
+      .trim();
+
+    const reply = cleanReply || 'Thanks for your question. To give you a useful, specific answer, I’d recommend a short discovery call. You can book one on our website or email hello@vancoresys.com.';
     if (!reply) return null;
     return { reply, step: 7 };
   } catch (error) {
