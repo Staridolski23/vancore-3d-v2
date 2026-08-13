@@ -191,7 +191,7 @@ function stripReasoning(text: string): string {
   return cleaned;
 }
 
-async function askNous(message: string): Promise<{ reply: string; step: number } | null> => {
+async function askNous(message: string): Promise<{ reply: string; step: number } | null> {
   if (!NOUS_API_KEY) return null;
 
   const controller = new AbortController();
