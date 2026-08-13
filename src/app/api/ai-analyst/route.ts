@@ -186,6 +186,11 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
       'Typical pricing models',
       'I should give them accurate',
       'Let me provide general',
+      'But wait',
+      'there\'s a potential issue',
+      'these seem like different businesses',
+      'the user might be referring to VANCORE',
+      'or they might be confused',
     ];
     for (const opener of badOpeners) {
       const idx = cleaned.indexOf(opener);
