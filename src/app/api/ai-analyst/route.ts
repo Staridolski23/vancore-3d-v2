@@ -212,7 +212,7 @@ async function askNous(message: string): Promise<{ reply: string; step: number }
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: message },
         ],
-        max_tokens: 700,
+        max_tokens: 800,
         temperature: 0.35,
       }),
       signal: controller.signal,
