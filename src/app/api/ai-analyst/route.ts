@@ -149,8 +149,8 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: message },
         ],
-        max_tokens: 300,
-        temperature: 0.7,
+        max_tokens: 420,
+        temperature: 0.4,
       }),
       signal: controller.signal,
     });
@@ -240,6 +240,21 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
 
     const reply = cleaned || KNOWLEDGE_BASE.defaultFallback;
     if (!reply) return null;
+
+    // Safety net: if reply still looks like reasoning, do not expose it
+    const lowerReply = reply.toLowerCase();
+    if (
+      lowerReply.includes('the user is asking') ||
+      lowerReply.includes('i should answer') ||
+      lowerReply.includes('got it') ||
+      lowerReply.includes('let me provide') ||
+      lowerReply.includes('wait let') ||
+      lowerReply.includes('wait, let') ||
+      lowerReply.includes('but wait')
+    ) {
+      return { reply: KNOWLEDGE_BASE.defaultFallback, step: 7 };
+    }
+
     return { reply, step: 7 };
   } catch (error) {
     clearTimeout(timeoutId);
