@@ -172,9 +172,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const openRouterResult = await askOpenRouter(message);
-    const reply = openRouterResult?.reply ?? matchAnswer(message);
-    const newStep = openRouterResult ? (openRouterResult.step || step) : nextStep(step);
+    // Try knowledge base first for reliability
+    const kbReply = matchAnswer(message);
+    const isKbMatch = kbReply !== KNOWLEDGE_BASE.defaultFallback;
+
+    // Fallback to OpenRouter only if no KB match
+    let reply = kbReply;
+    let newStep = nextStep(step);
+
+    if (!isKbMatch) {
+      const openRouterResult = await askOpenRouter(message);
+      if (openRouterResult) {
+        reply = openRouterResult.reply;
+        newStep = openRouterResult.step || step;
+      }
+    }
 
     return new Response(
       JSON.stringify({
