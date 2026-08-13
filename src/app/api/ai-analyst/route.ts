@@ -235,7 +235,7 @@ async function askNous(message: string): Promise<{ reply: string; step: number }
       return null;
     }
 
-    const paragraphs = combined.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+    const paragraphs = combined.split(/\n\s*\n/).map((p: string) => p.trim()).filter(Boolean);
     const candidate = paragraphs[paragraphs.length - 1] || combined;
     let cleaned = stripReasoning(candidate);
 
