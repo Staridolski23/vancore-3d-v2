@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
-const MODEL = 'liquid/lfm-2.5-2.6b:free';
+const MODEL = 'stepfun/step-3.7-flash:free';
 const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. Your ONLY identity is Vera. You are NOT LFM, NOT Liquid AI, and NOT any other model. Never mention being an AI, model, or assistant. Speak as a professional business analyst who works at VANCORE.
 
 COMPANY FACTS:
