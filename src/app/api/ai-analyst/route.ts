@@ -235,28 +235,40 @@ async function askNous(message: string): Promise<{ reply: string; step: number }
       return null;
     }
 
-    const paragraphs = combined.split(/\n\s*\n/).map((p: string) => p.trim()).filter(Boolean);
-    const candidate = paragraphs[paragraphs.length - 1] || combined;
-    let cleaned = stripReasoning(candidate);
+    const paragraphs = combined.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+
+    // Scan backwards to find the first paragraph that looks like a real user-facing answer.
+    let cleaned = '';
+    for (let i = paragraphs.length - 1; i >= 0; i--) {
+      const candidate = stripReasoning(paragraphs[i]);
+      if (!candidate) continue;
+      const lower = candidate.toLowerCase();
+      if (
+        lower.includes('the user is asking') ||
+        lower.includes('i should answer') ||
+        lower.includes('got it') ||
+        lower.includes('let me provide') ||
+        lower.includes('wait let') ||
+        lower.includes('wait, let') ||
+        lower.includes('but wait') ||
+        lower.includes('let\'s see') ||
+        lower.includes('let\'s tackle') ||
+        lower.includes('first, i need to') ||
+        lower.includes('wait') ||
+        lower.includes('oh right') ||
+        lower.includes('next,') ||
+        lower.includes('then mention') ||
+        lower.includes('then our') ||
+        lower.includes('maybe add')
+      ) {
+        continue;
+      }
+      cleaned = candidate;
+      break;
+    }
 
     if (!cleaned) {
       return null;
-    }
-
-    const lowerReply = cleaned.toLowerCase();
-    const looksLikeReasoning =
-      lowerReply.includes('the user is asking') ||
-      lowerReply.includes('i should answer') ||
-      lowerReply.includes('got it') ||
-      lowerReply.includes('let me provide') ||
-      lowerReply.includes('wait let') ||
-      lowerReply.includes('wait, let') ||
-      lowerReply.includes('but wait') ||
-      lowerReply.includes('let\'s see') ||
-      lowerReply.includes('let\'s tackle');
-
-    if (looksLikeReasoning) {
-      return { reply: KNOWLEDGE_BASE.defaultFallback, step: 1 };
     }
 
     return { reply: cleaned, step: 1 };
