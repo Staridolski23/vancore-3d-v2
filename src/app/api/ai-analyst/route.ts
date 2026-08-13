@@ -256,10 +256,10 @@ async function askNous(message: string): Promise<{ reply: string; step: number }
       lowerReply.includes('let\'s tackle');
 
     if (looksLikeReasoning) {
-      return { reply: KNOWLEDGE_BASE.defaultFallback, step: 7 };
+      return { reply: KNOWLEDGE_BASE.defaultFallback, step: 1 };
     }
 
-    return { reply: cleaned, step: 7 };
+    return { reply: cleaned, step: 1 };
   } catch (error) {
     clearTimeout(timeoutId);
     console.error('Nous API timeout/network error:', error);

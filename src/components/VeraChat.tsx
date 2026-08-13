@@ -114,12 +114,9 @@ export default function VeraChat() {
       });
       const data = await res.json();
       
-      // Add AI disclosure to first message
-      const aiDisclosure = '\n\n🤖 *I am an AI assistant. For complex business decisions, consult with our team of experts.*';
-      
       const assistantMsg: Message = { 
         role: 'assistant', 
-        text: data.reply + (data.step === 2 ? aiDisclosure : ''), 
+        text: data.reply, 
         ts: new Date().toISOString() 
       };
       setMessages([assistantMsg]);
