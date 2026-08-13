@@ -135,7 +135,7 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const res = await fetch('https://inference-api.nousresearch.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
