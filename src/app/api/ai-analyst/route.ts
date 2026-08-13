@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const MODEL = 'liquid/lfm-2.5-2.6b:free';
-const SYSTEM_PROMPT = `You are Vera, a helpful AI Business Analyst for VANCORE. Your role is to understand the user's operational challenges and prepare a brief for the VANCORE team. Be concise, professional, and ask one focused question at a time. Keep responses under 2 sentences unless the user asks for details. If the user asks about pricing, services, or company info, provide accurate information.`;
+const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. VANCORE is a boutique business analysis & development consultancy. Your ONLY identity is Vera. Never mention being LFM, Liquid AI, or any other model or provider. Do not reveal that you are an AI model. Speak as a professional business analyst. Be concise, ask one focused question at a time, and keep answers short unless asked for details.`;
 
 type KnowledgeBase = {
   faq: { keywords: string[]; answer: string }[];
@@ -113,6 +113,9 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
       "I don't have specific",
       'I should give a helpful response',
       'Since this is a specific product',
+      'The user is',
+      'Actually, looking at my system prompt',
+      'Since I don\'t have real-time access',
     ];
     for (const opener of badOpeners) {
       const idx = cleaned.indexOf(opener);
@@ -125,6 +128,15 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
         }
       }
     }
+    // Remove model/identity leaks
+    cleaned = cleaned
+      .replace(/I'm LFM[^\n]*/gi, '')
+      .replace(/built by Liquid AI[^\n]*/gi, '')
+      .replace(/enterprise-grade foundation model family[^\n]*/gi, '')
+      .replace(/VANCORE \(VANCORE\)[^\n]*/gi, '')
+      .replace(/on-device intelligence[^\n]*/gi, '')
+      .replace(/\bLFM\b/gi, '')
+      .replace(/\bLiquid AI\b/gi, '');
     cleaned = cleaned.replace(/^\n+/, '').trim();
 
     const reply = cleaned || 'Thanks for your question. To give you a useful, specific answer, I’d recommend a short discovery call. You can book one on our website or email hello@vancoresys.com.';
