@@ -99,7 +99,9 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
     }
 
     const data = await res.json();
-    const reply = data?.choices?.[0]?.message?.content?.trim() || '';
+    const rawReply = data?.choices?.[0]?.message?.content?.trim() || '';
+    const reasoningReply = data?.choices?.[0]?.message?.reasoning_details?.[0]?.text?.trim() || '';
+    const reply = rawReply || reasoningReply || '';
     if (!reply) return null;
     return { reply, step: 7 };
   } catch (error) {
