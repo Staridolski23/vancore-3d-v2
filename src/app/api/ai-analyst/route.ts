@@ -168,7 +168,15 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
     const reasoningReply = data?.choices?.[0]?.message?.reasoning_details?.[0]?.text?.trim() || '';
     const combined = rawReply || reasoningReply || '';
 
-    let cleaned = combined;
+    if (!combined) {
+      return null;
+    }
+
+    // Heuristic: extract the final user-facing paragraph.
+    const paragraphs = combined.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+    const candidate = paragraphs[paragraphs.length - 1] || combined;
+
+    let cleaned = candidate;
     const badOpeners = [
       'The user is asking about',
       'However, I need to be careful',
@@ -191,6 +199,21 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
       'these seem like different businesses',
       'the user might be referring to VANCORE',
       'or they might be confused',
+      'Got it, let\'s see',
+      'Got it, let\'s tackle this',
+      'First, I need to',
+      'Wait let\'s structure it',
+      'First, start with the basics',
+      'Wait, let\'s',
+      'Wait,',
+      'Wait',
+      'let\'s make it natural',
+      'Oh right,',
+      'Oh right',
+      'Next,',
+      'Then mention',
+      'Then our',
+      'Maybe add',
     ];
     for (const opener of badOpeners) {
       const idx = cleaned.indexOf(opener);
@@ -214,47 +237,6 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
       .replace(/\bLiquid AI\b/gi, '')
       .replace(/^\n+/, '')
       .trim();
-
-    // Final pass: remove leftover self-talk lines
-    const lines = cleaned.split('\n');
-    const keepers = [];
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (
-        trimmed.startsWith('Got it') ||
-        trimmed.startsWith('First, I need to') ||
-        trimmed.startsWith('Wait let') ||
-        trimmed.startsWith('Wait, let') ||
-        trimmed.startsWith('Wait') ||
-        trimmed.startsWith('First, start') ||
-        trimmed.startsWith('let\'s make it natural') ||
-        trimmed.startsWith('let\'s see') ||
-        trimmed.startsWith('let\'s tackle') ||
-        trimmed.startsWith('Oh right') ||
-        trimmed.startsWith('Actually,') ||
-        trimmed.startsWith('Since I don\'t have') ||
-        trimmed.startsWith('However, I need') ||
-        trimmed.startsWith('I should answer') ||
-        trimmed.startsWith('I should give them') ||
-        trimmed.startsWith('I don\'t have specific') ||
-        trimmed.startsWith('I don\'t have exact') ||
-        trimmed.startsWith('VANCORE appears to be') ||
-        trimmed.startsWith('Typical pricing models') ||
-        trimmed.startsWith('Let me provide general') ||
-        trimmed.startsWith('Let me provide a balanced') ||
-        trimmed.startsWith('The user is asking about') ||
-        trimmed.startsWith('The user is') ||
-        trimmed.startsWith('But wait') ||
-        trimmed.startsWith('there\'s a potential issue') ||
-        trimmed.startsWith('these seem like different businesses') ||
-        trimmed.startsWith('the user might be referring to VANCORE') ||
-        trimmed.startsWith('or they might be confused')
-      ) {
-        continue;
-      }
-      keepers.push(line);
-    }
-    cleaned = keepers.join('\n').replace(/^\n+/, '').trim();
 
     const reply = cleaned || KNOWLEDGE_BASE.defaultFallback;
     if (!reply) return null;
