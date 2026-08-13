@@ -1,9 +1,9 @@
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const OPENROUTER_API_KEY = process.env.NOUS_API_KEY || '';
+const NOUS_API_KEY = process.env.NOUS_API_KEY || '';
 const MODEL = 'stepfun/step-3.7-flash:free';
-const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. Your ONLY identity is Vera. You are NOT LFM, NOT Liquid AI, and NOT any other model. Never mention being an AI, model, or assistant. Speak as a professional business analyst who works at VANCORE. Do not show reasoning, planning, or self-talk. Output only the final answer to the user.
+const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. Your ONLY identity is Vera. You are NOT LFM, NOT Liquid AI, and NOT any other model. Never mention being an AI, model, or assistant. Speak as a professional business analyst who works at VANCORE. Output only the final answer to the user. Do not include reasoning, planning, self-talk, or meta-commentary.
 
 COMPANY FACTS:
 - VANCORE is a boutique business analysis & development consultancy based in Sofia, Bulgaria.
@@ -98,24 +98,20 @@ const KNOWLEDGE_BASE: KnowledgeBase = {
 function matchAnswer(message: string): string {
   const lower = message.toLowerCase();
 
-  // Direct FAQ match
   for (const item of KNOWLEDGE_BASE.faq) {
     if (item.keywords.some((keyword) => lower.includes(keyword))) {
       return item.answer;
     }
   }
 
-  // Company info
   if (lower.includes('company') || lower.includes('about') || lower.includes('who are you') || lower.includes('tell me about vancore')) {
     return KNOWLEDGE_BASE.companyInfo;
   }
 
-  // Team info
   if (lower.includes('founder') || lower.includes('ceo') || lower.includes('momchil') || lower.includes('zhanet') || lower.includes('team') || lower.includes('leadership')) {
     return KNOWLEDGE_BASE.teamInfo;
   }
 
-  // Process info
   if (lower.includes('method') || lower.includes('process') || lower.includes('approach') || lower.includes('framework') || lower.includes('how do you work')) {
     return KNOWLEDGE_BASE.processInfo;
   }
@@ -128,18 +124,85 @@ function nextStep(currentStep: number): number {
   return currentStep + 1;
 }
 
-async function askOpenRouter(message: string): Promise<{ reply: string; step: number } | null> {
-  if (!OPENROUTER_API_KEY) return null;
+function stripReasoning(text: string): string {
+  const badOpeners = [
+    'The user is asking about',
+    'However, I need to be careful',
+    'I should answer based on',
+    'Let me provide a balanced',
+    "I don't have specific",
+    'I should give a helpful response',
+    'Since this is a specific product',
+    'The user is',
+    'Actually, looking at my system prompt',
+    'Since I don\'t have real-time access',
+    'I should answer this directly',
+    'I don\'t have exact current',
+    'VANCORE appears to be',
+    'Typical pricing models',
+    'I should give them accurate',
+    'Let me provide general',
+    'But wait',
+    'there\'s a potential issue',
+    'these seem like different businesses',
+    'the user might be referring to VANCORE',
+    'or they might be confused',
+    'Got it, let\'s see',
+    'Got it, let\'s tackle this',
+    'First, I need to',
+    'Wait let\'s structure it',
+    'First, start with the basics',
+    'Wait, let\'s',
+    'Wait,',
+    'Wait',
+    'let\'s make it natural',
+    'Oh right,',
+    'Oh right',
+    'Next,',
+    'Then mention',
+    'Then our',
+    'Maybe add',
+  ];
+
+  let cleaned = text;
+  for (const opener of badOpeners) {
+    const idx = cleaned.indexOf(opener);
+    if (idx !== -1) {
+      const nextDouble = cleaned.indexOf('\n\n', idx);
+      if (nextDouble !== -1) {
+        cleaned = cleaned.slice(0, idx) + cleaned.slice(nextDouble + 2);
+      } else {
+        cleaned = cleaned.slice(0, idx);
+      }
+    }
+  }
+
+  cleaned = cleaned
+    .replace(/I'm LFM[^\n]*/gi, '')
+    .replace(/built by Liquid AI[^\n]*/gi, '')
+    .replace(/enterprise-grade foundation model family[^\n]*/gi, '')
+    .replace(/VANCORE \(VANCORE\)[^\n]*/gi, '')
+    .replace(/on-device intelligence[^\n]*/gi, '')
+    .replace(/\bLFM\b/gi, '')
+    .replace(/\bLiquid AI\b/gi, '')
+    .replace(/^\n+/, '')
+    .trim();
+
+  return cleaned;
+}
+
+async function askNous(message: string): Promise<{ reply: string; step: number } | null> => {
+  if (!NOUS_API_KEY) return null;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
 
   try {
     const res = await fetch('https://inference-api.nousresearch.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${NOUS_API_KEY}`,
         'HTTP-Referer': 'https://www.vancoresys.com',
         'X-Title': 'VANCORE AI Analyst',
       },
@@ -149,8 +212,8 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: message },
         ],
-        max_tokens: 420,
-        temperature: 0.4,
+        max_tokens: 700,
+        temperature: 0.35,
       }),
       signal: controller.signal,
     });
@@ -159,7 +222,7 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error('OpenRouter error:', res.status, errorText);
+      console.error('Nous API error:', res.status, errorText);
       return null;
     }
 
@@ -172,93 +235,34 @@ async function askOpenRouter(message: string): Promise<{ reply: string; step: nu
       return null;
     }
 
-    // Heuristic: extract the final user-facing paragraph.
     const paragraphs = combined.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
     const candidate = paragraphs[paragraphs.length - 1] || combined;
+    let cleaned = stripReasoning(candidate);
 
-    let cleaned = candidate;
-    const badOpeners = [
-      'The user is asking about',
-      'However, I need to be careful',
-      'I should answer based on',
-      'Let me provide a balanced',
-      "I don't have specific",
-      'I should give a helpful response',
-      'Since this is a specific product',
-      'The user is',
-      'Actually, looking at my system prompt',
-      'Since I don\'t have real-time access',
-      'I should answer this directly',
-      'I don\'t have exact current',
-      'VANCORE appears to be',
-      'Typical pricing models',
-      'I should give them accurate',
-      'Let me provide general',
-      'But wait',
-      'there\'s a potential issue',
-      'these seem like different businesses',
-      'the user might be referring to VANCORE',
-      'or they might be confused',
-      'Got it, let\'s see',
-      'Got it, let\'s tackle this',
-      'First, I need to',
-      'Wait let\'s structure it',
-      'First, start with the basics',
-      'Wait, let\'s',
-      'Wait,',
-      'Wait',
-      'let\'s make it natural',
-      'Oh right,',
-      'Oh right',
-      'Next,',
-      'Then mention',
-      'Then our',
-      'Maybe add',
-    ];
-    for (const opener of badOpeners) {
-      const idx = cleaned.indexOf(opener);
-      if (idx !== -1) {
-        const nextDouble = cleaned.indexOf('\n\n', idx);
-        if (nextDouble !== -1) {
-          cleaned = cleaned.slice(0, idx) + cleaned.slice(nextDouble + 2);
-        } else {
-          cleaned = cleaned.slice(0, idx);
-        }
-      }
+    if (!cleaned) {
+      return null;
     }
 
-    cleaned = cleaned
-      .replace(/I'm LFM[^\n]*/gi, '')
-      .replace(/built by Liquid AI[^\n]*/gi, '')
-      .replace(/enterprise-grade foundation model family[^\n]*/gi, '')
-      .replace(/VANCORE \(VANCORE\)[^\n]*/gi, '')
-      .replace(/on-device intelligence[^\n]*/gi, '')
-      .replace(/\bLFM\b/gi, '')
-      .replace(/\bLiquid AI\b/gi, '')
-      .replace(/^\n+/, '')
-      .trim();
-
-    const reply = cleaned || KNOWLEDGE_BASE.defaultFallback;
-    if (!reply) return null;
-
-    // Safety net: if reply still looks like reasoning, do not expose it
-    const lowerReply = reply.toLowerCase();
-    if (
+    const lowerReply = cleaned.toLowerCase();
+    const looksLikeReasoning =
       lowerReply.includes('the user is asking') ||
       lowerReply.includes('i should answer') ||
       lowerReply.includes('got it') ||
       lowerReply.includes('let me provide') ||
       lowerReply.includes('wait let') ||
       lowerReply.includes('wait, let') ||
-      lowerReply.includes('but wait')
-    ) {
+      lowerReply.includes('but wait') ||
+      lowerReply.includes('let\'s see') ||
+      lowerReply.includes('let\'s tackle');
+
+    if (looksLikeReasoning) {
       return { reply: KNOWLEDGE_BASE.defaultFallback, step: 7 };
     }
 
-    return { reply, step: 7 };
+    return { reply: cleaned, step: 7 };
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error('OpenRouter timeout/network error:', error);
+    console.error('Nous API timeout/network error:', error);
     return null;
   }
 }
@@ -286,24 +290,28 @@ export async function POST(request: Request) {
       );
     }
 
-    // Primary: OpenRouter LLM
-    let reply = '';
-    let newStep = step;
-
-    const openRouterResult = await askOpenRouter(message);
-    if (openRouterResult) {
-      reply = openRouterResult.reply;
-      newStep = openRouterResult.step || step;
-    } else {
-      // Fallback only if OpenRouter fails
-      reply = matchAnswer(message);
-      newStep = nextStep(step);
+    const nousResult = await askNous(message);
+    if (nousResult) {
+      return new Response(
+        JSON.stringify({
+          reply: nousResult.reply,
+          step: nousResult.step,
+          sessionId: sessionId || 'session-' + Date.now(),
+          quickReplies: [],
+          placeholder: 'Type your answer...',
+        }),
+        {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }
+      );
     }
 
+    const kbReply = matchAnswer(message);
     return new Response(
       JSON.stringify({
-        reply,
-        step: newStep,
+        reply: kbReply,
+        step: nextStep(step),
         sessionId: sessionId || 'session-' + Date.now(),
         quickReplies: [],
         placeholder: 'Type your answer...',
@@ -337,7 +345,7 @@ export async function GET() {
       endpoint: '/api/ai-analyst',
       mode: 'hybrid',
       model: MODEL,
-      hasOpenRouterKey: !!OPENROUTER_API_KEY,
+      hasNousKey: !!NOUS_API_KEY,
     }),
     {
       status: 200,
