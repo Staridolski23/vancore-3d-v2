@@ -1,6 +1,7 @@
+import { BACKEND_URL } from '@/lib/backend';
 import { NextRequest, NextResponse } from 'next/server';
 
-const DO_API = process.env.DO_API_URL || 'http://206.189.48.236:3001';
+const DO_API = BACKEND_URL;
 
 export async function POST(request: NextRequest) {
   try {

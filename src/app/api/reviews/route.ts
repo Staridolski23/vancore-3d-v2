@@ -1,33 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-const DO_API = process.env.DO_API_URL || 'http://206.189.48.236:3001';
-
+import { backendResponse } from '@/lib/backend';
+import { requestUser, isAdminEmail } from '@/lib/request-auth';
 export async function GET(request: NextRequest) {
-  const searchParams = request.url.split('?')[1] || '';
-  const res = await fetch(`${DO_API}/api/reviews?${searchParams}`, {
-    headers: { Authorization: request.headers.get('authorization') || '' },
-  });
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
+  const query = new URL(request.url).searchParams;
+  const user = await requestUser(request);
+  if (!user) return backendResponse('/api/reviews?status=published');
+  if (!isAdminEmail(user.email)) { query.delete('status'); query.set('user_id', user.id); }
+  return backendResponse('/api/reviews?' + query.toString());
 }
-
 export async function POST(request: NextRequest) {
+  const user = await requestUser(request);
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await request.json();
-  const res = await fetch(`${DO_API}/api/reviews`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: request.headers.get('authorization') || '' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
-}
-
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const body = await request.json();
-  const res = await fetch(`${DO_API}/api/reviews/${params.id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: request.headers.get('authorization') || '' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
+  return backendResponse('/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, user_id: user.id }) });
 }

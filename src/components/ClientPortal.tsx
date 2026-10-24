@@ -1,4 +1,5 @@
 'use client';
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -41,7 +42,7 @@ export default function ClientPortal() {
   useEffect(() => {
     const token = localStorage.getItem('vancore_client_token');
     if (token) {
-      fetch('/api/auth/profile', {
+      authenticatedFetch('/api/auth/profile', {
         headers: { Authorization: 'Bearer ' + token },
       }).then(res => {
         if (res.ok) {
@@ -52,17 +53,17 @@ export default function ClientPortal() {
               setActiveTab('billing');
             }
             // Fetch bookings
-            fetch('/api/bookings?email=' + data.user.email)
+            authenticatedFetch('/api/bookings?email=' + data.user.email)
               .then(r => r.json())
               .then(data => setBookings(data.bookings || []))
               .catch(() => setBookings([]));
             // Fetch documents
-            fetch('/api/documents?email=' + data.user.email)
+            authenticatedFetch('/api/documents?email=' + data.user.email)
               .then(r => r.json())
               .then(data => setDocuments(data.documents || []))
               .catch(() => setDocuments([]));
             // Fetch reviews
-            fetch('/api/reviews?user_id=' + data.user.id)
+            authenticatedFetch('/api/reviews?user_id=' + data.user.id)
               .then(r => r.json())
               .then(data => setReviews(data.reviews || []))
               .catch(() => setReviews([]));
@@ -130,7 +131,7 @@ export default function ClientPortal() {
     setReviewMessage('');
     try {
       const token = localStorage.getItem('vancore_client_token');
-      const res = await fetch('/api/reviews', {
+      const res = await authenticatedFetch('/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +151,7 @@ export default function ClientPortal() {
         setReviewBody('');
         setReviewRating(5);
         setReviewMessage('Thanks! Your review is awaiting approval.');
-        fetch('/api/reviews?user_id=' + user?.id)
+        authenticatedFetch('/api/reviews?user_id=' + user?.id)
           .then(r => r.json())
           .then(data => setReviews(data.reviews || []))
           .catch(() => {});
@@ -175,11 +176,12 @@ export default function ClientPortal() {
 
   const confirmBooking = async (id: string | number) => {
     const token = localStorage.getItem('vancore_client_token');
-    await fetch('/api/bookings/' + id, {
+    const response = await authenticatedFetch('/api/bookings/' + id, {
       method: 'PUT',
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'confirmed', confirmed_at: new Date().toISOString() }),
     });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'confirmed', confirmed_at: new Date().toISOString() } : b));
   };
 
@@ -194,11 +196,12 @@ export default function ClientPortal() {
     const reason = window.prompt('Please provide a reason for cancellation') || '';
     if (!reason) return;
     const token = localStorage.getItem('vancore_client_token');
-    await fetch('/api/bookings/' + id, {
+    const response = await authenticatedFetch('/api/bookings/' + id, {
       method: 'PUT',
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'cancelled', cancellation_reason: reason, penalty_applied: penalty }),
     });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled', cancellation_reason: reason, penalty_applied: penalty } : b));
     setPenaltyWarning(penalty ? 'This booking was cancelled less than 24h before the session. A penalty may apply.' : null);
   };
@@ -209,17 +212,18 @@ export default function ClientPortal() {
     const newTime = prompt('New time (HH:MM)');
     if (!newTime) return;
     const token = localStorage.getItem('vancore_client_token');
-    await fetch('/api/bookings/' + id + '/propose', {
+    const response = await authenticatedFetch('/api/bookings/' + id + '/propose', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ date: newDate, time: newTime, status: 'rescheduled' }),
     });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'rescheduled' } : b));
   };
 
   const generateReport = async (): Promise<string> => {
     try {
-      const res = await fetch('/api/ai-analyst', {
+      const res = await authenticatedFetch('/api/ai-analyst', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: 'Please generate a concise business status report for the logged-in client.' }),
@@ -641,7 +645,7 @@ export default function ClientPortal() {
                   return;
                 }
                 try {
-                  const res = await fetch('/api/auth', {
+                  const res = await authenticatedFetch('/api/auth', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'change-password', email, currentPassword, newPassword }),

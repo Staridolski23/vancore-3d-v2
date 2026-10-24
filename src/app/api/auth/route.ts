@@ -1,5 +1,6 @@
+import { requestUser, isAdminEmail } from '@/lib/request-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin, createAuthClient } from '@/lib/supabase';
 import { SignInWithPasswordCredentials } from '@supabase/supabase-js';
 
 const ADMIN_EMAILS = [
@@ -10,10 +11,13 @@ const ADMIN_EMAILS = [
 
 export async function POST(request: NextRequest) {
   try {
-    const { action, email, password, name, company, phone } = await request.json();
+    const body = await request.json();
+    const { action, email, password, name, company, phone } = body;
 
     if (action === 'register') {
-      const role = ADMIN_EMAILS.includes(email.toLowerCase()) ? 'admin' : 'client';
+      if (typeof email !== 'string' || typeof password !== 'string' || password.length < 8) return NextResponse.json({ error: 'A valid email and a password of at least 8 characters are required.' }, { status: 400 });
+      if (isAdminEmail(email)) return NextResponse.json({ error: 'Administrator accounts must be provisioned by the team.' }, { status: 403 });
+      const role = 'client';
       
       // Check if user already exists
       const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
@@ -58,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'login') {
-      const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+      const { data, error } = await createAuthClient().auth.signInWithPassword({
         email,
         password,
       } as SignInWithPasswordCredentials);
@@ -109,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'change-password') {
-      const { email, currentPassword, newPassword } = await request.json();
+      const { email, currentPassword, newPassword } = body;
       if (!email || !currentPassword || !newPassword) {
         return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
       }
@@ -117,7 +121,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'New password must be at least 6 characters' }, { status: 400 });
       }
 
-      const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+      const { data: authData, error: authError } = await createAuthClient().auth.signInWithPassword({
         email,
         password: currentPassword,
       } as SignInWithPasswordCredentials);
@@ -138,14 +142,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'update-profile') {
-      const { email, name, company, phone, vat_id } = await request.json();
-
-      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-      const user = existingUsers?.users?.find(u => u.email?.toLowerCase() === email?.toLowerCase());
-
-      if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      }
+      const { name, company, phone, vat_id } = body;
+      const user = await requestUser(request);
+      if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const email = user.email;
 
       const { error: profileError } = await supabaseAdmin
         .from('users')
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
           company: company || '',
           phone: phone || '',
           vat_id: vat_id || '',
-          role: user.user_metadata?.role || 'client',
+          // Preserve the existing role; profile edits cannot grant privileges.
         });
 
       if (profileError) {

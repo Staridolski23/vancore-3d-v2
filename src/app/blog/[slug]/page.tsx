@@ -97,7 +97,8 @@ export function generateStaticParams() {
   return Object.keys(articles).map((slug) => ({ slug }));
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
+export default async function BlogPostPage({ params: promisedParams }: { params: Promise<{ slug: string }> }) {
+  const params = await promisedParams;
   const article = articles[params.slug];
 
   if (!article) {

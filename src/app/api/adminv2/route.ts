@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, verifyToken } from '@/lib/supabase';
+import { supabaseAdmin, verifyToken, createAuthClient } from '@/lib/supabase';
 
 // Admin emails
 const ADMIN_EMAILS = [
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
-    const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
+    const { data, error } = await createAuthClient().auth.signInWithPassword({ email, password });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 401 });

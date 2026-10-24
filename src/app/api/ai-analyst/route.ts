@@ -235,7 +235,7 @@ async function askNous(message: string): Promise<{ reply: string; step: number }
       return null;
     }
 
-    const paragraphs = combined.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+    const paragraphs = combined.split(/\n\s*\n/).map((p: string) => p.trim()).filter(Boolean);
 
     // Scan backwards to find the first paragraph that looks like a real user-facing answer.
     let cleaned = '';
