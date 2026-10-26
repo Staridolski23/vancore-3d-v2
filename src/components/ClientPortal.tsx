@@ -30,6 +30,13 @@ export default function ClientPortal() {
   const [reviewRating, setReviewRating] = useState(5);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewMessage, setReviewMessage] = useState('');
+  const [profileDraft, setProfileDraft] = useState({ name: '', company: '', phone: '', vat_id: '' });
+  const [profileMessage, setProfileMessage] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [dataErrors, setDataErrors] = useState<Record<string, string>>({});
+  const [messages, setMessages] = useState<{id: string; role: string; content: string}[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [profileLoadError, setProfileLoadError] = useState('');
   const [cancelReason, setCancelReason] = useState('');
   const [penaltyWarning, setPenaltyWarning] = useState<string | null>(null);
   const [reportContent, setReportContent] = useState('');
@@ -49,38 +56,67 @@ export default function ClientPortal() {
         if (res.ok) {
           res.json().then(data => {
             setUser(data.user);
+            setProfileDraft({ name: data.user.name || '', company: data.user.company || '', phone: data.user.phone || '', vat_id: data.user.vat_id || '' });
             setStatus('dashboard');
             if (planParam) {
               setActiveTab('billing');
             }
             // Fetch bookings
             authenticatedFetch('/api/bookings?email=' + data.user.email)
-              .then(r => r.json())
+              .then(r => { if (!r.ok) throw new Error(); return r.json(); })
               .then(data => setBookings(data.bookings || []))
-              .catch(() => setBookings([]));
+              .catch(() => setDataErrors(previous => ({ ...previous, bookings: 'Your bookings could not be loaded. Please reload to retry.' })));
             // Fetch documents
             authenticatedFetch('/api/documents?email=' + data.user.email)
-              .then(r => r.json())
+              .then(r => { if (!r.ok) throw new Error(); return r.json(); })
               .then(data => setDocuments(data.documents || []))
-              .catch(() => setDocuments([]));
+              .catch(() => setDataErrors(previous => ({ ...previous, documents: 'Your documents could not be loaded. Please reload to retry.' })));
             // Fetch reviews
             authenticatedFetch('/api/reviews?user_id=' + data.user.id)
-              .then(r => r.json())
+              .then(r => { if (!r.ok) throw new Error(); return r.json(); })
               .then(data => setReviews(data.reviews || []))
-              .catch(() => setReviews([]));
+              .catch(() => setDataErrors(previous => ({ ...previous, reviews: 'Your reviews could not be loaded. Please reload to retry.' })));
           });
-        } else {
+        } else if (res.status === 401 || res.status === 403) {
           localStorage.removeItem('vancore_client_token');
           setStatus('login');
+        } else {
+          setProfileLoadError('Your profile could not be loaded. Please retry.');
         }
       }).catch(() => {
-        localStorage.removeItem('vancore_client_token');
-        setStatus('login');
+        setProfileLoadError('Your profile could not be loaded. Please retry.');
       });
     } else {
       setStatus('login');
     }
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'history' || !user) return;
+    let current = true;
+    setLoadingMessages(true);
+    authenticatedFetch('/api/chat').then(async response => {
+      if (!response.ok) throw new Error();
+      const data = await response.json();
+      if (current) {
+        setMessages(data.messages || []);
+        setDataErrors(previous => { const next = { ...previous }; delete next.history; return next; });
+      }
+    }).catch(() => { if (current) setDataErrors(previous => ({ ...previous, history: 'Your messages could not be loaded. Please reload to retry.' })); })
+      .finally(() => { if (current) setLoadingMessages(false); });
+    return () => { current = false; };
+  }, [activeTab, user?.id]);
+
+  const saveProfile = async () => {
+    setSavingProfile(true); setProfileMessage('');
+    try {
+      const response = await authenticatedFetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update-profile', ...profileDraft }) });
+      if (!response.ok) throw new Error();
+      setUser(previous => previous ? { ...previous, ...profileDraft } : previous);
+      setProfileMessage('Profile saved.');
+    } catch { setProfileMessage('Your profile could not be saved. Please try again.'); }
+    finally { setSavingProfile(false); }
+  };
 
   const logout = () => {
     setUser(null);
@@ -257,7 +293,7 @@ export default function ClientPortal() {
   if (status === 'loading') {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="text-[#6b6b6b] text-sm">Loading...</div>
+        {profileLoadError ? <div role="alert" className="text-sm text-red-400">{profileLoadError} <button onClick={() => window.location.reload()} className="underline">Retry</button></div> : <div className="text-[#6b6b6b] text-sm">Loading...</div>}
       </div>
     );
   }
@@ -269,11 +305,11 @@ export default function ClientPortal() {
     return null;
   }
 
-  const clarityScore = 31;
   const currentPlan = user?.plan || 'starter';
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {Object.entries(dataErrors).map(([key, message]) => <p key={key} role="alert" className="text-sm text-red-400">{message}</p>)}
       {/* Tab Navigation */}
       <div className="flex gap-1 bg-[#111] p-1 rounded-lg overflow-x-auto">
         {[
@@ -311,12 +347,8 @@ export default function ClientPortal() {
                 <p className="text-sm text-[#9a9a9a]">{user?.company || 'No company'}</p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-[#991930]">{clarityScore}%</div>
-                <div className="text-[10px] text-[#6b6b6b] uppercase tracking-wider">Clarity Score</div>
+                <div className="text-sm text-[#9a9a9a]">Assessment pending</div>
               </div>
-            </div>
-            <div className="mt-4 h-2 bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#991930] to-[#c94f2b] rounded-full" style={{ width: clarityScore + '%' }} />
             </div>
             <div className="mt-4 flex gap-3">
               <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
@@ -352,12 +384,12 @@ export default function ClientPortal() {
                 <div className="text-[10px] text-[#6b6b6b] uppercase">Credits</div>
               </div>
               <div className="p-3 bg-white/5 rounded-lg text-center">
-                <div className="text-xl font-bold text-white">0</div>
+                <div className="text-xl font-bold text-white">—</div>
                 <div className="text-[10px] text-[#6b6b6b] uppercase">Reports</div>
               </div>
               <div className="p-3 bg-white/5 rounded-lg text-center">
-                <div className="text-xl font-bold text-white">0</div>
-                <div className="text-[10px] text-[#6b6b6b] uppercase">Calls</div>
+                <div className="text-xl font-bold text-white">{dataErrors.bookings ? '—' : bookings.filter(booking => booking.status !== 'cancelled').length}</div>
+                <div className="text-[10px] text-[#6b6b6b] uppercase">Bookings</div>
               </div>
             </div>
           </div>
@@ -388,7 +420,7 @@ export default function ClientPortal() {
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
             <h3 className="text-base font-semibold text-white mb-4">My Bookings</h3>
-            {bookings.length === 0 ? (
+            {dataErrors.bookings ? null : bookings.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📅</div>
                 <p className="text-sm text-[#6b6b6b] mb-4">You don't have any bookings yet.</p>
@@ -452,7 +484,7 @@ export default function ClientPortal() {
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
             <h3 className="text-base font-semibold text-white mb-4">Documents</h3>
             {documentError && <p role="alert" className="text-sm text-red-400 mb-4">{documentError}</p>}
-            {documents.length === 0 ? (
+            {dataErrors.documents ? null : documents.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📁</div>
                 <p className="text-sm text-[#6b6b6b] mb-4">You don't have any documents yet.</p>
@@ -561,14 +593,17 @@ export default function ClientPortal() {
       {activeTab === 'history' && (
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
-            <h3 className="text-base font-semibold text-white mb-4">Chat History</h3>
-            <div className="text-center py-12">
+            <h3 className="text-base font-semibold text-white mb-4">Messages with VANCORE</h3>
+            <p className="text-xs text-[#9a9a9a] mb-4">Messages sent to the VANCORE team through the client portal.</p>
+            {loadingMessages && <p className="text-sm text-[#9a9a9a]">Loading messages...</p>}
+            {messages.map(message => <div key={message.id} className="border-b border-white/10 py-3"><p className="text-xs text-[#9a9a9a]">{message.role === 'user' ? 'You' : 'VANCORE team'}</p><p className="text-sm text-white whitespace-pre-wrap">{message.content}</p></div>)}
+            {!loadingMessages && !dataErrors.history && messages.length === 0 && <div className="text-center py-12">
               <div className="text-4xl mb-3">💬</div>
-              <p className="text-sm text-[#6b6b6b] mb-4">No conversations yet.</p>
+              <p className="text-sm text-[#6b6b6b] mb-4">No portal messages yet.</p>
               <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                Start a Conversation
+                Start an AI Analysis
               </a>
-            </div>
+            </div>}
           </div>
         </div>
       )}
@@ -621,7 +656,7 @@ export default function ClientPortal() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Name</label>
-                <input type="text" defaultValue={user?.name || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input type="text" value={profileDraft.name} onChange={event => setProfileDraft(previous => ({ ...previous, name: event.target.value }))} name="name" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Email</label>
@@ -629,19 +664,20 @@ export default function ClientPortal() {
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Company</label>
-                <input type="text" defaultValue={user?.company || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input type="text" value={profileDraft.company} onChange={event => setProfileDraft(previous => ({ ...previous, company: event.target.value }))} name="company" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">VAT ID</label>
-                <input type="text" defaultValue={user?.vat_id || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input type="text" value={profileDraft.vat_id} onChange={event => setProfileDraft(previous => ({ ...previous, vat_id: event.target.value }))} name="vat_id" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Phone</label>
-                <input type="tel" defaultValue={user?.phone || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input type="tel" value={profileDraft.phone} onChange={event => setProfileDraft(previous => ({ ...previous, phone: event.target.value }))} name="phone" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
-              <button className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                Save Changes
+              <button onClick={saveProfile} disabled={savingProfile} className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] disabled:opacity-50 transition-colors">
+                {savingProfile ? 'Saving...' : 'Save Changes'}
               </button>
+              {profileMessage && <p role="status" className="text-sm text-[#9a9a9a]">{profileMessage}</p>}
             </div>
           </div>
 

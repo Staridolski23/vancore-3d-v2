@@ -19,13 +19,12 @@ export default function AdminPage() {
       }).then(res => {
         if (res.ok) {
           res.json().then(data => {
-            if (data.user?.role === 'admin' || ADMIN_EMAILS.includes(data.user?.email?.toLowerCase())) {
+            if (ADMIN_EMAILS.includes(data.user?.email?.toLowerCase())) {
               setToken(adminToken);
               setState('dashboard');
             } else {
-              // Not an admin - redirect to login
-              localStorage.removeItem('vancore_client_token');
-              window.location.href = '/login';
+              // Preserve the valid client session when admin access is denied.
+              window.location.replace('/client-portal');
             }
           });
         } else {

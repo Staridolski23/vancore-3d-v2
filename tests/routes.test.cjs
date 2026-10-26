@@ -75,6 +75,18 @@ test('profile update reads the request once and requires authentication',async()
   const result=await routes.POST(req('/api/auth',{action:'update-profile',email:'victim@example.com',name:'attacker'}));
   assert.equal(result.status,401);
 });
+test('profile writes use verified identity and ignore caller privilege fields',async()=>{
+ let profile,authId;
+ const routes=load('src/app/api/auth/route.ts',{
+  '@/lib/request-auth':{requestUser:async()=>({id:'verified-client',email:'owner@example.com'}),isAdminEmail:()=>false},
+  '@/lib/supabase':{supabaseAdmin:{from:()=>({upsert:async value=>{profile=value;return {error:null};}}),auth:{admin:{updateUserById:async id=>{authId=id;return {error:null};}}}}},
+  '@supabase/supabase-js':{},
+ });
+ const result=await routes.POST(req('/api/auth',{action:'update-profile',id:'victim',email:'victim@example.com',name:'Updated',phone:'123',role:'admin',plan:'business',credits:99999}));
+ assert.equal(result.status,200);assert.equal(profile.id,'verified-client');assert.equal(profile.email,'owner@example.com');assert.equal(profile.phone,'123');assert.equal(authId,'verified-client');
+ for(const field of ['role','plan','credits','subscription_status'])assert.ok(!Object.hasOwn(profile,field));
+});
+
 test('password changes use the parsed body once and an isolated sign-in client',async()=>{
  let changed;
  const routes=load('src/app/api/auth/route.ts',{
