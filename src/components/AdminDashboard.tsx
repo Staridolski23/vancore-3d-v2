@@ -59,6 +59,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [contentError, setContentError] = useState('');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'pending_approval' | 'published' | 'rejected'>('all');
   const [newBookingCount, setNewBookingCount] = useState(0);
@@ -133,10 +134,12 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
   const fetchContent = async () => {
     setLoadingContent(true);
+    setContentError('');
     try {
       const res = await authenticatedFetch('/api/adminv2/content', { headers: { Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') } });
-      if (res.ok) { const data = await res.json(); setSiteContent(data.content || []); }
-    } catch (e) { console.error('Failed to fetch content:', e); }
+      if (!res.ok) throw new Error('Content unavailable');
+      const data = await res.json(); setSiteContent(data.content || []);
+    } catch { setContentError('Content could not be loaded. Please retry before editing.'); }
     finally { setLoadingContent(false); }
   };
 
@@ -271,6 +274,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const saveContent = async () => {
     if (!editingContent) return;
     setSaving(true);
+    setContentError('');
     try {
       const res = await authenticatedFetch('/api/adminv2/content', {
         method: 'PUT',
@@ -281,9 +285,11 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         setSiteContent(prev => prev.map(c => c.id === editingContent.id ? { ...c, value: editValue, updated_at: new Date().toISOString() } : c));
         setEditingContent(null);
         setEditValue('');
+      } else {
+        setContentError('Content could not be saved. Your edit is still open.');
       }
-    } catch (e) {
-      console.error('Failed to save content:', e);
+    } catch {
+      setContentError('Content could not be saved. Your edit is still open.');
     } finally {
       setSaving(false);
     }
@@ -520,7 +526,9 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
             <h3 className="text-sm font-semibold text-white mb-4">Site Content Editor</h3>
-            <p className="text-xs text-[#6b6b6b] mb-4">Edit the content of your website directly from here. Changes are saved to the database and reflected on the site after the next deployment.</p>
+            <p className="text-xs text-[#6b6b6b] mb-4">Edit your website content here. Saved changes appear when the page is reloaded.</p>
+            {contentError && <div role="alert" className="text-sm text-red-400 mb-4">{contentError} <button onClick={fetchContent} className="underline">Retry</button></div>}
+            {loadingContent && <p className="text-sm text-[#9a9a9a]">Loading content...</p>}
 
             {editingContent ? (
               <div className="space-y-3 border border-white/10 rounded-lg p-4">
@@ -570,7 +578,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                     </button>
                   </div>
                 ))}
-                {siteContent.length === 0 && (
+                {siteContent.length === 0 && !loadingContent && !contentError && (
                   <div className="text-sm text-[#6b6b6b] text-center py-8">No content items found. Add some below.</div>
                 )}
               </div>
@@ -580,7 +588,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           {/* Add New Content */}
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
             <h3 className="text-sm font-semibold text-white mb-3">Add New Content</h3>
-            <AddContentForm onAdded={fetchContent} />
+            {!loadingContent && !contentError && <AddContentForm onAdded={fetchContent} />}
           </div>
         </div>
       )}
@@ -804,7 +812,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
               <input
                 type="file"
                 id="media-upload"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp,image/gif"
                 className="hidden"
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
@@ -833,7 +841,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
               <label htmlFor="media-upload" className="cursor-pointer">
                 <div className="text-3xl mb-2">📁</div>
                 <p className="text-sm text-[#9a9a9a]">Click to upload or drag and drop</p>
-                <p className="text-[10px] text-[#6b6b6b] mt-1">PNG, JPG, SVG up to 10MB</p>
+                <p className="text-[10px] text-[#6b6b6b] mt-1">PNG, JPG, WebP or GIF up to 10MB</p>
               </label>
             </div>
 

@@ -22,3 +22,21 @@ test('content editor requires server credentials, round-trips updates, and block
   assert.equal((await fetch(base+'/api/reviews/missing',o)).status,404);
  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await new Promise(resolve=>db.close(resolve));}
 });
+
+test('dedicated content overlay preserves legacy rows and requires the injected administrator guard',async()=>{
+ const sqlite3=req('sqlite3'),express=req('express'),db=new sqlite3.Database(':memory:');
+ const run=sql=>new Promise((resolve,reject)=>db.run(sql,error=>error?reject(error):resolve()));
+ await run('CREATE TABLE site_content(id INTEGER PRIMARY KEY,section TEXT,key TEXT,value TEXT,type TEXT,updated_at TEXT)');
+ await run("INSERT INTO site_content VALUES(1,'hero','title','Stale legacy title','text',NULL)");
+ await run('CREATE TABLE vancore_site_content(id INTEGER PRIMARY KEY,section TEXT,key TEXT,value TEXT,type TEXT,updated_at TEXT)');
+ const app=express();app.use(express.json());
+ installContentMaintenance(app,db,()=>({hero:{title:'Current public title'}}),{table:'vancore_site_content',requireAdmin:(r,s,n)=>r.get('Authorization')==='Bearer verified-admin'?n():s.sendStatus(403)});
+ const server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));}),base='http://127.0.0.1:'+server.address().port;
+ try{
+  assert.equal((await(await fetch(base+'/api/content')).json()).sections.hero.title,'Current public title');
+  assert.equal((await fetch(base+'/api/maintenance/content',{headers:{'X-Vancore-Backend-Key':'a'.repeat(64)}})).status,403);
+  const result=await fetch(base+'/api/maintenance/content',{method:'PUT',headers:{Authorization:'Bearer verified-admin','Content-Type':'application/json'},body:JSON.stringify({id:'hero:title',value:'Edited title'})});assert.equal(result.status,200);
+  assert.equal((await(await fetch(base+'/api/content')).json()).sections.hero.title,'Edited title');
+  const row=await new Promise((resolve,reject)=>db.get('SELECT value FROM site_content WHERE id=1',(e,r)=>e?reject(e):resolve(r)));assert.equal(row.value,'Stale legacy title');
+ }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await new Promise(resolve=>db.close(resolve));}
+});

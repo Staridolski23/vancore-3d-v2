@@ -6,7 +6,8 @@ function hasBackendKey(req) {
   return expected.length >= 32 && Buffer.byteLength(expected) === Buffer.byteLength(received) && timingSafeEqual(Buffer.from(expected), Buffer.from(received));
 }
 function installContentMaintenance(app, db, loadContent, authorization = {}) {
-  const readRows = () => new Promise((resolve, reject) => db.all('SELECT * FROM site_content ORDER BY id', [], (error, rows) => error ? reject(error) : resolve(rows)));
+  const table = authorization.table === 'vancore_site_content' ? 'vancore_site_content' : 'site_content';
+  const readRows = () => new Promise((resolve, reject) => db.all(`SELECT * FROM ${table} ORDER BY id`, [], (error, rows) => error ? reject(error) : resolve(rows)));
   const run = (sql, params) => new Promise((resolve, reject) => db.run(sql, params, function(error) { error ? reject(error) : resolve({ id: this.lastID, changes: this.changes }); }));
   const guard = authorization.requireAdmin || ((req, res, next) => hasBackendKey(req) ? next() : res.status(401).json({ error: 'Unauthorized' }));
   const validKey = key => typeof key === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(key) && !['__proto__','constructor','prototype'].includes(key);
@@ -53,8 +54,8 @@ function installContentMaintenance(app, db, loadContent, authorization = {}) {
       if(type==='json') { try { JSON.parse(value); } catch { return res.status(400).json({error:'Invalid JSON content'}); } }
       const previous=rows.find(row=>row.section===section&&row.key===key);
       const result = previous
-        ? await run('UPDATE site_content SET value=?,type=?,updated_at=CURRENT_TIMESTAMP WHERE section=? AND key=?',[value,type,section,key])
-        : await run('INSERT INTO site_content(section,key,value,type) VALUES(?,?,?,?)',[section,key,value,type]);
+        ? await run(`UPDATE ${table} SET value=?,type=?,updated_at=CURRENT_TIMESTAMP WHERE section=? AND key=?`,[value,type,section,key])
+        : await run(`INSERT INTO ${table}(section,key,value,type) VALUES(?,?,?,?)`,[section,key,value,type]);
       res.json({success:true,id:previous?.id||result.id});
     } catch { res.status(500).json({error:'Unable to save content'}); }
   };
