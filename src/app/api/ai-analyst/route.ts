@@ -12,7 +12,7 @@ COMPANY FACTS:
 - 47+ engagements delivered, 92% client retention, 6+ years embedded operational experience.
 - Services: Business Analysis, Process Re-engineering, Change Management, Implementation Support.
 - Method: Discovery → Diagnosis → Design → Deployment.
-- Pricing: Starter €499/month, Growth €999/month, Scale €1,999/month. 14-day free trial.
+- Pricing: Pay-As-You-Go €25 one-time, Professional €49/month, Business €99/month. Pay-As-You-Go is a one-time purchase, not a monthly subscription. 14-day free trial.
 - Contact: hello@vancoresys.com. Office: Sofia, Bulgaria.
 - Security: AES-256 encryption, TLS 1.2+, JWT + RBAC, EU data residency.
 
@@ -30,7 +30,7 @@ const KNOWLEDGE_BASE: KnowledgeBase = {
   faq: [
     {
       keywords: ['price', 'pricing', 'cost', 'how much', 'package', 'plan', 'subscription', 'rates'],
-      answer: 'Our plans start from €499/month for Starter, €999/month for Growth, and €1,999/month for Scale. We also offer a 14-day free trial. All prices exclude VAT where applicable.',
+      answer: 'Our plans are Pay-As-You-Go at €25 as a one-time purchase, Professional at €49/month, and Business at €99/month. We also offer a 14-day free trial. All prices exclude VAT where applicable.',
     },
     {
       keywords: ['service', 'services', 'what do you do', 'offer', 'solutions', 'specialize'],
@@ -50,7 +50,7 @@ const KNOWLEDGE_BASE: KnowledgeBase = {
     },
     {
       keywords: ['support', 'help', 'after', 'follow up', 'maintenance'],
-      answer: 'Every plan includes ongoing support. Growth and Scale plans get faster response times and optional check-ins.',
+      answer: 'Pay-As-You-Go includes basic support. Professional includes priority support. Business includes the Professional features and two human consultant calls per month.',
     },
     {
       keywords: ['industry', 'sector', 'horeca', 'retail', 'e-commerce', 'logistics', 'work with'],
