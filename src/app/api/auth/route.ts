@@ -19,19 +19,12 @@ export async function POST(request: NextRequest) {
       if (isAdminEmail(email)) return NextResponse.json({ error: 'Administrator accounts must be provisioned by the team.' }, { status: 403 });
       const role = 'client';
       
-      // Check if user already exists
-      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-      const userExists = existingUsers?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase());
-      
-      if (userExists) {
-        return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 });
-      }
-      
-      const { data, error } = await supabaseAdmin.auth.admin.createUser({
+      // Public signup must use the configured email verification flow, not
+      // the administrator API's email_confirm bypass.
+      const { data, error } = await createAuthClient().auth.signUp({
         email,
         password,
-        email_confirm: true,
-        user_metadata: { name, company, phone, role },
+        options: { data: { name, company, phone, role }, emailRedirectTo: 'https://www.vancoresys.com/login' },
       });
 
       if (error) {
@@ -41,7 +34,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
 
-      if (data.user) {
+      if (data.user && data.user.identities?.length) {
         await supabaseAdmin.from('users').upsert({
           id: data.user.id,
           email,
@@ -51,13 +44,14 @@ export async function POST(request: NextRequest) {
           plan: 'starter',
           credits: 5,
           subscription_status: 'free',
-        });
+          phone: phone || '',
+        }, { onConflict: 'id', ignoreDuplicates: true });
       }
 
       return NextResponse.json({ 
         success: true, 
         message: 'Registered successfully.',
-        autoConfirmed: true,
+        autoConfirmed: !!data.session,
       });
     }
 
@@ -90,7 +84,7 @@ export async function POST(request: NextRequest) {
           company: data.user.user_metadata?.company || '',
           phone: data.user.user_metadata?.phone || '',
           plan: data.user.user_metadata?.plan || 'starter',
-          credits: data.user.user_metadata?.credits || 5,
+          credits: data.user.user_metadata?.credits ?? 5,
           subscription_status: data.user.user_metadata?.subscription_status || 'free',
           role,
         },

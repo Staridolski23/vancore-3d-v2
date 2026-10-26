@@ -23,6 +23,7 @@ export default function ClientPortal() {
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'reviews' | 'documents' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
   const [bookings, setBookings] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [documentError, setDocumentError] = useState('');
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewBody, setReviewBody] = useState('');
@@ -86,6 +87,24 @@ export default function ClientPortal() {
     localStorage.removeItem('vancore_client_token');
     localStorage.removeItem('vancore_client_bearer');
     setStatus('login');
+  };
+
+  const downloadDocument = async (doc: any) => {
+    setDocumentError('');
+    try {
+      const response = await authenticatedFetch('/api/documents/' + encodeURIComponent(doc.filename));
+      if (!response.ok) throw new Error('Download failed');
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setDocumentError('The document could not be downloaded. Please try again.');
+    }
   };
 
   const downloadICS = (booking: any) => {
@@ -432,6 +451,7 @@ export default function ClientPortal() {
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
             <h3 className="text-base font-semibold text-white mb-4">Documents</h3>
+            {documentError && <p role="alert" className="text-sm text-red-400 mb-4">{documentError}</p>}
             {documents.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📁</div>
@@ -445,9 +465,9 @@ export default function ClientPortal() {
                       <div className="text-sm text-white">{doc.name}</div>
                       <div className="text-xs text-[#6b6b6b]">{doc.filename}</div>
                     </div>
-                    <a href={'/api/documents/' + doc.filename} className="text-xs text-[#991930] hover:underline" target="_blank" rel="noreferrer">
+                    <button onClick={() => downloadDocument(doc)} className="text-xs text-[#991930] hover:underline">
                       Download
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>

@@ -18,21 +18,20 @@ function load(relative, mocks={}) {
 }
 const req=(url,body)=>new Request('http://localhost'+url,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);
 const response=(data,status=200)=>Response.json(data,{status});
-test('backend preserves conflict status, forwards server key, and fails closed on network error',async()=>{
-  const old=global.fetch; const previous=process.env.VANCORE_BACKEND_KEY;
-  process.env.VANCORE_BACKEND_KEY='test-key';
+test('backend preserves conflict status, forwards user authorization, and fails closed on network error',async()=>{
+  const old=global.fetch;
   const filename=path.join(__dirname,'../src/lib/backend.ts');
   const source=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   let captured;
   const module={exports:{}};
-  const context={Response,Headers,AbortSignal,process,console,fetch:async(url,init)=>{captured={url,init};return response({error:'conflict'},409);}};
-  vm.runInNewContext('(function(require,module,exports){'+source+'\n})',context)(id=>id==='server-only'?{}:{NextResponse},module,module.exports);
+  const context={Response,Headers,AbortSignal,process,console,URL,fetch:async(url,init)=>{captured={url,init};return response({error:'conflict'},409);}};
+  vm.runInNewContext('(function(require,module,exports){'+source+'\n})',context)(id=>id==='server-only'?{}:id==='next/headers'?{headers:async()=>new Headers({Authorization:'Bearer test-token'})}:{NextResponse},module,module.exports);
   try {
     const result=await module.exports.backendResponse('/api/bookings',{method:'POST'});
-    assert.equal(result.status,409); assert.equal(captured.init.headers.get('X-Vancore-Backend-Key'),'test-key');assert.equal(captured.init.cache,'no-store');
+    assert.equal(result.status,409); assert.equal(captured.init.headers.get('Authorization'),'Bearer test-token');assert.equal(captured.init.cache,'no-store');
     context.fetch=async()=>{throw Error('private internal detail');};
     const failed=await module.exports.backendResponse('/api/content');assert.equal(failed.status,502);assert.ok(!(await failed.text()).includes('private internal detail'));
-  } finally {global.fetch=old;if(previous===undefined)delete process.env.VANCORE_BACKEND_KEY;else process.env.VANCORE_BACKEND_KEY=previous;}
+  } finally {global.fetch=old;}
 });
 test('public monthly availability contains only dates and times, excluding cancellations',async()=>{
   const routes=load('src/app/api/bookings/route.ts',{
@@ -96,6 +95,20 @@ test('settings deny unauthenticated updates without contacting an obsolete verif
   });
   assert.equal((await routes.PUT(req('/api/adminv2/settings',{booking_enabled:false}))).status,401);
 });
+test('public signup preserves confirmation flow and never overwrites an existing profile',async()=>{
+ let signup,profileOptions;
+ const routes=load('src/app/api/auth/route.ts',{
+  '@/lib/request-auth':{requestUser:async()=>null,isAdminEmail:email=>email==='admin@example.com'},
+  '@/lib/supabase':{
+   createAuthClient:()=>({auth:{signUp:async options=>{signup=options;return {data:{user:{id:'new-user',identities:[{}]},session:null},error:null};}}}),
+   supabaseAdmin:{from:()=>({upsert:async(profile,options)=>{profileOptions=options;return {error:null};}})},
+  },'@supabase/supabase-js':{},
+ });
+ assert.equal((await routes.POST(req('/api/auth',{action:'register',email:'admin@example.com',password:'strong-test-password'}))).status,403);
+ const result=await routes.POST(req('/api/auth',{action:'register',email:'client@example.com',password:'strong-test-password',role:'admin'}));
+ assert.equal(result.status,200);assert.equal((await result.json()).autoConfirmed,false);assert.equal(signup.options.data.role,'client');assert.equal(profileOptions.ignoreDuplicates,true);
+});
+
 test('service worker never intercepts private APIs or authenticated requests',()=>{
  const listeners={};
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../public/sw.js'),'utf8'),{
