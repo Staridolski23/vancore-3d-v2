@@ -8,6 +8,7 @@ function load(relative, mocks={}) {
   const source=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   const module={exports:{}};
   const requireMock=id=>{
+    if(id==='@/lib/booking-policy')return require('../ops/backend/booking-policy.cjs');
     if(id==='@/lib/session-cookie')return load('src/lib/session-cookie.ts');
     if(Object.hasOwn(mocks,id))return mocks[id];
     if(id==='server-only')return {};
@@ -94,7 +95,7 @@ test('public monthly availability contains only dates and times, excluding cance
     '@/lib/request-auth':{requestUser:async()=>null,isAdminEmail:()=>false},
   });
   let result=await routes.GET(req('/api/bookings?year=2026&month=0'));
-  assert.equal(result.status,200);assert.deepEqual(await result.json(),{bookings:{'2026-01-10':['09:00']}});
+  assert.equal(result.status,200);assert.deepEqual(await result.json(),{bookings:{'2026-01-10':['09:00','09:30']}});
   result=await routes.GET(req('/api/bookings?year=2026&month=12'));assert.equal(result.status,400);
   result=await routes.GET(req('/api/bookings?email=private@example.com'));assert.equal(result.status,401);
 });

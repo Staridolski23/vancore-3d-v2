@@ -1,4 +1,5 @@
 'use strict';
+const {validDate,validTime}=require('./booking-policy.cjs');
 
 function monthRange(year, month) {
   if (!/^\d{4}$/.test(String(year)) || !/^\d{1,2}$/.test(String(month)) || +month > 11) throw new Error('Invalid month');
@@ -6,17 +7,21 @@ function monthRange(year, month) {
   const end = +month === 11 ? `${+year + 1}-01-01` : `${year}-${String(+month + 2).padStart(2, '0')}-01`;
   return [start, end];
 }
-function validDate(value) {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(value + 'T00:00:00Z');
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
-function validTime(value) { return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value); }
 function installBookingMaintenance(app, db, transactionDb = db) {
   const run = (sql, params = []) => new Promise((resolve, reject) => db.run(sql, params, function(error) { error ? reject(error) : resolve({ changes: this.changes, lastID: this.lastID }); }));
   const get = (sql, params = []) => new Promise((resolve, reject) => db.get(sql, params, (error, row) => error ? reject(error) : resolve(row)));
   const all = (sql, params = []) => new Promise((resolve, reject) => db.all(sql, params, (error, rows) => error ? reject(error) : resolve(rows)));
-  const errorResponse = (res, error) => res.status(/UNIQUE constraint/.test(error.message) ? 409 : 500).json({ error: /UNIQUE constraint/.test(error.message) ? 'This time slot is already booked' : 'Unable to update bookings' });
+  const errorResponse = (res, error) => res.status(/UNIQUE constraint|VANCORE_BOOKING_OVERLAP/.test(error.message) ? 409 : 500).json({ error: /UNIQUE constraint|VANCORE_BOOKING_OVERLAP/.test(error.message) ? 'This time overlaps an existing booking' : 'Unable to update bookings' });
+
+  app.post('/api/bookings',async(req,res)=>{
+    const body=req.body||{};
+    if(!validDate(body.date)||!validTime(body.time)||typeof body.name!=='string'||!body.name.trim()||body.name.length>150||typeof body.email!=='string'||body.email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email))return res.status(400).json({error:'Valid date, time, name and email are required'});
+    for(const [key,limit]of [['phone',80],['company',200],['description',4000]])if(body[key]!==undefined&&(typeof body[key]!=='string'||body[key].length>limit))return res.status(400).json({error:'Invalid booking details'});
+    try{
+      const result=await run('INSERT INTO bookings(date,time,name,email,phone,company,description,client_id) VALUES(?,?,?,?,?,?,?,?)',[body.date,body.time,body.name.trim(),body.email.trim().toLowerCase(),body.phone||'',body.company||'',body.description||'',req.principal?.id&&req.principal.email===body.email.trim().toLowerCase()?req.principal.id:'']);
+      return res.status(201).json({success:true,id:result.lastID});
+    }catch(error){return errorResponse(res,error);}
+  });
 
   // Registered before legacy handlers so there is only one implementation per route.
   app.get('/api/bookings', async (req, res) => {

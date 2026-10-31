@@ -14,10 +14,10 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Admin access | Client redirected with session preserved | Consistent backend and database roles |
 | Admin clients/plan/credits | Read path verified; mutation error handling needs repair | Validated writes with audit trail and truthful success |
 | Contact forms | Payload mismatch reproduced without external requests | Unified contract, durable record, controlled email delivery |
-| Booking create | Calendar form opens; legacy insert present | Validation, interval conflicts and concurrent create |
+| Booking create | Live interval guards and validated create installed; concurrent disposable-DB test passed | Real authorized client round trip; notifications |
 | Booking status/change/cancel | Disposable DB tests passed | Isolated actual-service round trip; no real customer edits |
 | Proposal accept/reject | Transaction/conflict/repeat tests passed | Authorized owner/admin resolution and notifications |
-| Calendar/ICS | Browser-local time and 45/30 minute mismatch identified | Timezone, DST, duration and invitation agreement |
+| Calendar/ICS | Shared 45-minute interval policy and Sofia clock; DST, conflict/outage/keyboard browser checks passed | Actual client round trip and email/ICS delivery |
 | Document list | Real empty client list; ownership regression passed | Client A/B see only own fixtures |
 | Document download | Temporary file/DB test passed | Actual storage/download with disposable files |
 | Image upload/serve | Server and Next limits installed; magic-byte serving tested | Controlled real upload, invalid MIME/size, cleanup |

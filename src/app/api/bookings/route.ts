@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { backendFetch, backendResponse } from '@/lib/backend';
 import { requestUser, isAdminEmail } from '@/lib/request-auth';
+import { blockedStartTimes, validDate, validTime } from '@/lib/booking-policy';
 
 export async function GET(request: NextRequest) {
   const query = new URL(request.url).searchParams;
@@ -15,7 +16,9 @@ export async function GET(request: NextRequest) {
       const slots: Record<string, string[]> = {};
       for (const booking of data.bookings || []) {
         if (booking.status === 'cancelled') continue;
-        (slots[booking.date] ||= []).push(booking.time);
+        if (!validDate(booking.date) || !validTime(booking.time)) continue;
+        const blocked = slots[booking.date] ||= [];
+        for (const time of blockedStartTimes(booking.time)) if (!blocked.includes(time)) blocked.push(time);
       }
       return NextResponse.json({ bookings: slots });
     }
@@ -30,7 +33,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    if (!body.date || !body.time || !body.name || !body.email) return NextResponse.json({ error: 'Date, time, name and email are required' }, { status: 400 });
+    if (!validDate(body.date) || !validTime(body.time) || typeof body.name !== 'string' || !body.name.trim() || body.name.length > 150 || typeof body.email !== 'string' || body.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return NextResponse.json({ error: 'Valid date, time, name and email are required' }, { status: 400 });
     // Public booking remains available; identity is never inferred from a supplied email.
     const user = await requestUser(request);
     const clientId = user?.email?.toLowerCase() === String(body.email).toLowerCase() ? user.id : '';
