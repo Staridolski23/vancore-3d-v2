@@ -2,8 +2,8 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs/promises');const path=require('node:path');
 // Invoke run(page, context, outputDirectory) from the persistent Playwright QA
 // session. This suite is confined to localhost and uses synthetic API fixtures.
-exports.run=async function(page,context,outputDirectory){
- const results=[],base='http://127.0.0.1:3100';let contactFail=false,recoveryCalls=0,profileCalls=0,refreshCalls=0,transient=false;
+exports.run=async function(page,context,outputDirectory,base='http://127.0.0.1:3100'){
+ const results=[];let contactFail=false,recoveryCalls=0,profileCalls=0,refreshCalls=0,transient=false;
  const fresh='fresh-synthetic-token-for-qa-only',expired='expired-synthetic-token-for-qa-only';
  await context.unroute('**/*');
  await context.route('**/*',async route=>{

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Reset your password | VANCORE</title>
+<script nonce="__NONCE__">
+// Fragments stay in the browser. Scrub credentials before rendering controls.
+let recoveryAddress = new URLSearchParams(window.location.hash.slice(1));
+let recoveryToken = recoveryAddress.get('type') === 'recovery' && !recoveryAddress.has('error') && !recoveryAddress.has('error_code') ? recoveryAddress.get('access_token') : null;
+window.history.replaceState(null, '', window.location.pathname);
+recoveryAddress = null;
+</script>
+<style nonce="__NONCE__">
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080808;color:#f7f7f7;font:16px/1.5 system-ui,sans-serif;display:grid;place-items:center;padding:24px}main{width:100%;max-width:440px}h1{font-size:28px;line-height:1.2}p{color:#bcbcbc}form{padding:24px;border:1px solid #333;border-radius:16px;background:#121212}label{display:block;margin:16px 0 6px}input,button{width:100%;min-height:48px;border-radius:8px;font:inherit}input{background:#202020;border:1px solid #666;color:white;padding:10px}button{margin-top:24px;background:#991930;color:white;border:0;font-weight:600;cursor:pointer}button:disabled{opacity:.55;cursor:wait}a{color:#ffb4c1}a:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid #ffb4c1;outline-offset:3px}[role=alert]{color:#ffc0bd}[hidden]{display:none!important}.brand{color:#f7f7f7;font-weight:700;letter-spacing:.12em}#result{overflow-wrap:anywhere}
+</style>
+</head>
+<body><main>
+<p class="brand">VANCORE</p><h1>Set a new password</h1>
+<p>Choose a password of 8–128 characters for your VANCORE account.</p>
+<form id="reset-form">
+<label for="new-password">New password</label><input id="new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+<label for="confirm-password">Confirm new password</label><input id="confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+<p id="error" role="alert" hidden></p><button id="submit" type="submit">Update password</button>
+</form>
+<p id="result" role="status" aria-live="polite" hidden></p>
+<p><a href="https://www.vancoresys.com/login">Go to VANCORE sign in</a></p>
+<script nonce="__NONCE__">
+const provider = __PUBLIC_CONFIG__;
+const form = document.querySelector('#reset-form'), button = document.querySelector('#submit'), error = document.querySelector('#error'), result = document.querySelector('#result');
+function showError(message) { error.textContent = message; error.hidden = false; }
+if (!recoveryToken || recoveryToken.length > 16000) {
+  recoveryToken = null; form.hidden = true; result.hidden = false;
+  result.textContent = 'This reset link is missing, invalid or expired. Request a new password reset from VANCORE.';
+}
+form.addEventListener('submit', async event => {
+  event.preventDefault(); if (button.disabled || !recoveryToken) return;
+  error.hidden = true;
+  const password = document.querySelector('#new-password'), confirmation = document.querySelector('#confirm-password');
+  if (password.value.length < 8 || password.value.length > 128 || password.value !== confirmation.value) { showError('Enter matching passwords of 8–128 characters.'); return; }
+  button.disabled = true; button.textContent = 'Updating…';
+  const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch(provider.url + '/auth/v1/user', { method: 'PUT', headers: { apikey: provider.key, Authorization: 'Bearer ' + recoveryToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: password.value }), signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer' });
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) showError('This reset link is invalid or expired. Request a new password reset from VANCORE.');
+      else if (response.status === 429) showError('Too many attempts. Wait a few minutes before trying again.');
+      else if (response.status >= 500) showError('The password service is temporarily unavailable. Please try again later.');
+      else showError('The password could not be updated. Use a different strong password and check the link.');
+      return;
+    }
+    password.value = ''; confirmation.value = ''; recoveryToken = null; form.hidden = true;
+    result.textContent = 'Password updated. Sign in to VANCORE with your new password.'; result.hidden = false;
+  } catch {
+    showError('The result could not be confirmed because the connection was interrupted. Try signing in with your new password before requesting another link.');
+  } finally { clearTimeout(timeout); button.disabled = false; button.textContent = 'Update password'; }
+});
+</script>
+</main></body></html>

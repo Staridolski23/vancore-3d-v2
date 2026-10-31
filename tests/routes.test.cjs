@@ -16,7 +16,7 @@ function load(relative, mocks={}) {
     if(id==='next/server')return {NextResponse};
     throw Error('Unmocked dependency '+id);
   };
-  vm.runInNewContext('(function(require,module,exports){'+source+'\n})',{Response,Request,Headers,AbortSignal,process,console,URL})(requireMock,module,module.exports);
+  vm.runInNewContext('(function(require,module,exports){'+source+'\n})',{Response,Request,Headers,AbortSignal,process,console,URL,fetch:mocks.fetch||globalThis.fetch})(requireMock,module,module.exports);
   return module.exports;
 }
 const req=(url,body)=>new Request('http://localhost'+url,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);
@@ -188,7 +188,7 @@ test('public signup preserves confirmation flow and never overwrites an existing
 });
 
 test('auth email flows use exact approved destinations and reject host spoofing',async()=>{
- const {authEmailRedirect,AUTH_SITE_URL,AUTH_PREVIEW_URL}=load('src/lib/auth-redirect.ts');
+ const {authEmailRedirect,AUTH_SITE_URL,AUTH_PREVIEW_URL,AUTH_RECOVERY_URL}=load('src/lib/auth-redirect.ts');
  for(const origin of [AUTH_SITE_URL,AUTH_PREVIEW_URL]) {
   let signup,resend,reset;
   const routes=load('src/app/api/auth/route.ts',{
@@ -203,13 +203,29 @@ test('auth email flows use exact approved destinations and reject host spoofing'
    const result=await routes.POST(new Request(origin+'/api/auth',{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify({action,email:'synthetic@example.com',password:'synthetic-test-password'})}));
    assert.equal(result.status,200);
   }
-  assert.equal(signup.options.emailRedirectTo,origin+'/login');
-  assert.equal(resend.options.emailRedirectTo,origin+'/login');
-  assert.equal(reset.redirectTo,origin+'/login');
+  assert.equal(signup.options.emailRedirectTo,AUTH_SITE_URL+'/login');
+  assert.equal(resend.options.emailRedirectTo,AUTH_SITE_URL+'/login');
+  assert.equal(reset.redirectTo,AUTH_RECOVERY_URL);
  }
  for(const origin of ['http://localhost:3000','https://attacker.example','https://www.vancoresys.com.attacker.example','https://other.vercel.app']) {
   assert.equal(authEmailRedirect(new Request(origin+'/api/auth',{headers:{'x-forwarded-host':'attacker.example'}})),AUTH_SITE_URL+'/login');
  }
+});
+
+test('auth forms distinguish deployment protection, malformed gateways and uncertain network results',async()=>{
+ for(const fixture of [
+  {response:new Response('<html>Sign in</html>',{status:401,headers:{'Content-Type':'text/html'}}),message:/Vercel access step/},
+  {response:Response.json({error:{message:'Protected deployment'},protection:{vercel_auth_enabled:true}},{status:401}),message:/Vercel access step/},
+  {response:new Response('broken',{headers:{'Content-Type':'application/json'}}),message:/incomplete response/},
+  {response:Response.json({error:{details:'Never render this object'}},{status:502}),message:/temporarily unavailable/},
+  {failure:true,message:/result could not be confirmed/},
+ ]) {
+  const api=load('src/lib/auth-form-fetch.ts',{fetch:async()=>{if(fixture.failure)throw Error('private transport internals');return fixture.response;}});
+  await assert.rejects(api.authFormFetch({action:'forgot-password',email:'synthetic@example.invalid'}),fixture.message);
+  assert.equal(api.authFailureMessage('private provider details'),'The request could not be completed. Please try again.');
+ }
+ const api=load('src/lib/auth-form-fetch.ts',{fetch:async(url,options)=>{assert.equal(url,'/api/auth');assert.ok(options.signal);return Response.json({error:'Too many attempts'},{status:429});}});
+ assert.equal((await api.authFormFetch({action:'forgot-password'})).status,429);
 });
 
 test('service worker never intercepts private APIs or authenticated requests',()=>{

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, createAuthClient } from '@/lib/supabase';
 import { SignInWithPasswordCredentials } from '@supabase/supabase-js';
 import { setRefreshCookie, sameOrigin } from '@/lib/session-cookie';
-import { authEmailRedirect } from '@/lib/auth-redirect';
+import { authEmailRedirect, AUTH_RECOVERY_URL } from '@/lib/auth-redirect';
 
 const ADMIN_EMAILS = [
   'momchil@vancore.ai',
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     if (action === 'forgot-password') {
       const { error } = await createAuthClient().auth.resetPasswordForEmail(email, {
-        redirectTo: authEmailRedirect(request),
+        redirectTo: AUTH_RECOVERY_URL,
       });
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
       return NextResponse.json({ success: true, message: 'If an account exists for this email, a password reset link will be sent. Check your inbox and spam folder.' });

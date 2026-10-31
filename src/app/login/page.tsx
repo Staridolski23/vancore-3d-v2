@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { authFormFetch, authFailureMessage } from '@/lib/auth-form-fetch';
 
 type View = 'login' | 'register' | 'forgot-password' | 'verify-sent' | 'register-success' | 'reset-password';
 
@@ -57,11 +58,7 @@ function LoginForm() {
     setNeedsVerification(false);
 
     try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'login', email, password }),
-      });
+      const res = await authFormFetch({ action: 'login', email, password });
 
       const data = await res.json();
 
@@ -90,8 +87,8 @@ function LoginForm() {
       } else {
         window.location.href = '/client-portal';
       }
-    } catch {
-      setError('Connection error. Please try again.');
+    } catch (error) {
+      setError(authFailureMessage(error));
       setLoading(false);
     }
   };
@@ -101,11 +98,11 @@ function LoginForm() {
     if (!recovery || password.length < 8 || password.length > 128 || password !== confirmPassword) { setError('Enter matching passwords of 8–128 characters.'); return; }
     setLoading(true);
     try {
-      const response = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'recover-password', ...recovery, newPassword: password }) });
+      const response = await authFormFetch({ action: 'recover-password', ...recovery, newPassword: password });
       if (!response.ok) { setError('Your password could not be reset. Check the link and password requirements, or request a new link.'); return; }
       localStorage.removeItem('vancore_client_token'); setRecovery(null); setPassword(''); setConfirmPassword('');
       setSuccess('Password updated. Sign in with your new password.'); setView('login');
-    } catch { setError('Connection error. Your password change could not be confirmed.'); }
+    } catch (error) { setError(authFailureMessage(error)); }
     finally { setLoading(false); }
   };
 
@@ -116,11 +113,7 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', email, password, name, company, phone }),
-      });
+      const res = await authFormFetch({ action: 'register', email, password, name, company, phone });
 
       const data = await res.json();
 
@@ -132,8 +125,8 @@ function LoginForm() {
 
       setView('register-success');
       setSuccess('Registration successful! Please check your email to verify your account.');
-    } catch {
-      setError('Connection error. Please try again.');
+    } catch (error) {
+      setError(authFailureMessage(error));
       setLoading(false);
     }
   };
@@ -145,15 +138,11 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'forgot-password', email }),
-      });
+      const res = await authFormFetch({ action: 'forgot-password', email });
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || !data?.success) {
         setError(data?.error || 'Failed to send reset email.');
         setLoading(false);
         return;
@@ -161,23 +150,20 @@ function LoginForm() {
 
       setSuccess('If an account exists for this email, a password reset link will be sent. Check your inbox and spam folder.');
       setView('login');
-    } catch {
-      setError('Connection error. Please try again.');
-      setLoading(false);
-    }
+    } catch (error) { setError(authFailureMessage(error)); }
+    finally { setLoading(false); }
   };
 
   const resendVerification = async () => {
+    setError(''); setSuccess('');
     setLoading(true);
     try {
-      await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'resend-verification', email: verifyEmail }),
-      });
-      setSuccess('Verification email sent! Check your inbox.');
-    } catch {
-      setError('Failed to send verification email.');
+      const response = await authFormFetch({ action: 'resend-verification', email: verifyEmail });
+      const data = await response.json();
+      if (!response.ok || !data.success) { setError(data.error || 'The verification request could not be completed.'); return; }
+      setSuccess('If this account requires confirmation, a verification link will be sent. Check your inbox and spam folder.');
+    } catch (error) {
+      setError(authFailureMessage(error));
     } finally {
       setLoading(false);
     }
