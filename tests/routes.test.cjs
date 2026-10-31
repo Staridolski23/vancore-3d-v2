@@ -8,6 +8,7 @@ function load(relative, mocks={}) {
   const source=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   const module={exports:{}};
   const requireMock=id=>{
+    if(id==='@/lib/session-cookie')return load('src/lib/session-cookie.ts');
     if(Object.hasOwn(mocks,id))return mocks[id];
     if(id==='server-only')return {};
     if(id==='next/server')return {NextResponse};
@@ -18,6 +19,45 @@ function load(relative, mocks={}) {
 }
 const req=(url,body)=>new Request('http://localhost'+url,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);
 const response=(data,status=200)=>Response.json(data,{status});
+
+test('both contact form contracts normalize safely and upstream failure is not reported as success',async()=>{
+ const contact=load('src/lib/contact-input.ts');let sent;
+ const routes=load('src/app/api/contact/route.ts',{
+  '@/lib/contact-input':contact,
+  '@/lib/backend':{backendFetch:async(p,init)=>{sent=JSON.parse(init.body);return response({success:true});}},
+ });
+ assert.equal((await routes.POST(req('/api/contact',{name:'Client',email:'client@example.com',company:'Example',message:'Question'}))).status,200);
+ assert.equal(sent.sender_name,'Client');assert.equal(sent.subject,'Website enquiry');assert.ok(sent.message.includes('Example'));
+ assert.equal((await routes.POST(req('/api/contact',{sender_name:'Client',sender_email:'client@example.com',subject:'Question',message:'Details'}))).status,200);
+ assert.equal((await routes.POST(req('/api/contact',{name:'Client',email:'invalid',message:'Question'}))).status,400);
+ assert.equal(contact.contactInput({name:'Client',email:'client@example.com',subject:'Header\r\ninjection',message:'Question'}),null);
+ const failed=load('src/app/api/contact/route.ts',{'@/lib/contact-input':contact,'@/lib/backend':{backendFetch:async()=>response({error:'SMTP private details'},503)}});
+ const result=await failed.POST(req('/api/contact',{name:'Client',email:'client@example.com',message:'Question'}));assert.equal(result.status,502);assert.ok(!(await result.text()).includes('SMTP'));
+});
+
+test('session renewal rotates an HTTP-only cookie and denies cross-origin requests',async()=>{
+ let signedOut=false;
+ const routes=load('src/app/api/auth/session/route.ts',{'@/lib/supabase':{createAuthClient:()=>({auth:{signOut:async({scope})=>{assert.equal(scope,'local');signedOut=true;return{error:null};},refreshSession:async({refresh_token})=>{assert.equal(refresh_token,'old-refresh');return{data:{user:{email_confirmed_at:'yes'},session:{access_token:'new-access',refresh_token:'new-refresh'}},error:null};}}})}});
+ const request=new Request('http://localhost/api/auth/session',{method:'POST',headers:{cookie:'vancore_refresh=old-refresh',origin:'http://localhost','X-Vancore-Session':'1'}});
+ const result=await routes.POST(request);assert.equal(result.status,200);assert.equal((await result.json()).token,'new-access');assert.ok(result.headers.get('set-cookie').includes('HttpOnly'));assert.ok(result.headers.get('set-cookie').includes('new-refresh'));
+ const forbidden=new Request('http://localhost/api/auth/session',{method:'POST',headers:{cookie:'vancore_refresh=old-refresh',origin:'https://foreign.example','X-Vancore-Session':'1'}});assert.equal((await routes.POST(forbidden)).status,403);
+ assert.equal((await routes.POST(new Request('http://localhost/api/auth/session',{method:'POST',headers:{cookie:'vancore_refresh=old-refresh'}}))).status,403);
+ const loggedOut=await routes.DELETE(request);assert.ok(loggedOut.headers.get('set-cookie').includes('Max-Age=0'));assert.equal(signedOut,true);
+});
+
+test('transient session failures preserve the refresh cookie and invalid recovery cannot change a password',async()=>{
+ const temporary=load('src/app/api/auth/session/route.ts',{'@/lib/supabase':{createAuthClient:()=>({auth:{refreshSession:async()=>({data:{},error:{status:503}})}})}});
+ const request=new Request('http://localhost/api/auth/session',{method:'POST',headers:{cookie:'vancore_refresh=keep-me','X-Vancore-Session':'1'}});
+ const failed=await temporary.POST(request);assert.equal(failed.status,503);assert.equal(failed.headers.get('set-cookie'),null);
+ let changed=false;
+ const recovery=load('src/app/api/auth/route.ts',{
+  '@/lib/request-auth':{requestUser:async()=>null,isAdminEmail:()=>false},
+  '@/lib/supabase':{createAuthClient:()=>({auth:{setSession:async()=>({data:{},error:{status:401}}),updateUser:async()=>{changed=true;return{error:null};}}})},
+  '@supabase/supabase-js':{},
+ });
+ assert.equal((await recovery.POST(req('/api/auth',{action:'recover-password',accessToken:'invalid',refreshToken:'invalid',newPassword:'synthetic-test-password'}))).status,401);
+ assert.equal(changed,false);
+});
 test('backend preserves conflict status, forwards user authorization, and fails closed on network error',async()=>{
   const old=global.fetch;
   const filename=path.join(__dirname,'../src/lib/backend.ts');

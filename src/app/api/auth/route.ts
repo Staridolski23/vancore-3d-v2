@@ -2,6 +2,7 @@ import { requestUser, isAdminEmail } from '@/lib/request-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, createAuthClient } from '@/lib/supabase';
 import { SignInWithPasswordCredentials } from '@supabase/supabase-js';
+import { setRefreshCookie, sameOrigin } from '@/lib/session-cookie';
 
 const ADMIN_EMAILS = [
   'momchil@vancore.ai',
@@ -11,6 +12,7 @@ const ADMIN_EMAILS = [
 
 export async function POST(request: NextRequest) {
   try {
+    if (!sameOrigin(request)) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     const body = await request.json();
     const { action, email, password, name, company, phone } = body;
 
@@ -75,7 +77,7 @@ export async function POST(request: NextRequest) {
       const role = ADMIN_EMAILS.includes(data.user.email?.toLowerCase() || '') ? 'admin' : 'client';
       const redirectTo = role === 'admin' ? '/admin-v2' : '/client-portal';
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         token: data.session.access_token,
         user: {
           id: data.user.id,
@@ -90,6 +92,21 @@ export async function POST(request: NextRequest) {
         },
         redirectTo,
       });
+      setRefreshCookie(response, data.session.refresh_token);
+      return response;
+    }
+
+    if (action === 'recover-password') {
+      const { accessToken, refreshToken, newPassword } = body;
+      if (typeof accessToken !== 'string' || accessToken.length > 16000 || typeof refreshToken !== 'string' || refreshToken.length > 8192 || typeof newPassword !== 'string' || newPassword.length < 8 || newPassword.length > 128) return NextResponse.json({ error: 'A valid recovery link and a password of 8–128 characters are required.' }, { status: 400 });
+      const client = createAuthClient();
+      const { data, error } = await client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      if (error || !data.session || !data.user) return NextResponse.json({ error: 'This recovery link is invalid or expired. Request a new one.' }, { status: 401 });
+      // Use the authenticated user endpoint so provider recovery/MFA policy applies.
+      const { error: updateError } = await client.auth.updateUser({ password: newPassword });
+      if (updateError) return NextResponse.json({ error: 'Your password could not be updated. Check the password requirements and retry.' }, { status: 400 });
+      await client.auth.signOut({ scope: 'local' });
+      return setRefreshCookie(NextResponse.json({ success: true }));
     }
 
     if (action === 'resend-verification') {

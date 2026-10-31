@@ -22,7 +22,7 @@ export default function ContactPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, plan: ['payg','professional','business'].includes(new URLSearchParams(window.location.search).get('plan') || '') ? new URLSearchParams(window.location.search).get('plan') : undefined }),
       });
 
       const data = await res.json();

@@ -1,4 +1,5 @@
 'use client';
+import { authenticatedFetch, signOut } from '@/lib/authenticated-fetch';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -28,13 +29,12 @@ export default function Header() {
   useEffect(() => {
     const token = localStorage.getItem('vancore_client_token');
     if (token) {
-      fetch('/api/auth/profile', {
+      authenticatedFetch('/api/auth/profile', {
         headers: { Authorization: `Bearer ` + token },
       })
         .then(res => res.ok ? res.json() : Promise.reject())
         .then(data => setUser(data.user))
         .catch(() => {
-          localStorage.removeItem('vancore_client_token');
           setUser(null);
         });
     } else {
@@ -42,8 +42,8 @@ export default function Header() {
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('vancore_client_token');
+  const handleLogout = async () => {
+    try { await signOut(); } catch { window.alert('Unable to sign out. Please retry.'); return; }
     setUser(null);
     window.location.href = '/';
   };

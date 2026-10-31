@@ -8,9 +8,13 @@ export default function Contact() {
   const section = getSection('contact');
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (sending) return;
+    setSending(true); setError('');
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
@@ -20,12 +24,16 @@ export default function Contact() {
       if (res.ok) {
         setSubmitted(true);
         setForm({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setError('Your enquiry could not be recorded. Please try again.');
       }
-    } catch {}
+    } catch { setError('Your enquiry could not be recorded. Please try again.'); }
+    finally { setSending(false); }
   };
 
   return (
     <section id="contact" className="bg-white py-20 md:py-28 border-t border-[#e5e5e5]">
+      {error && <p role="alert" className="px-6 text-sm text-red-700">{error}</p>}
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           <div>
@@ -102,9 +110,10 @@ export default function Contact() {
                 />
                 <button
                   type="submit"
+                  disabled={sending}
                   className="px-4 py-2 bg-[#991930] text-white rounded-sm text-sm hover:bg-[#a83d1f] transition-colors"
                 >
-                  Send message
+                  {sending ? 'Sending...' : 'Send message'}
                 </button>
               </form>
             )}

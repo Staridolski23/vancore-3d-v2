@@ -1,5 +1,5 @@
 'use client';
-import { authenticatedFetch } from '@/lib/authenticated-fetch';
+import { authenticatedFetch, signOut } from '@/lib/authenticated-fetch';
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -118,7 +118,8 @@ export default function ClientPortal() {
     finally { setSavingProfile(false); }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try { await signOut(); } catch { window.alert('Unable to sign out. Please retry.'); return; }
     setUser(null);
     localStorage.removeItem('vancore_client_token');
     localStorage.removeItem('vancore_client_bearer');

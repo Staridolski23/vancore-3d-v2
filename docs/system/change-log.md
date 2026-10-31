@@ -21,3 +21,16 @@
 - Daily backup completed on 31 October with integrity `ok`. Additional pre-repair archive `20261031T102516.852930Z` created, downloaded and SHA verified; Git bundle preserves the complete frontend history. Locations/hashes are in the private backup manifest, not public credentials.
 - Created this versioned system record and function acceptance matrix. Supabase full-data/auth/storage backup remains explicitly unverified until access/export/restore is completed.
 - Implementation is in progress. Do not interpret this entry as successful production rollout.
+
+### Contact and session repair batch (not yet promoted)
+
+- Added bounded/type-checked contact normalization for both historical form payloads, visible failure handling and duplicate-submit prevention on Home.
+- Added an HTTP-only, HTTPS-secure production refresh cookie scoped to auth routes; custom-header + Origin checks; isolated provider refresh/logout; transient errors preserve credentials. Central authenticated fetch retries after renewal and uses the current token rather than stale component props.
+- Added a recovery completion form and authenticated provider password update. Recovery tokens are held only in memory and removed from the address bar. No real password has been changed by the agent.
+- Fourteen route/security regression tests pass. Production build passed before the last recovery-state correction; a new build is being validated.
+- Started reproducible localhost browser checks with synthetic intercepted APIs only. Contact success/error passed. Initial recovery check exposed a genuine state reset after URL scrubbing; corrected by tracking the scrubbed address. Re-run is required before signing off the recovery UI.
+- The first UI test selector also matched Next's empty route announcer; narrowed it to the actual visible application error. This was a test harness issue, recorded separately from the recovery bug.
+- Confirmed the saved desktop OpenRouter credential returns 401 with a zero-cost synthetic probe. No paid inference was requested. The configured Nous free model remains in its public model catalog; the existing Vercel credential is needed to validate a real provider request.
+- Preview HTTP requests from the test runner redirect to Vercel sign-in. A 200 HTML login page is not counted as a successful API check. The prior browser helper stopped because it could not reliably identify the native browser URL; no browser cookies or private authentication state were extracted.
+- Rebuilt after the recovery-state correction. All six isolated browser scenarios passed on 31 October: contact success, visible failure with preserved draft, recovery token URL removal/mismatch/invalid link, session renewal, client admin denial, and preservation of a session during a temporary provider failure. Evidence: task output `VANCORE-technical-ui-qa.json`; 0 real emails and 0 real password changes.
+- Opened a separate clean Edge test window at the explicitly requested preview URL. Vercel requires user sign-in in that test context; the user has been asked to complete it. No saved browser profile/cookies were imported.
