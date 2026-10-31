@@ -16,6 +16,18 @@ Supabase recovery must separately cover database schema/data, authentication ide
 
 Use `python scripts/verify-backup.py ARCHIVE --sha256 EXPECTED --report REPORT` to check a downloaded archive hash, reject unsafe paths, restore its SQLite files in a temporary directory, and validate integrity/foreign keys without exposing records. It does not execute archived code or modify live files. The 31 October archive passed this check for both databases; full application reconstruction remains a separate exercise.
 
+## Supabase logical snapshot and offline drill
+
+The private `20261031-supabase` directory contains `data-snapshot.json`, `catalog.json`, per-table metadata under `public-schema/` and `managed-schema/`, advisor results and a SHA-256 manifest. Access is restricted to the local owner. Data and Auth password hashes must never enter Git or public outputs.
+
+The read-only query in `scripts/supabase-schema-snapshot.sql` records the catalog. Data is captured in one SQL statement for a consistent data snapshot. Metadata is a separate read; repeat inventory checks before any future migration. Live session tokens and managed service configuration are outside this snapshot. There are no Supabase Storage object bytes to export at this capture.
+
+Install pinned verification dependencies with `npm ci --prefix ops/qa-runtime`. Run `node scripts/verify-supabase-snapshot.cjs PRIVATE_DIRECTORY REPORT.json`. The in-memory offline database restores application tables and Auth users/identities, constraints, indexes, functions, triggers and policies; compares row contents privately; and prints aggregate results only. It has no hosted connection or Auth server. Use `VANCORE_QA_RUNTIME` only to select a separately installed trusted copy of the same pinned verification packages.
+
+Run `node tests/supabase-boundary.cjs PRIVATE_DIRECTORY MIGRATION.sql REPORT.json` to exercise anonymous/client A/client B/admin access and the matching code/ACL rollback. Never point these tools at production: they only accept local snapshot paths and create an in-memory database.
+
+Standard `pg_dump`/CLI roles-schema-data export, managed Auth/SMTP/config reconstruction and hosted recovery remain separate acceptance items. Do not present the logical/offline drill as a complete hosted Supabase recovery.
+
 ## Code rollback
 
 Restore the exact prior code/modules and restart the existing service with the correct environment. Keep the live database and newly uploaded files. Preserve new CMS overlay rows/AI conversations even if their reader is rolled back. Re-run health, permissions and public-content checks. Rolling back a security boundary may reintroduce exposure; prefer a protected maintenance response over reopening private data.

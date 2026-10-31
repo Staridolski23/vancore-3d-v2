@@ -10,6 +10,8 @@
 6. Email: backend SMTP configuration. Stripe dependency exists, but checkout/webhook fulfillment is not implemented in the inspected Next routes.
 7. Hermes/WSL is a separate agent environment; website operation does not depend on the laptop running it. Do not start historical messaging/paid-model automations as part of maintenance.
 
+31 October update: direct Supabase connector access works. RLS helpers now live in the non-exposed `vancore_private` schema; existing policy dependencies are preserved. A private logical data/catalog snapshot and offline row-by-row restore check are available. Full hosted recovery/settings remain unverified. Vera inference works in the maintenance preview, with explicitly labelled limited mode; durable conversation/lead storage remains incomplete.
+
 ## Trust boundaries
 
 - Browser input and user metadata are not authority for roles, plans or client identity.
