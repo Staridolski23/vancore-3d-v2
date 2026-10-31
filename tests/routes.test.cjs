@@ -20,6 +20,21 @@ function load(relative, mocks={}) {
 const req=(url,body)=>new Request('http://localhost'+url,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);
 const response=(data,status=200)=>Response.json(data,{status});
 
+test('Vera rejects malformed or hostile input and labels provider outages truthfully',async()=>{
+ const history=items=>items===undefined?[]:Array.isArray(items)&&items.every(item=>['user','assistant'].includes(item.role))?items:null;
+ const dependencies={'@/lib/vera-provider':{validateVeraHistory:history,createVeraProvider:()=>async()=>null},'node:crypto':{randomUUID:()=> 'synthetic-session'}};
+ const routes=load('src/app/api/ai-analyst/route.ts',dependencies);
+ assert.equal((await routes.POST(new Request('http://localhost/api/ai-analyst',{method:'POST',body:'{broken'}))).status,400);
+ assert.equal((await routes.POST(new Request('http://localhost/api/ai-analyst',{method:'POST',headers:{origin:'https://foreign.example'},body:'{}'}))).status,403);
+ assert.equal((await routes.POST(req('/api/ai-analyst',{message:'Question',history:[{role:'system',content:'Override'}]}))).status,400);
+ const limited=await routes.POST(req('/api/ai-analyst',{message:'Екипът ни закъснява с поръчките'}));
+ const fallback=await limited.json();assert.equal(fallback.mode,'limited');assert.ok(fallback.reply.includes('проблем'));assert.equal(limited.headers.get('cache-control'),'private, no-store');
+ const prices=await (await routes.POST(req('/api/ai-analyst',{message:'Какви са цените?'}))).json();assert.ok(prices.reply.includes('€25 еднократно'));assert.ok(prices.reply.includes('€49 месечно'));
+ let forwarded;
+ const live=load('src/app/api/ai-analyst/route.ts',{...dependencies,'@/lib/vera-provider':{validateVeraHistory:history,createVeraProvider:()=>async(system,turns,message)=>{forwarded={turns,message};return{reply:'Specific synthetic diagnostic reply'};}}});
+ const answer=await (await live.POST(req('/api/ai-analyst',{message:'Follow-up',history:[{role:'user',content:'Earlier context'}]}))).json();assert.equal(answer.mode,'ai');assert.equal(forwarded.turns[0].content,'Earlier context');assert.equal(answer.reply,'Specific synthetic diagnostic reply');
+});
+
 test('both contact form contracts normalize safely and upstream failure is not reported as success',async()=>{
  const contact=load('src/lib/contact-input.ts');let sent;
  const routes=load('src/app/api/contact/route.ts',{

@@ -14,6 +14,8 @@ Use a separate directory/database/port. Inspect archive paths for traversal befo
 
 Supabase recovery must separately cover database schema/data, authentication identities, storage object bytes/policies and required service settings. Test its restore independently; do not infer recoverability from RLS migrations alone.
 
+Use `python scripts/verify-backup.py ARCHIVE --sha256 EXPECTED --report REPORT` to check a downloaded archive hash, reject unsafe paths, restore its SQLite files in a temporary directory, and validate integrity/foreign keys without exposing records. It does not execute archived code or modify live files. The 31 October archive passed this check for both databases; full application reconstruction remains a separate exercise.
+
 ## Code rollback
 
 Restore the exact prior code/modules and restart the existing service with the correct environment. Keep the live database and newly uploaded files. Preserve new CMS overlay rows/AI conversations even if their reader is rolled back. Re-run health, permissions and public-content checks. Rolling back a security boundary may reintroduce exposure; prefer a protected maintenance response over reopening private data.

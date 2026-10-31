@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import VeraAvatar from '@/components/VeraAvatar';
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -60,6 +61,8 @@ export default function VeraChat() {
   const [quickReplies, setQuickReplies] = useState<string[] | null>(null);
   const [placeholder, setPlaceholder] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [serviceMode, setServiceMode] = useState<'ready' | 'ai' | 'limited' | 'unavailable'>('ready');
+  const [startError, setStartError] = useState('');
   const [leadData, setLeadData] = useState({ 
     name: '', 
     company: '', 
@@ -88,31 +91,18 @@ export default function VeraChat() {
     scrollToBottom();
   }, [messages, isTyping, quickReplies, showSubscription, scrollToBottom]);
 
-  const submitLead = async () => {
-    if (!leadData.name.trim() || !leadData.email.trim()) return;
-    
+  const startConversation = async () => {
+    setIsTyping(true);
+    setStartError('');
     try {
-      await fetch('/api/ai-analyst', {
+      const res = await authenticatedFetch('/api/ai-analyst', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: 'Lead submitted, start conversation', 
-          leadData 
-        }),
-      });
-    } catch {}
-    
-    setLeadSubmitted(true);
-    setStep(1);
-    setIsTyping(false);
-    
-    setTimeout(async () => {
-      const res = await fetch('/api/ai-analyst', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: 'Hello', sessionId: '' }),
+        body: JSON.stringify({ message: 'Hello', sessionId: '', leadData }),
       });
       const data = await res.json();
+      if (!res.ok || typeof data.reply !== 'string') throw new Error('Vera unavailable');
+      setServiceMode(data.mode || 'limited');
       
       const assistantMsg: Message = { 
         role: 'assistant', 
@@ -124,7 +114,26 @@ export default function VeraChat() {
       setStep(data.step || 1);
       setQuickReplies(data.quickReplies || null);
       setPlaceholder(data.placeholder || '');
-    }, 500);
+      setLeadSubmitted(true);
+    } catch {
+      setServiceMode('unavailable');
+      setStartError('Vera could not start. Please try again.');
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const submitLead = async () => {
+    if (isTyping) return;
+    if (!leadData.name.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadData.email.trim())) {
+      setStartError('Please enter your name and a valid email address.');
+      return;
+    }
+    if (!leadData.consentTerms || !leadData.consentData) {
+      setStartError('Please review and confirm the two required consent choices.');
+      return;
+    }
+    await startConversation();
   };
 
   const sendMessage = async (text: string) => {
@@ -137,12 +146,14 @@ export default function VeraChat() {
     setQuickReplies(null);
 
     try {
-      const res = await fetch('/api/ai-analyst', {
+      const res = await authenticatedFetch('/api/ai-analyst', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, sessionId }),
+        body: JSON.stringify({ message: text, sessionId, history: messages.slice(-12).map(({role,text}) => ({role,content:text.slice(0,1600)})) }),
       });
       const data = await res.json();
+      if (!res.ok || typeof data.reply !== 'string') throw new Error('Vera unavailable');
+      setServiceMode(data.mode || 'limited');
 
       await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -159,6 +170,7 @@ export default function VeraChat() {
         setChatLocked(true);
       }
     } catch {
+      setServiceMode('unavailable');
       await new Promise(resolve => setTimeout(resolve, 500));
       const errMsg: Message = {
         role: 'assistant',
@@ -180,8 +192,8 @@ export default function VeraChat() {
 
   const selectPlan = (planId: string) => {
     setSelectedPlan(planId);
-    // Redirect to client portal for registration/payment
-    window.location.href = `/client-portal?plan=${planId}&email=${encodeURIComponent(leadData.email)}&name=${encodeURIComponent(leadData.name)}`;
+    // Carry only the selected plan into the enquiry; never personal details.
+    window.location.href = `/contact?plan=${encodeURIComponent(planId)}`;
   };
 
   // Check if user is logged in - skip lead capture
@@ -191,11 +203,11 @@ export default function VeraChat() {
   useEffect(() => {
     const token = localStorage.getItem('vancore_client_token');
     if (token) {
-      fetch('/api/auth/profile', {
+      authenticatedFetch('/api/auth/profile', {
         headers: { Authorization: 'Bearer ' + token },
       }).then(res => {
         if (res.ok) {
-          res.json().then(data => {
+          res.json().then(async data => {
             setIsLoggedIn(true);
             setUserProfile(data.user);
             setLeadData({
@@ -207,28 +219,7 @@ export default function VeraChat() {
               consentData: true,
               consentMarketing: false
             });
-            // Skip lead capture and start chat
-            setLeadSubmitted(true);
-            setStep(1);
-            // Auto-start conversation
-            setTimeout(async () => {
-              const res = await fetch('/api/ai-analyst', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: 'Hello', sessionId: '' }),
-              });
-              const data = await res.json();
-              const assistantMsg: Message = { 
-                role: 'assistant', 
-                text: data.reply, 
-                ts: new Date().toISOString() 
-              };
-              setMessages([assistantMsg]);
-              setSessionId(data.sessionId || '');
-              setStep(data.step || 1);
-              setQuickReplies(data.quickReplies || null);
-              setPlaceholder(data.placeholder || '');
-            }, 500);
+            await startConversation();
           });
         }
       }).catch(() => {});
@@ -340,11 +331,13 @@ export default function VeraChat() {
               </label>
             </div>
             
+            {startError && <p role="alert" className="text-sm text-red-300">{startError}</p>}
             <button
+              disabled={isTyping}
               onClick={submitLead}
               className="w-full py-3 rounded-lg bg-[#991930] text-white font-semibold hover:bg-[#a83d1f] transition-colors"
             >
-              Start My Free AI Analysis
+              {isTyping ? 'Starting…' : 'Start My Free AI Analysis'}
             </button>
             
             <p className="text-[10px] text-[#6b6b6b] text-center">
@@ -369,11 +362,12 @@ export default function VeraChat() {
           </div>
           <div className="ml-auto flex items-center gap-2">
             <span className="px-1.5 py-0.5 rounded text-[9px] bg-[#991930]/20 text-[#991930] font-medium">AI</span>
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[10px] text-green-400">Online</span>
+            <div className={`w-2 h-2 rounded-full ${serviceMode === 'ai' ? 'bg-green-500' : 'bg-amber-500'}`} />
+            <span role="status" className="text-[10px] text-[#9a9a9a]">{serviceMode === 'ai' ? 'AI connected' : serviceMode === 'limited' ? 'Limited mode' : serviceMode === 'unavailable' ? 'Temporarily unavailable' : 'Ready'}</span>
           </div>
         </div>
 
+        {startError && <div role="alert" className="px-4 py-2 text-sm text-red-300">{startError} <button onClick={startConversation} disabled={isTyping} className="underline">Retry</button></div>}
         {/* Messages */}
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
           {messages.map((msg, i) => (
@@ -509,6 +503,7 @@ export default function VeraChat() {
               <label htmlFor="vera-chat-input" className="sr-only">Type your message</label>
               <input
                   id="vera-chat-input"
+                  maxLength={4000}
                   name="message"
                   value={input}
                   onChange={e => setInput(e.target.value)}
