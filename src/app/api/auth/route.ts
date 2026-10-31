@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, createAuthClient } from '@/lib/supabase';
 import { SignInWithPasswordCredentials } from '@supabase/supabase-js';
 import { setRefreshCookie, sameOrigin } from '@/lib/session-cookie';
+import { authEmailRedirect } from '@/lib/auth-redirect';
 
 const ADMIN_EMAILS = [
   'momchil@vancore.ai',
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
       const { data, error } = await createAuthClient().auth.signUp({
         email,
         password,
-        options: { data: { name, company, phone, role }, emailRedirectTo: 'https://www.vancoresys.com/login' },
+        options: { data: { name, company, phone, role }, emailRedirectTo: authEmailRedirect(request) },
       });
 
       if (error) {
@@ -110,14 +111,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'resend-verification') {
-      const { error } = await supabaseAdmin.auth.resend({ type: 'signup', email });
+      const { error } = await createAuthClient().auth.resend({ type: 'signup', email, options: { emailRedirectTo: authEmailRedirect(request) } });
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
       return NextResponse.json({ success: true, message: 'Verification email sent.' });
     }
 
     if (action === 'forgot-password') {
-      const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://www.vancoresys.com/login',
+      const { error } = await createAuthClient().auth.resetPasswordForEmail(email, {
+        redirectTo: authEmailRedirect(request),
       });
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
       return NextResponse.json({ success: true, message: 'Password reset email sent.' });

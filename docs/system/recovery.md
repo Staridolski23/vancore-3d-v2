@@ -43,3 +43,7 @@ Daily application archives now include `runtime/runtime-manifest.json`, `pm2/dum
 ## Evidence to retain
 
 Archive timestamp and SHA, source revision, migration version, dependencies/runtime versions, restore result, required configuration names (never values), failure reason, recovery steps and operator decision. Keep separate private manifests for actual client data and secrets.
+
+## Hosted Auth redirect configuration
+
+Supabase project wqvhivuyvzdbuguuojhk: Authentication > URL Configuration. Site URL must be https://www.vancoresys.com (never the localhost development default). Preserve unrelated allowed redirects and include the exact https://www.vancoresys.com/login and https://vancore-3d-v2-git-maintenance-2026-10-24-vancore-s-projects.vercel.app/login. Keep previous configuration privately for review, but do not restore an erroneous localhost default during code rollback. No wildcard preview origins are required by the maintenance email flow. The public code helper selects only these two origins; adding a new preview requires reviewing both code and the hosted allow-list. Email templates must use the provider verification link/approved redirect rather than a hardcoded localhost URL. Hosted values/templates must be read back before calling the issue resolved.

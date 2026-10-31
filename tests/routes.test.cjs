@@ -10,6 +10,7 @@ function load(relative, mocks={}) {
   const requireMock=id=>{
     if(id==='@/lib/booking-policy')return require('../ops/backend/booking-policy.cjs');
     if(id==='@/lib/session-cookie')return load('src/lib/session-cookie.ts');
+    if(id==='@/lib/auth-redirect')return load('src/lib/auth-redirect.ts');
     if(Object.hasOwn(mocks,id))return mocks[id];
     if(id==='server-only')return {};
     if(id==='next/server')return {NextResponse};
@@ -184,6 +185,31 @@ test('public signup preserves confirmation flow and never overwrites an existing
  assert.equal((await routes.POST(req('/api/auth',{action:'register',email:'admin@example.com',password:'strong-test-password'}))).status,403);
  const result=await routes.POST(req('/api/auth',{action:'register',email:'client@example.com',password:'strong-test-password',role:'admin'}));
  assert.equal(result.status,200);assert.equal((await result.json()).autoConfirmed,false);assert.equal(signup.options.data.role,'client');assert.equal(profileOptions.ignoreDuplicates,true);
+});
+
+test('auth email flows use exact approved destinations and reject host spoofing',async()=>{
+ const {authEmailRedirect,AUTH_SITE_URL,AUTH_PREVIEW_URL}=load('src/lib/auth-redirect.ts');
+ for(const origin of [AUTH_SITE_URL,AUTH_PREVIEW_URL]) {
+  let signup,resend,reset;
+  const routes=load('src/app/api/auth/route.ts',{
+   '@/lib/request-auth':{requestUser:async()=>null,isAdminEmail:()=>false},
+   '@/lib/supabase':{createAuthClient:()=>({auth:{
+    signUp:async options=>{signup=options;return{data:{user:null,session:null},error:null};},
+    resend:async options=>{resend=options;return{error:null};},
+    resetPasswordForEmail:async(email,options)=>{reset=options;return{error:null};},
+   }}),supabaseAdmin:{}},'@supabase/supabase-js':{},
+  });
+  for(const action of ['register','resend-verification','forgot-password']) {
+   const result=await routes.POST(new Request(origin+'/api/auth',{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify({action,email:'synthetic@example.com',password:'synthetic-test-password'})}));
+   assert.equal(result.status,200);
+  }
+  assert.equal(signup.options.emailRedirectTo,origin+'/login');
+  assert.equal(resend.options.emailRedirectTo,origin+'/login');
+  assert.equal(reset.redirectTo,origin+'/login');
+ }
+ for(const origin of ['http://localhost:3000','https://attacker.example','https://www.vancoresys.com.attacker.example','https://other.vercel.app']) {
+  assert.equal(authEmailRedirect(new Request(origin+'/api/auth',{headers:{'x-forwarded-host':'attacker.example'}})),AUTH_SITE_URL+'/login');
+ }
 });
 
 test('service worker never intercepts private APIs or authenticated requests',()=>{
