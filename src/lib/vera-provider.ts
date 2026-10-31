@@ -19,17 +19,17 @@ export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetch
     if (!key) return null;
     try {
       const response = await fetcher('https://inference-api.nousresearch.com/v1/chat/completions', {
-        method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
+        method: 'POST', redirect: 'error', signal: AbortSignal.timeout(45000),
         headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://www.vancoresys.com', 'X-Title': 'VANCORE AI Analyst' },
-        body: JSON.stringify({ model: VERA_MODEL, tags: ['user=vancore-web'], messages: [{ role: 'system', content: system }, ...history, { role: 'user', content: message }], max_tokens: 1200, temperature: 0.35 }),
+        body: JSON.stringify({ model: VERA_MODEL, tags: ['user=vancore-web'], messages: [{ role: 'system', content: system }, ...history, { role: 'user', content: message }], max_tokens: 4096, temperature: 0.35 }),
       });
       if (!response.ok) { console.error('Vera provider request failed', { status: response.status }); return null; }
       const data = await response.json();
       // Never substitute private reasoning fields for an absent final answer.
       const content = data?.choices?.[0]?.message?.content;
-      if (typeof content !== 'string') return null;
+      if (typeof content !== 'string' || !content.trim()) { console.error('Vera provider returned no final answer'); return null; }
       const reply = content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*$/gi, '').trim();
       return reply ? { reply } : null;
-    } catch { console.error('Vera provider temporarily unavailable'); return null; }
+    } catch (error) { console.error('Vera provider temporarily unavailable', { timedOut: error instanceof Error && error.name === 'TimeoutError' }); return null; }
   };
 }

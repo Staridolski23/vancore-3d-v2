@@ -3,6 +3,7 @@ import { sameOrigin } from '@/lib/session-cookie';
 import { randomUUID } from 'node:crypto';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const askProvider = createVeraProvider();
 const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. You are VANCORE's AI analyst. Be transparent about being AI when asked. Speak professionally and never pretend to be a human consultant. Output only the final answer to the user. Do not include reasoning, planning, self-talk, or meta-commentary.
@@ -105,6 +106,9 @@ function limitedReply(message: string, stage: number) {
   if (/^(how (?:can|do) I contact|contact details|email address)|контакт|имейл/i.test(message)) return bg
     ? 'Можеш да се свържеш с екипа на hello@vancoresys.com или да запазиш разговор през сайта.'
     : KNOWLEDGE_BASE.faq[2].answer;
+  if (stage > 1) return bg
+    ? 'AI анализът е временно ограничен. Можеш да опиташ отново или да се свържеш с екипа на hello@vancoresys.com. Все още не е създаден или изпратен отчет.'
+    : 'AI analysis is temporarily limited. You can try again or contact our team at hello@vancoresys.com. No report has been created or sent yet.';
   const questions = bg ? [
     'Как измервате този проблем — например забавени поръчки, часове работа или пропуснати приходи?',
     'Кои хора или екипи участват и къде точно се губи информацията или отговорността?',
@@ -135,7 +139,7 @@ export async function POST(request: Request) {
     const step = Math.min(6, history.filter(turn => turn.role === 'user').length + 1);
     const headers = { 'Cache-Control': 'private, no-store' };
     if (!message || /^(hello|hi|здравей|здравейте)[!. ]*$/i.test(message)) return Response.json({ reply: /[а-яА-Я]/.test(message) ? 'Здравей! Какъв конкретен проблем в бизнеса искаш да разгледаме?' : 'Hello! What specific business problem would you like to explore?', step: 1, sessionId, mode: 'ready', quickReplies: [], placeholder: 'Type your answer...' }, { headers });
-    const instructions = SYSTEM_PROMPT + '\nRespond in the language of the latest user message. Use the conversation history to avoid repeating answered questions. Ask one focused diagnostic question at a time. Distinguish provided facts from hypotheses. Do not claim to book meetings, send emails or save reports. Return the complete final answer only; no private reasoning.';
+    const instructions = SYSTEM_PROMPT + '\nRespond in the language of the latest user message. Use the conversation history to avoid repeating answered questions, including numbers, targets and deadlines. Acknowledge the latest answer before asking one focused diagnostic question. If the user requests a plan, base it only on their stated facts and label recommendations as preliminary. Distinguish provided facts from hypotheses. Do not claim to book meetings, send emails or save reports. Return the complete final answer only; no private reasoning.';
     const result = await askProvider(instructions, history, message);
     return Response.json({ reply: result?.reply || limitedReply(message, step), step, sessionId, mode: result ? 'ai' : 'limited', quickReplies: [], placeholder: 'Type your answer...' }, { headers });
   } catch {

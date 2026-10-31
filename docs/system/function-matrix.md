@@ -24,8 +24,8 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Reviews | Filters and moderation handler tested with disposable rows | Actual fixture submit/approve/reject and public visibility |
 | CMS | Actual unchanged admin save passed; legacy rows preserved | Versioned content preview/rollback; copy agreement |
 | Portal messages | Actual authenticated empty history and isolated persistence test passed | Team reply and distinct AI/support histories |
-| Vera inference | Actual Nous 400 missing tags observed | Genuine successful model reply; sanitized failure mode |
-| Vera session/context | Incomplete; single-message request | At least five turns, restored session, ownership |
+| Vera inference | Tagged preview request succeeded; 4 AI replies and 1 limited response in 5 synthetic turns | Larger bounded provider budget recheck; outage/recovery consistency |
+| Vera session/context | Bounded browser history reaches model; synthetic follow-up UI/API checks passed | Durable server history, restored session, ownership; avoid repeated known questions |
 | Vera lead/brief | leadData ignored and progress incomplete | Saved lead/consent, structured brief and handoff |
 | Vera language/pricing | English FAQ prices passed; Bulgarian fallback failed | BG/EN diagnostic tests and correct catalog |
 | Reports | Generic AI request and transient UI state | Client evidence, durable report/version/export |
