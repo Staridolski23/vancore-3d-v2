@@ -22,6 +22,7 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Document download | Temporary file/DB test passed | Actual storage/download with disposable files |
 | Image upload/serve | Server and Next limits installed; magic-byte serving tested | Controlled real upload, invalid MIME/size, cleanup |
 | Reviews | Filters and moderation handler tested with disposable rows | Actual fixture submit/approve/reject and public visibility |
+| Optional support chat | Explicit support consent, client verification, SDK shutdown and navigation/logout lifecycle pass 10 synthetic browser scenarios | Real provider handshake/operator receipt and account-bound history isolation |
 | CMS | Actual unchanged admin save passed; legacy rows preserved | Versioned content preview/rollback; copy agreement |
 | Portal messages | Actual authenticated empty history and isolated persistence test passed | Team reply and distinct AI/support histories |
 | Vera inference | Tagged preview request succeeded; 4 AI replies and 1 limited response in 5 synthetic turns | Larger bounded provider budget recheck; outage/recovery consistency |

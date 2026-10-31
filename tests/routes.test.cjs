@@ -21,6 +21,15 @@ function load(relative, mocks={}) {
 const req=(url,body)=>new Request('http://localhost'+url,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);
 const response=(data,status=200)=>Response.json(data,{status});
 
+test('legacy or malformed cookie preferences cannot silently enable the new support provider',()=>{
+ const {readConsent}=load('src/lib/cookie-consent.ts');
+ const legacy={necessary:true,analytics:true,marketing:true,timestamp:'2026-10-31T00:00:00Z'};
+ assert.equal(readConsent(JSON.stringify(legacy)).support,false);
+ assert.equal(readConsent(JSON.stringify({...legacy,version:2,support:'true'})).support,false);
+ assert.equal(readConsent(JSON.stringify({...legacy,version:2,support:true})).support,true);
+ assert.equal(readConsent('{invalid'),null);assert.equal(readConsent(JSON.stringify({...legacy,necessary:false})),null);
+});
+
 test('Vera rejects malformed or hostile input and labels provider outages truthfully',async()=>{
  const history=items=>items===undefined?[]:Array.isArray(items)&&items.every(item=>['user','assistant'].includes(item.role))?items:null;
  const dependencies={'@/lib/vera-provider':{validateVeraHistory:history,createVeraProvider:()=>async()=>null},'node:crypto':{randomUUID:()=> 'synthetic-session'}};

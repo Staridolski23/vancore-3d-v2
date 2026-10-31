@@ -21,6 +21,7 @@ export async function signOut() {
   if (!response.ok) throw new Error('Unable to sign out. Please retry.');
   localStorage.removeItem('vancore_client_token');
   localStorage.removeItem('vancore_client_bearer');
+  window.dispatchEvent(new Event('vancore:auth-changed'));
 }
 export async function authenticatedFetch(input: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers);
