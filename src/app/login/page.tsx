@@ -159,7 +159,7 @@ function LoginForm() {
         return;
       }
 
-      setSuccess('Password reset email sent! Check your inbox.');
+      setSuccess('If an account exists for this email, a password reset link will be sent. Check your inbox and spam folder.');
       setView('login');
     } catch {
       setError('Connection error. Please try again.');

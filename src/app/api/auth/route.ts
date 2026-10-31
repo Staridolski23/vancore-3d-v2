@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
         redirectTo: authEmailRedirect(request),
       });
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-      return NextResponse.json({ success: true, message: 'Password reset email sent.' });
+      return NextResponse.json({ success: true, message: 'If an account exists for this email, a password reset link will be sent. Check your inbox and spam folder.' });
     }
 
     if (action === 'change-password') {
