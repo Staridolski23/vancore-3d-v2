@@ -1,0 +1,38 @@
+# Function and acceptance matrix
+
+Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat changed checks before rollout. No status here means all possible edge cases are covered.
+
+| Function | Baseline evidence | Remaining acceptance |
+|---|---|---|
+| Public pages/navigation | 18 production pages HTTP 200 | Mobile/keyboard/link validation after fixes |
+| Assets/PWA/SEO | Missing assets, duplicate footers/canonicals identified | No missing required resources; correct per-page metadata |
+| Anonymous availability | Maintenance Next maps dates/times; legacy backend still exposes rows | Both entry points exclude PII |
+| User sign-in | Real client and admin preview sessions passed | Refresh/expiry/logout/network recovery |
+| Registration | Confirmation flow fixed; regression test passed | Actual signup/verify/expired link with disposable account |
+| Password recovery | Email request exists; completion missing | Recovery session and password entry completed by user |
+| Profile | Real unchanged save and privilege-field regression passed | Two-user isolation; failure preserves edits |
+| Admin access | Client redirected with session preserved | Consistent backend and database roles |
+| Admin clients/plan/credits | Read path verified; mutation error handling needs repair | Validated writes with audit trail and truthful success |
+| Contact forms | Payload mismatch reproduced without external requests | Unified contract, durable record, controlled email delivery |
+| Booking create | Calendar form opens; legacy insert present | Validation, interval conflicts and concurrent create |
+| Booking status/change/cancel | Disposable DB tests passed | Isolated actual-service round trip; no real customer edits |
+| Proposal accept/reject | Transaction/conflict/repeat tests passed | Authorized owner/admin resolution and notifications |
+| Calendar/ICS | Browser-local time and 45/30 minute mismatch identified | Timezone, DST, duration and invitation agreement |
+| Document list | Real empty client list; ownership regression passed | Client A/B see only own fixtures |
+| Document download | Temporary file/DB test passed | Actual storage/download with disposable files |
+| Image upload/serve | Server and Next limits installed; magic-byte serving tested | Controlled real upload, invalid MIME/size, cleanup |
+| Reviews | Filters and moderation handler tested with disposable rows | Actual fixture submit/approve/reject and public visibility |
+| CMS | Actual unchanged admin save passed; legacy rows preserved | Versioned content preview/rollback; copy agreement |
+| Portal messages | Actual authenticated empty history and isolated persistence test passed | Team reply and distinct AI/support histories |
+| Vera inference | Actual Nous 400 missing tags observed | Genuine successful model reply; sanitized failure mode |
+| Vera session/context | Incomplete; single-message request | At least five turns, restored session, ownership |
+| Vera lead/brief | leadData ignored and progress incomplete | Saved lead/consent, structured brief and handoff |
+| Vera language/pricing | English FAQ prices passed; Bulgarian fallback failed | BG/EN diagnostic tests and correct catalog |
+| Reports | Generic AI request and transient UI state | Client evidence, durable report/version/export |
+| Billing | UI has inactive Select Plan; no completed checkout | Defined sales flow, verified entitlement changes |
+| Security | Supabase migration and JWT/ownership regression passed | Anonymous/A/B/admin matrix on all direct/proxy routes |
+| Backup | Daily SQLite integrity and prior isolated restore passed | Off-machine copy, full Supabase export and new restore exercise |
+| Restart/monitoring | PM2 startup enabled; actual boot not tested | Controlled reboot/restore and failure alerts |
+| Runtime updates | Node 20 EOL on server | Supported LTS tested with sqlite3/PM2 |
+
+Each new check should record date, commit/server revision, environment, fixture, expected/actual result, side effects and rollback/cleanup evidence in the change log or linked machine-readable result.
