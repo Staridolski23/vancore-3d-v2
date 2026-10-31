@@ -1,5 +1,6 @@
 'use client';
 import { authenticatedFetch, signOut } from '@/lib/authenticated-fetch';
+import { planEnquiryUrl, PlanId, planId } from '@/lib/plans';
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -43,7 +44,7 @@ export default function ClientPortal() {
   const searchParams = useSearchParams();
 
   // Check if coming from Vera with plan selection
-  const planParam = searchParams.get('plan');
+  const planParam = planId(searchParams.get('plan'));
   const emailParam = searchParams.get('email');
   const nameParam = searchParams.get('name');
 
@@ -616,7 +617,7 @@ export default function ClientPortal() {
             <div className="bg-[#991930]/10 border border-[#991930]/30 rounded-xl p-4">
               <p className="text-sm text-white">
                 You selected the <strong>{planParam === 'professional' ? 'Professional (€49/mo)' : planParam === 'business' ? 'Business (€99/mo)' : 'Pay-As-You-Go (€25)'}</strong> plan.
-                Complete your registration to activate it.
+                Send an enquiry. Our team will confirm the details and activate it after agreement.
               </p>
             </div>
           )}
@@ -635,13 +636,15 @@ export default function ClientPortal() {
                   ))}
                 </ul>
                 <button
+                  disabled={currentPlan === plan.id}
+                  onClick={() => window.location.assign(planEnquiryUrl(plan.id as PlanId))}
                   className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
                     currentPlan === plan.id
                       ? 'bg-[#991930] text-white'
                       : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                   }`}
                 >
-                  {currentPlan === plan.id ? 'Current Plan' : 'Select Plan'}
+                  {currentPlan === plan.id ? 'Current Plan' : 'Request plan'}
                 </button>
               </div>
             ))}

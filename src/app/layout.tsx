@@ -60,7 +60,7 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         <div className="content-layer">
           <Header />
-          {children}
+          <div id="main-content" tabIndex={-1}>{children}</div>
           <Footer />
         </div>
         <CookieBanner />

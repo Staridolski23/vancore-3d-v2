@@ -12,7 +12,7 @@ const slides = [
     subText: 'Slow service. Customers leaving. Staff overwhelmed.',
     detail: 'Optimized processes • 31% efficiency gain',
     description: 'A founder running three restaurant locations with 40 staff. Kitchen operations were chaotic — slow service, unhappy customers, overwhelmed team. We analyzed every process, reorganized the workflow, and optimized the schedule. Result: 31% faster service, happier customers, and a team that can breathe again.',
-    photo: '/team/placeholder-horeca.jpg',
+    photo: '',
   },
   {
     id: 2,
@@ -23,7 +23,7 @@ const slides = [
     subText: 'Repetitive inquiries. No time for growth.',
     detail: 'Self-service portal • 24% fewer tickets',
     description: 'A founder with a growing online store processing 500 orders daily. The support team of 3 was drowning in the same questions over and over. We built a self-service portal with AI chatbot. Result: 24% fewer tickets, the team focuses on growth, customers get instant answers.',
-    photo: '/team/placeholder-ecommerce.jpg',
+    photo: '',
   },
   {
     id: 3,
@@ -34,7 +34,7 @@ const slides = [
     subText: 'No transparency. No delegation. No scale.',
     detail: '100% pipeline visibility • Real-time insights',
     description: 'A founder who built a successful IT company with 15 people. The problem? Everything lived in their head — no one else could make decisions. We created a transparent pipeline, documented every process, and trained the team. Result: leadership sees the state of the business in real time.',
-    photo: '/team/placeholder-sme.jpg',
+    photo: '',
   },
   {
     id: 4,
@@ -45,7 +45,7 @@ const slides = [
     subText: 'Schedule chaos. Drivers colliding. Costs rising.',
     detail: 'Optimized scheduling • 20min instead of 2h',
     description: 'A founder running a logistics company with 30 vehicles. Delivery schedules were a mess — customers waiting 2 hours, drivers getting in each other\'s way, costs climbing. We analyzed routes, optimized distribution, and implemented intelligent scheduling. Result: deliveries in 20 minutes, 18% cost reduction.',
-    photo: '/team/placeholder-logistics.jpg',
+    photo: '',
   },
 ];
 

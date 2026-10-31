@@ -5,7 +5,7 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Function | Baseline evidence | Remaining acceptance |
 |---|---|---|
 | Public pages/navigation | 18 production pages HTTP 200 | Mobile/keyboard/link validation after fixes |
-| Assets/PWA/SEO | Missing assets, duplicate footers/canonicals identified | No missing required resources; correct per-page metadata |
+| Assets/PWA/SEO | PNG icons restored; broken industry photos use fallback; single footer verified on 14 routes | Remaining resource inventory and correct per-page metadata |
 | Anonymous availability | Maintenance Next maps dates/times; legacy backend still exposes rows | Both entry points exclude PII |
 | User sign-in | Real client and admin preview sessions passed | Refresh/expiry/logout/network recovery |
 | Registration | Confirmation flow fixed; regression test passed | Actual signup/verify/expired link with disposable account |
@@ -29,7 +29,7 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Vera lead/brief | leadData ignored and progress incomplete | Saved lead/consent, structured brief and handoff |
 | Vera language/pricing | English FAQ prices passed; Bulgarian fallback failed | BG/EN diagnostic tests and correct catalog |
 | Reports | Generic AI request and transient UI state | Client evidence, durable report/version/export |
-| Billing | UI has inactive Select Plan; no completed checkout | Defined sales flow, verified entitlement changes |
+| Billing | Owner chose manual enquiries; public/portal buttons and selected-plan form payload pass isolated browser checks | Real enquiry delivery; authorized team activation with audit and consistent limits |
 | Security | Supabase migration and JWT/ownership regression passed | Anonymous/A/B/admin matrix on all direct/proxy routes |
 | Backup | Daily SQLite integrity and prior isolated restore passed | Off-machine copy, full Supabase export and new restore exercise |
 | Restart/monitoring | PM2 startup enabled; actual boot not tested | Controlled reboot/restore and failure alerts |

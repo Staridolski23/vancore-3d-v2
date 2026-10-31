@@ -472,7 +472,7 @@ export default function VeraChat() {
           {/* Chat locked message */}
           {chatLocked && selectedPlan && (
             <div className="text-center text-xs text-[#6b6b6b] animate-fade-in-up">
-              Redirecting to subscription page...
+              Redirecting to your plan enquiry...
             </div>
           )}
         </div>
