@@ -32,7 +32,7 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Billing | Owner chose manual enquiries; public/portal buttons and selected-plan form payload pass isolated browser checks | Real enquiry delivery; authorized team activation with audit and consistent limits |
 | Security | Supabase migration and JWT/ownership regression passed | Anonymous/A/B/admin matrix on all direct/proxy routes |
 | Backup | Daily SQLite integrity and prior isolated restore passed | Off-machine copy, full Supabase export and new restore exercise |
-| Restart/monitoring | PM2 startup enabled; actual boot not tested | Controlled reboot/restore and failure alerts |
-| Runtime updates | Node 20 EOL on server | Supported LTS tested with sqlite3/PM2 |
+| Restart/monitoring | PM2 startup service now active/enabled; controlled cold start and recovery checks passed | Actual machine reboot/complete restore and failure alerts |
+| Runtime updates | API and PM2 daemon run Node 24.22.2; nine native/backend tests passed; old system interpreter retained for rollback | Remaining dependency/OS inventory; remove old runtime after agreed retention |
 
 Each new check should record date, commit/server revision, environment, fixture, expected/actual result, side effects and rollback/cleanup evidence in the change log or linked machine-readable result.

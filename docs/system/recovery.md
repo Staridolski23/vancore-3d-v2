@@ -32,6 +32,14 @@ Standard `pg_dump`/CLI roles-schema-data export, managed Auth/SMTP/config recons
 
 Restore the exact prior code/modules and restart the existing service with the correct environment. Keep the live database and newly uploaded files. Preserve new CMS overlay rows/AI conversations even if their reader is rolled back. Re-run health, permissions and public-content checks. Rolling back a security boundary may reintroduce exposure; prefer a protected maintenance response over reopening private data.
 
+## Runtime and startup reconstruction
+
+The current backend/PM2 interpreter is `/opt/vancore/runtimes/node-v24.22.2-linux-x64/bin/node`. `stage-node-runtime.py` pins the official archive and verifies its checksum/member paths before installation. The verified archive is kept privately on the server and in the local `20261031-node24` backup directory.
+
+Daily application archives now include `runtime/runtime-manifest.json`, `pm2/dump.pm2`, `systemd/pm2-vancore.service` and `maintenance/vancore-backup.py`. The PM2 dump can contain environment secrets: restore it privately, owned by `vancore`, and never publish it. Recreate the pinned runtime path before using the saved startup unit; install app dependencies from the archived lockfile with that runtime. Restore the saved PM2 home/configuration and verify a controlled service start, process executable paths, health, database integrity and public content before assigning traffic.
+
+`activate-node-runtime.py` records the guarded transition and data-preserving rollback procedure. Private pre-change unit/dump/script copies are in `/var/backups/vancore/codex-20261031-node24-qa/runtime-rollback`. Runtime rollback changes interpreter/configuration only; never replace the live database. A controlled service cold start passed; a full machine reboot and managed-service reconstruction remain unverified.
+
 ## Evidence to retain
 
 Archive timestamp and SHA, source revision, migration version, dependencies/runtime versions, restore result, required configuration names (never values), failure reason, recovery steps and operator decision. Keep separate private manifests for actual client data and secrets.
