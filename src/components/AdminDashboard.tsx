@@ -1,4 +1,5 @@
 'use client';
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
 
 import { useState, useEffect } from 'react';
 import { LayoutGrid, Users, Calendar, FileText, BarChart3, Settings, Image as ImageIcon, Users as UsersIcon, CreditCard, CheckCircle, TrendingUp, Star } from 'lucide-react';
@@ -58,6 +59,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [contentError, setContentError] = useState('');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'pending_approval' | 'published' | 'rejected'>('all');
   const [newBookingCount, setNewBookingCount] = useState(0);
@@ -84,7 +86,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('/api/admin/media', {
+      const res = await authenticatedFetch('/api/admin/media', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token },
         body: formData,
@@ -116,7 +118,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const loadSettings = async () => {
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      const res = await fetch('/api/adminv2/settings', {
+      const res = await authenticatedFetch('/api/adminv2/settings', {
         headers: { 'Authorization': 'Bearer ' + token },
       });
       if (res.ok) {
@@ -132,16 +134,18 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
   const fetchContent = async () => {
     setLoadingContent(true);
+    setContentError('');
     try {
-      const res = await fetch('/api/adminv2/content');
-      if (res.ok) { const data = await res.json(); setSiteContent(data.content || []); }
-    } catch (e) { console.error('Failed to fetch content:', e); }
+      const res = await authenticatedFetch('/api/adminv2/content', { headers: { Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') } });
+      if (!res.ok) throw new Error('Content unavailable');
+      const data = await res.json(); setSiteContent(data.content || []);
+    } catch { setContentError('Content could not be loaded. Please retry before editing.'); }
     finally { setLoadingContent(false); }
   };
 
   const fetchBookings = async () => {
     try {
-      const res = await fetch('/api/bookings?upcoming=true');
+      const res = await authenticatedFetch('/api/bookings?upcoming=true', { headers: { Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') } });
       if (res.ok) {
         const data = await res.json();
         setBookings(data.bookings || []);
@@ -154,7 +158,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const fetchReviews = async () => {
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      const res = await fetch('/api/reviews?' + new URLSearchParams({ status: reviewFilter }).toString(), {
+      const res = await authenticatedFetch('/api/reviews?' + new URLSearchParams({ status: reviewFilter }).toString(), {
         headers: { Authorization: 'Bearer ' + token },
       });
       if (res.ok) {
@@ -167,10 +171,10 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const updateBookingStatus = async (id: number | string, status: string) => {
     try {
       const token = localStorage.getItem('vancore_client_token') || propToken || '';
-      const res = await fetch('/api/bookings/' + id, {
+      const res = await authenticatedFetch('/api/bookings/' + id, {
         method: 'PUT',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, date: '', time: '' }),
+        body: JSON.stringify({ status }),
       });
       if (res.ok) {
         fetchBookings();
@@ -188,7 +192,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
     if (!selectedBooking || !proposeDate || !proposeTime) return;
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      const res = await fetch('/api/bookings/' + selectedBooking.id + '/propose', {
+      const res = await authenticatedFetch('/api/bookings/' + selectedBooking.id + '/propose', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: proposeDate, time: proposeTime }),
@@ -207,7 +211,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
     setSavingBooking(true);
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      const res = await fetch('/api/bookings', {
+      const res = await authenticatedFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newBooking, status: 'confirmed' }),
@@ -229,7 +233,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
     setSavingSettings(true);
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      const res = await fetch('/api/adminv2/settings', {
+      const res = await authenticatedFetch('/api/adminv2/settings', {
         method: 'PUT',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
@@ -252,12 +256,12 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       const headers: any = { 'Authorization': 'Bearer ' + token };
 
       try {
-        const res = await fetch('/api/adminv2', { headers });
+        const res = await authenticatedFetch('/api/adminv2', { headers });
         if (res.ok) { const data = await res.json(); setMetrics(data); }
       } catch (e) { console.error('Failed to fetch metrics:', e); }
 
       try {
-        const clientsRes = await fetch('/api/adminv2/clients', { headers });
+        const clientsRes = await authenticatedFetch('/api/adminv2/clients', { headers });
         if (clientsRes.ok) { const data = await clientsRes.json(); setClients(data.clients || []); }
       } catch (e) { console.error('Failed to fetch clients:', e); }
     } catch (e) {
@@ -270,19 +274,22 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const saveContent = async () => {
     if (!editingContent) return;
     setSaving(true);
+    setContentError('');
     try {
-      const res = await fetch('/api/adminv2/content', {
+      const res = await authenticatedFetch('/api/adminv2/content', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (localStorage.getItem('vancore_client_token') || '') },
         body: JSON.stringify({ id: editingContent.id, value: editValue }),
       });
       if (res.ok) {
         setSiteContent(prev => prev.map(c => c.id === editingContent.id ? { ...c, value: editValue, updated_at: new Date().toISOString() } : c));
         setEditingContent(null);
         setEditValue('');
+      } else {
+        setContentError('Content could not be saved. Your edit is still open.');
       }
-    } catch (e) {
-      console.error('Failed to save content:', e);
+    } catch {
+      setContentError('Content could not be saved. Your edit is still open.');
     } finally {
       setSaving(false);
     }
@@ -291,7 +298,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const updateClientRole = async (clientId: string, newRole: string) => {
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      await fetch('/api/adminv2/clients/' + clientId, {
+      await authenticatedFetch('/api/adminv2/clients/' + clientId, {
         method: 'PATCH',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole }),
@@ -306,7 +313,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const updateClientPlan = async (clientId: string, newPlan: string) => {
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      await fetch('/api/adminv2/clients/' + clientId, {
+      await authenticatedFetch('/api/adminv2/clients/' + clientId, {
         method: 'PATCH',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: newPlan }),
@@ -321,7 +328,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const updateClientCredits = async (clientId: string, credits: number) => {
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      await fetch('/api/adminv2/clients/' + clientId, {
+      await authenticatedFetch('/api/adminv2/clients/' + clientId, {
         method: 'PATCH',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ credits }),
@@ -519,7 +526,9 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
             <h3 className="text-sm font-semibold text-white mb-4">Site Content Editor</h3>
-            <p className="text-xs text-[#6b6b6b] mb-4">Edit the content of your website directly from here. Changes are saved to the database and reflected on the site after the next deployment.</p>
+            <p className="text-xs text-[#6b6b6b] mb-4">Edit your website content here. Saved changes appear when the page is reloaded.</p>
+            {contentError && <div role="alert" className="text-sm text-red-400 mb-4">{contentError} <button onClick={fetchContent} className="underline">Retry</button></div>}
+            {loadingContent && <p className="text-sm text-[#9a9a9a]">Loading content...</p>}
 
             {editingContent ? (
               <div className="space-y-3 border border-white/10 rounded-lg p-4">
@@ -569,7 +578,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                     </button>
                   </div>
                 ))}
-                {siteContent.length === 0 && (
+                {siteContent.length === 0 && !loadingContent && !contentError && (
                   <div className="text-sm text-[#6b6b6b] text-center py-8">No content items found. Add some below.</div>
                 )}
               </div>
@@ -579,7 +588,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           {/* Add New Content */}
           <div className="bg-[#111] rounded-xl p-5 border border-white/5">
             <h3 className="text-sm font-semibold text-white mb-3">Add New Content</h3>
-            <AddContentForm onAdded={fetchContent} />
+            {!loadingContent && !contentError && <AddContentForm onAdded={fetchContent} />}
           </div>
         </div>
       )}
@@ -803,7 +812,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
               <input
                 type="file"
                 id="media-upload"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp,image/gif"
                 className="hidden"
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
@@ -812,7 +821,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                   formData.append('file', file);
                   const token = propToken || localStorage.getItem('vancore_client_token') || '';
                   try {
-                    const res = await fetch('/api/admin/media', {
+                    const res = await authenticatedFetch('/api/admin/media', {
                       method: 'POST',
                       headers: { 'Authorization': 'Bearer ' + token },
                       body: formData,
@@ -832,7 +841,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
               <label htmlFor="media-upload" className="cursor-pointer">
                 <div className="text-3xl mb-2">📁</div>
                 <p className="text-sm text-[#9a9a9a]">Click to upload or drag and drop</p>
-                <p className="text-[10px] text-[#6b6b6b] mt-1">PNG, JPG, SVG up to 10MB</p>
+                <p className="text-[10px] text-[#6b6b6b] mt-1">PNG, JPG, WebP or GIF up to 10MB</p>
               </label>
             </div>
 
@@ -1125,11 +1134,11 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
                     {review.status !== 'published' && review.status !== 'rejected' && (
                       <div className="flex gap-2">
                         <button onClick={async () => {
-                          await fetch('/api/reviews/' + review.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') }, body: JSON.stringify({ status: 'published', published_at: new Date().toISOString() }) });
+                          await authenticatedFetch('/api/reviews/' + review.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') }, body: JSON.stringify({ status: 'published', published_at: new Date().toISOString() }) });
                           fetchReviews();
                         }} className="px-3 py-1 bg-[#10b981] text-white text-xs rounded-lg hover:bg-[#059669] transition-colors">Approve</button>
                         <button onClick={async () => {
-                          await fetch('/api/reviews/' + review.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') }, body: JSON.stringify({ status: 'rejected', published_at: new Date().toISOString() }) });
+                          await authenticatedFetch('/api/reviews/' + review.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (propToken || localStorage.getItem('vancore_client_token') || '') }, body: JSON.stringify({ status: 'rejected', published_at: new Date().toISOString() }) });
                           fetchReviews();
                         }} className="px-3 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors">Reject</button>
                       </div>
@@ -1167,9 +1176,9 @@ function AddContentForm({ onAdded }: { onAdded: () => void }) {
     if (!key || !value) return;
     setSaving(true);
     try {
-      await fetch('/api/adminv2/content', {
+      await authenticatedFetch('/api/adminv2/content', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (localStorage.getItem('vancore_client_token') || '') },
         body: JSON.stringify({ section, key, value, type }),
       });
       setKey('');

@@ -1,4 +1,6 @@
 'use client';
+import { authenticatedFetch, signOut } from '@/lib/authenticated-fetch';
+import { planEnquiryUrl, PlanId, planId } from '@/lib/plans';
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -22,69 +24,125 @@ export default function ClientPortal() {
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'reviews' | 'documents' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
   const [bookings, setBookings] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [documentError, setDocumentError] = useState('');
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewBody, setReviewBody] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewMessage, setReviewMessage] = useState('');
+  const [profileDraft, setProfileDraft] = useState({ name: '', company: '', phone: '', vat_id: '' });
+  const [profileMessage, setProfileMessage] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [dataErrors, setDataErrors] = useState<Record<string, string>>({});
+  const [messages, setMessages] = useState<{id: string; role: string; content: string}[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [profileLoadError, setProfileLoadError] = useState('');
   const [cancelReason, setCancelReason] = useState('');
   const [penaltyWarning, setPenaltyWarning] = useState<string | null>(null);
   const [reportContent, setReportContent] = useState('');
   const searchParams = useSearchParams();
 
   // Check if coming from Vera with plan selection
-  const planParam = searchParams.get('plan');
+  const planParam = planId(searchParams.get('plan'));
   const emailParam = searchParams.get('email');
   const nameParam = searchParams.get('name');
 
   useEffect(() => {
     const token = localStorage.getItem('vancore_client_token');
     if (token) {
-      fetch('/api/auth/profile', {
+      authenticatedFetch('/api/auth/profile', {
         headers: { Authorization: 'Bearer ' + token },
       }).then(res => {
         if (res.ok) {
           res.json().then(data => {
             setUser(data.user);
+            setProfileDraft({ name: data.user.name || '', company: data.user.company || '', phone: data.user.phone || '', vat_id: data.user.vat_id || '' });
             setStatus('dashboard');
             if (planParam) {
               setActiveTab('billing');
             }
             // Fetch bookings
-            fetch('/api/bookings?email=' + data.user.email)
-              .then(r => r.json())
+            authenticatedFetch('/api/bookings?email=' + data.user.email)
+              .then(r => { if (!r.ok) throw new Error(); return r.json(); })
               .then(data => setBookings(data.bookings || []))
-              .catch(() => setBookings([]));
+              .catch(() => setDataErrors(previous => ({ ...previous, bookings: 'Your bookings could not be loaded. Please reload to retry.' })));
             // Fetch documents
-            fetch('/api/documents?email=' + data.user.email)
-              .then(r => r.json())
+            authenticatedFetch('/api/documents?email=' + data.user.email)
+              .then(r => { if (!r.ok) throw new Error(); return r.json(); })
               .then(data => setDocuments(data.documents || []))
-              .catch(() => setDocuments([]));
+              .catch(() => setDataErrors(previous => ({ ...previous, documents: 'Your documents could not be loaded. Please reload to retry.' })));
             // Fetch reviews
-            fetch('/api/reviews?user_id=' + data.user.id)
-              .then(r => r.json())
+            authenticatedFetch('/api/reviews?user_id=' + data.user.id)
+              .then(r => { if (!r.ok) throw new Error(); return r.json(); })
               .then(data => setReviews(data.reviews || []))
-              .catch(() => setReviews([]));
+              .catch(() => setDataErrors(previous => ({ ...previous, reviews: 'Your reviews could not be loaded. Please reload to retry.' })));
           });
-        } else {
+        } else if (res.status === 401 || res.status === 403) {
           localStorage.removeItem('vancore_client_token');
           setStatus('login');
+        } else {
+          setProfileLoadError('Your profile could not be loaded. Please retry.');
         }
       }).catch(() => {
-        localStorage.removeItem('vancore_client_token');
-        setStatus('login');
+        setProfileLoadError('Your profile could not be loaded. Please retry.');
       });
     } else {
       setStatus('login');
     }
   }, []);
 
-  const logout = () => {
+  useEffect(() => {
+    if (activeTab !== 'history' || !user) return;
+    let current = true;
+    setLoadingMessages(true);
+    authenticatedFetch('/api/chat').then(async response => {
+      if (!response.ok) throw new Error();
+      const data = await response.json();
+      if (current) {
+        setMessages(data.messages || []);
+        setDataErrors(previous => { const next = { ...previous }; delete next.history; return next; });
+      }
+    }).catch(() => { if (current) setDataErrors(previous => ({ ...previous, history: 'Your messages could not be loaded. Please reload to retry.' })); })
+      .finally(() => { if (current) setLoadingMessages(false); });
+    return () => { current = false; };
+  }, [activeTab, user?.id]);
+
+  const saveProfile = async () => {
+    setSavingProfile(true); setProfileMessage('');
+    try {
+      const response = await authenticatedFetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update-profile', ...profileDraft }) });
+      if (!response.ok) throw new Error();
+      setUser(previous => previous ? { ...previous, ...profileDraft } : previous);
+      setProfileMessage('Profile saved.');
+    } catch { setProfileMessage('Your profile could not be saved. Please try again.'); }
+    finally { setSavingProfile(false); }
+  };
+
+  const logout = async () => {
+    try { await signOut(); } catch { window.alert('Unable to sign out. Please retry.'); return; }
     setUser(null);
     localStorage.removeItem('vancore_client_token');
     localStorage.removeItem('vancore_client_bearer');
     setStatus('login');
+  };
+
+  const downloadDocument = async (doc: any) => {
+    setDocumentError('');
+    try {
+      const response = await authenticatedFetch('/api/documents/' + encodeURIComponent(doc.filename));
+      if (!response.ok) throw new Error('Download failed');
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setDocumentError('The document could not be downloaded. Please try again.');
+    }
   };
 
   const downloadICS = (booking: any) => {
@@ -130,7 +188,7 @@ export default function ClientPortal() {
     setReviewMessage('');
     try {
       const token = localStorage.getItem('vancore_client_token');
-      const res = await fetch('/api/reviews', {
+      const res = await authenticatedFetch('/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +208,7 @@ export default function ClientPortal() {
         setReviewBody('');
         setReviewRating(5);
         setReviewMessage('Thanks! Your review is awaiting approval.');
-        fetch('/api/reviews?user_id=' + user?.id)
+        authenticatedFetch('/api/reviews?user_id=' + user?.id)
           .then(r => r.json())
           .then(data => setReviews(data.reviews || []))
           .catch(() => {});
@@ -175,11 +233,12 @@ export default function ClientPortal() {
 
   const confirmBooking = async (id: string | number) => {
     const token = localStorage.getItem('vancore_client_token');
-    await fetch('/api/bookings/' + id, {
+    const response = await authenticatedFetch('/api/bookings/' + id, {
       method: 'PUT',
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'confirmed', confirmed_at: new Date().toISOString() }),
     });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'confirmed', confirmed_at: new Date().toISOString() } : b));
   };
 
@@ -194,11 +253,12 @@ export default function ClientPortal() {
     const reason = window.prompt('Please provide a reason for cancellation') || '';
     if (!reason) return;
     const token = localStorage.getItem('vancore_client_token');
-    await fetch('/api/bookings/' + id, {
+    const response = await authenticatedFetch('/api/bookings/' + id, {
       method: 'PUT',
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'cancelled', cancellation_reason: reason, penalty_applied: penalty }),
     });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled', cancellation_reason: reason, penalty_applied: penalty } : b));
     setPenaltyWarning(penalty ? 'This booking was cancelled less than 24h before the session. A penalty may apply.' : null);
   };
@@ -209,17 +269,18 @@ export default function ClientPortal() {
     const newTime = prompt('New time (HH:MM)');
     if (!newTime) return;
     const token = localStorage.getItem('vancore_client_token');
-    await fetch('/api/bookings/' + id + '/propose', {
+    const response = await authenticatedFetch('/api/bookings/' + id + '/propose', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ date: newDate, time: newTime, status: 'rescheduled' }),
     });
+    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'rescheduled' } : b));
   };
 
   const generateReport = async (): Promise<string> => {
     try {
-      const res = await fetch('/api/ai-analyst', {
+      const res = await authenticatedFetch('/api/ai-analyst', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: 'Please generate a concise business status report for the logged-in client.' }),
@@ -234,7 +295,7 @@ export default function ClientPortal() {
   if (status === 'loading') {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="text-[#6b6b6b] text-sm">Loading...</div>
+        {profileLoadError ? <div role="alert" className="text-sm text-red-400">{profileLoadError} <button onClick={() => window.location.reload()} className="underline">Retry</button></div> : <div className="text-[#6b6b6b] text-sm">Loading...</div>}
       </div>
     );
   }
@@ -246,11 +307,11 @@ export default function ClientPortal() {
     return null;
   }
 
-  const clarityScore = 31;
   const currentPlan = user?.plan || 'starter';
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {Object.entries(dataErrors).map(([key, message]) => <p key={key} role="alert" className="text-sm text-red-400">{message}</p>)}
       {/* Tab Navigation */}
       <div className="flex gap-1 bg-[#111] p-1 rounded-lg overflow-x-auto">
         {[
@@ -288,12 +349,8 @@ export default function ClientPortal() {
                 <p className="text-sm text-[#9a9a9a]">{user?.company || 'No company'}</p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-[#991930]">{clarityScore}%</div>
-                <div className="text-[10px] text-[#6b6b6b] uppercase tracking-wider">Clarity Score</div>
+                <div className="text-sm text-[#9a9a9a]">Assessment pending</div>
               </div>
-            </div>
-            <div className="mt-4 h-2 bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#991930] to-[#c94f2b] rounded-full" style={{ width: clarityScore + '%' }} />
             </div>
             <div className="mt-4 flex gap-3">
               <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
@@ -329,12 +386,12 @@ export default function ClientPortal() {
                 <div className="text-[10px] text-[#6b6b6b] uppercase">Credits</div>
               </div>
               <div className="p-3 bg-white/5 rounded-lg text-center">
-                <div className="text-xl font-bold text-white">0</div>
+                <div className="text-xl font-bold text-white">—</div>
                 <div className="text-[10px] text-[#6b6b6b] uppercase">Reports</div>
               </div>
               <div className="p-3 bg-white/5 rounded-lg text-center">
-                <div className="text-xl font-bold text-white">0</div>
-                <div className="text-[10px] text-[#6b6b6b] uppercase">Calls</div>
+                <div className="text-xl font-bold text-white">{dataErrors.bookings ? '—' : bookings.filter(booking => booking.status !== 'cancelled').length}</div>
+                <div className="text-[10px] text-[#6b6b6b] uppercase">Bookings</div>
               </div>
             </div>
           </div>
@@ -365,7 +422,7 @@ export default function ClientPortal() {
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
             <h3 className="text-base font-semibold text-white mb-4">My Bookings</h3>
-            {bookings.length === 0 ? (
+            {dataErrors.bookings ? null : bookings.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📅</div>
                 <p className="text-sm text-[#6b6b6b] mb-4">You don't have any bookings yet.</p>
@@ -428,7 +485,8 @@ export default function ClientPortal() {
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
             <h3 className="text-base font-semibold text-white mb-4">Documents</h3>
-            {documents.length === 0 ? (
+            {documentError && <p role="alert" className="text-sm text-red-400 mb-4">{documentError}</p>}
+            {dataErrors.documents ? null : documents.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📁</div>
                 <p className="text-sm text-[#6b6b6b] mb-4">You don't have any documents yet.</p>
@@ -441,9 +499,9 @@ export default function ClientPortal() {
                       <div className="text-sm text-white">{doc.name}</div>
                       <div className="text-xs text-[#6b6b6b]">{doc.filename}</div>
                     </div>
-                    <a href={'/api/documents/' + doc.filename} className="text-xs text-[#991930] hover:underline" target="_blank" rel="noreferrer">
+                    <button onClick={() => downloadDocument(doc)} className="text-xs text-[#991930] hover:underline">
                       Download
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -537,14 +595,17 @@ export default function ClientPortal() {
       {activeTab === 'history' && (
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
-            <h3 className="text-base font-semibold text-white mb-4">Chat History</h3>
-            <div className="text-center py-12">
+            <h3 className="text-base font-semibold text-white mb-4">Messages with VANCORE</h3>
+            <p className="text-xs text-[#9a9a9a] mb-4">Messages sent to the VANCORE team through the client portal.</p>
+            {loadingMessages && <p className="text-sm text-[#9a9a9a]">Loading messages...</p>}
+            {messages.map(message => <div key={message.id} className="border-b border-white/10 py-3"><p className="text-xs text-[#9a9a9a]">{message.role === 'user' ? 'You' : 'VANCORE team'}</p><p className="text-sm text-white whitespace-pre-wrap">{message.content}</p></div>)}
+            {!loadingMessages && !dataErrors.history && messages.length === 0 && <div className="text-center py-12">
               <div className="text-4xl mb-3">💬</div>
-              <p className="text-sm text-[#6b6b6b] mb-4">No conversations yet.</p>
+              <p className="text-sm text-[#6b6b6b] mb-4">No portal messages yet.</p>
               <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                Start a Conversation
+                Start an AI Analysis
               </a>
-            </div>
+            </div>}
           </div>
         </div>
       )}
@@ -556,7 +617,7 @@ export default function ClientPortal() {
             <div className="bg-[#991930]/10 border border-[#991930]/30 rounded-xl p-4">
               <p className="text-sm text-white">
                 You selected the <strong>{planParam === 'professional' ? 'Professional (€49/mo)' : planParam === 'business' ? 'Business (€99/mo)' : 'Pay-As-You-Go (€25)'}</strong> plan.
-                Complete your registration to activate it.
+                Send an enquiry. Our team will confirm the details and activate it after agreement.
               </p>
             </div>
           )}
@@ -575,13 +636,15 @@ export default function ClientPortal() {
                   ))}
                 </ul>
                 <button
+                  disabled={currentPlan === plan.id}
+                  onClick={() => window.location.assign(planEnquiryUrl(plan.id as PlanId))}
                   className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
                     currentPlan === plan.id
                       ? 'bg-[#991930] text-white'
                       : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                   }`}
                 >
-                  {currentPlan === plan.id ? 'Current Plan' : 'Select Plan'}
+                  {currentPlan === plan.id ? 'Current Plan' : 'Request plan'}
                 </button>
               </div>
             ))}
@@ -597,7 +660,7 @@ export default function ClientPortal() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Name</label>
-                <input type="text" defaultValue={user?.name || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input type="text" value={profileDraft.name} onChange={event => setProfileDraft(previous => ({ ...previous, name: event.target.value }))} name="name" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Email</label>
@@ -605,19 +668,20 @@ export default function ClientPortal() {
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Company</label>
-                <input type="text" defaultValue={user?.company || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input type="text" value={profileDraft.company} onChange={event => setProfileDraft(previous => ({ ...previous, company: event.target.value }))} name="company" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">VAT ID</label>
-                <input type="text" defaultValue={user?.vat_id || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input type="text" value={profileDraft.vat_id} onChange={event => setProfileDraft(previous => ({ ...previous, vat_id: event.target.value }))} name="vat_id" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
               <div>
                 <label className="block text-xs text-[#6b6b6b] mb-1">Phone</label>
-                <input type="tel" defaultValue={user?.phone || ''} className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
+                <input type="tel" value={profileDraft.phone} onChange={event => setProfileDraft(previous => ({ ...previous, phone: event.target.value }))} name="phone" className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50" />
               </div>
-              <button className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                Save Changes
+              <button onClick={saveProfile} disabled={savingProfile} className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] disabled:opacity-50 transition-colors">
+                {savingProfile ? 'Saving...' : 'Save Changes'}
               </button>
+              {profileMessage && <p role="status" className="text-sm text-[#9a9a9a]">{profileMessage}</p>}
             </div>
           </div>
 
@@ -641,7 +705,7 @@ export default function ClientPortal() {
                   return;
                 }
                 try {
-                  const res = await fetch('/api/auth', {
+                  const res = await authenticatedFetch('/api/auth', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'change-password', email, currentPassword, newPassword }),

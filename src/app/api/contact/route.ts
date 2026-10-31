@@ -1,29 +1,24 @@
+import { backendFetch } from '@/lib/backend';
+import { contactInput } from '@/lib/contact-input';
 import { NextRequest, NextResponse } from 'next/server';
-
-const DO_API = process.env.DO_API_URL || 'http://206.189.48.236:3001';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { sender_name, sender_email, subject, message } = body;
+    const input = contactInput(await request.json());
+    if (!input) return NextResponse.json({ error: 'Enter your name, a valid email and a message (up to 10,000 characters).' }, { status: 400 });
 
-    if (!sender_name || !sender_email || !subject || !message) {
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
-    }
-
-    const res = await fetch(`${DO_API}/api/contact`, {
+    const res = await backendFetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sender_name, sender_email, subject, message }),
+      body: JSON.stringify(input),
     });
 
     if (!res.ok) {
-      const error = await res.json();
-      return NextResponse.json({ error: error.error || 'Failed to send message' }, { status: 500 });
+      return NextResponse.json({ error: 'Your enquiry could not be recorded. Please try again.' }, { status: res.status >= 500 ? 502 : res.status });
     }
 
     return NextResponse.json({ success: true });
   } catch (e: unknown) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : 'Unknown error' }, { status: 500 });
+    return NextResponse.json({ error: 'Your enquiry could not be recorded. Please try again.' }, { status: 502 });
   }
 }

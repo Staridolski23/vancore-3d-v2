@@ -1,0 +1,45 @@
+# Backup and reconstruction procedure
+
+## Before application/database changes
+
+1. Record current frontend commit, backend code/module hashes, schema migration state and health.
+2. Run `/usr/local/sbin/vancore-backup.py` on the server. It uses the SQLite online backup API and checks integrity before archiving application files, uploaded/document bytes, JSON data, Nginx and installed service units. Keep archives root-only.
+3. Download the archive and manifest into the private local backup directory and compare SHA-256. Never attach the archive to a public PR: it contains real data and operational secrets.
+4. Preserve frontend history with `git bundle create ... --all`; keep pending uncommitted changes separately if any.
+5. Record what is NOT covered. SQLite backup is not Supabase backup; Nginx configuration is not a copy of managed Vercel settings, DNS, email service, certificates or external storage.
+
+## Reconstruct in an isolated environment
+
+Use a separate directory/database/port. Inspect archive paths for traversal before extraction. Restore files without running legacy scripts automatically. Verify SQLite integrity and schema/table inventory. Install exact dependencies from the lockfile, using a tested runtime compatible with native sqlite3. Restore secrets from the private archive or controlled secret store. Test health, anonymous/A/B/admin access and file ownership with disposable fixtures. Verify public content against the accepted snapshot before assigning production traffic.
+
+Supabase recovery must separately cover database schema/data, authentication identities, storage object bytes/policies and required service settings. Test its restore independently; do not infer recoverability from RLS migrations alone.
+
+Use `python scripts/verify-backup.py ARCHIVE --sha256 EXPECTED --report REPORT` to check a downloaded archive hash, reject unsafe paths, restore its SQLite files in a temporary directory, and validate integrity/foreign keys without exposing records. It does not execute archived code or modify live files. The 31 October archive passed this check for both databases; full application reconstruction remains a separate exercise.
+
+## Supabase logical snapshot and offline drill
+
+The private `20261031-supabase` directory contains `data-snapshot.json`, `catalog.json`, per-table metadata under `public-schema/` and `managed-schema/`, advisor results and a SHA-256 manifest. Access is restricted to the local owner. Data and Auth password hashes must never enter Git or public outputs.
+
+The read-only query in `scripts/supabase-schema-snapshot.sql` records the catalog. Data is captured in one SQL statement for a consistent data snapshot. Metadata is a separate read; repeat inventory checks before any future migration. Live session tokens and managed service configuration are outside this snapshot. There are no Supabase Storage object bytes to export at this capture.
+
+Install pinned verification dependencies with `npm ci --prefix ops/qa-runtime`. Run `node scripts/verify-supabase-snapshot.cjs PRIVATE_DIRECTORY REPORT.json`. The in-memory offline database restores application tables and Auth users/identities, constraints, indexes, functions, triggers and policies; compares row contents privately; and prints aggregate results only. It has no hosted connection or Auth server. Use `VANCORE_QA_RUNTIME` only to select a separately installed trusted copy of the same pinned verification packages.
+
+Run `node tests/supabase-boundary.cjs PRIVATE_DIRECTORY MIGRATION.sql REPORT.json` to exercise anonymous/client A/client B/admin access and the matching code/ACL rollback. Never point these tools at production: they only accept local snapshot paths and create an in-memory database.
+
+Standard `pg_dump`/CLI roles-schema-data export, managed Auth/SMTP/config reconstruction and hosted recovery remain separate acceptance items. Do not present the logical/offline drill as a complete hosted Supabase recovery.
+
+## Code rollback
+
+Restore the exact prior code/modules and restart the existing service with the correct environment. Keep the live database and newly uploaded files. Preserve new CMS overlay rows/AI conversations even if their reader is rolled back. Re-run health, permissions and public-content checks. Rolling back a security boundary may reintroduce exposure; prefer a protected maintenance response over reopening private data.
+
+## Runtime and startup reconstruction
+
+The current backend/PM2 interpreter is `/opt/vancore/runtimes/node-v24.22.2-linux-x64/bin/node`. `stage-node-runtime.py` pins the official archive and verifies its checksum/member paths before installation. The verified archive is kept privately on the server and in the local `20261031-node24` backup directory.
+
+Daily application archives now include `runtime/runtime-manifest.json`, `pm2/dump.pm2`, `systemd/pm2-vancore.service` and `maintenance/vancore-backup.py`. The PM2 dump can contain environment secrets: restore it privately, owned by `vancore`, and never publish it. Recreate the pinned runtime path before using the saved startup unit; install app dependencies from the archived lockfile with that runtime. Restore the saved PM2 home/configuration and verify a controlled service start, process executable paths, health, database integrity and public content before assigning traffic.
+
+`activate-node-runtime.py` records the guarded transition and data-preserving rollback procedure. Private pre-change unit/dump/script copies are in `/var/backups/vancore/codex-20261031-node24-qa/runtime-rollback`. Runtime rollback changes interpreter/configuration only; never replace the live database. A controlled service cold start passed; a full machine reboot and managed-service reconstruction remain unverified.
+
+## Evidence to retain
+
+Archive timestamp and SHA, source revision, migration version, dependencies/runtime versions, restore result, required configuration names (never values), failure reason, recovery steps and operator decision. Keep separate private manifests for actual client data and secrets.

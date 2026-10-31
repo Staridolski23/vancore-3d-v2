@@ -15,7 +15,7 @@ export default function BookCallPage() {
               Let’s talk through your next step.
             </h1>
             <p className="font-sans text-sm text-gray-400 leading-relaxed mb-8">
-              Pick a time that works for you. We’ll send a calendar invite and a short prep note so you get the most out of the conversation.
+              Request a time that works for you. Our team will confirm the meeting details. All times are shown in Europe/Sofia.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

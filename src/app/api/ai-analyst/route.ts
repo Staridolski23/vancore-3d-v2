@@ -1,9 +1,12 @@
+import { createVeraProvider, validateVeraHistory } from '@/lib/vera-provider';
+import { sameOrigin } from '@/lib/session-cookie';
+import { randomUUID } from 'node:crypto';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
-const NOUS_API_KEY = process.env.NOUS_API_KEY || '';
-const MODEL = 'stepfun/step-3.7-flash:free';
-const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. Your ONLY identity is Vera. You are NOT LFM, NOT Liquid AI, and NOT any other model. Never mention being an AI, model, or assistant. Speak as a professional business analyst who works at VANCORE. Output only the final answer to the user. Do not include reasoning, planning, self-talk, or meta-commentary.
+const askProvider = createVeraProvider();
+const SYSTEM_PROMPT = `You are Vera, an AI Business Analyst for VANCORE. You are VANCORE's AI analyst. Be transparent about being AI when asked. Speak professionally and never pretend to be a human consultant. Output only the final answer to the user. Do not include reasoning, planning, self-talk, or meta-commentary.
 
 COMPANY FACTS:
 - VANCORE is a boutique business analysis & development consultancy based in Sofia, Bulgaria.
@@ -12,7 +15,7 @@ COMPANY FACTS:
 - 47+ engagements delivered, 92% client retention, 6+ years embedded operational experience.
 - Services: Business Analysis, Process Re-engineering, Change Management, Implementation Support.
 - Method: Discovery → Diagnosis → Design → Deployment.
-- Pricing: Starter €499/month, Growth €999/month, Scale €1,999/month. 14-day free trial.
+- Pricing: Pay-As-You-Go €25 one-time, Professional €49/month, Business €99/month. Pay-As-You-Go is a one-time purchase, not a monthly subscription. 14-day free trial.
 - Contact: hello@vancoresys.com. Office: Sofia, Bulgaria.
 - Security: AES-256 encryption, TLS 1.2+, JWT + RBAC, EU data residency.
 
@@ -30,7 +33,7 @@ const KNOWLEDGE_BASE: KnowledgeBase = {
   faq: [
     {
       keywords: ['price', 'pricing', 'cost', 'how much', 'package', 'plan', 'subscription', 'rates'],
-      answer: 'Our plans start from €499/month for Starter, €999/month for Growth, and €1,999/month for Scale. We also offer a 14-day free trial. All prices exclude VAT where applicable.',
+      answer: 'Our plans are Pay-As-You-Go at €25 as a one-time purchase, Professional at €49/month, and Business at €99/month. We also offer a 14-day free trial. All prices exclude VAT where applicable.',
     },
     {
       keywords: ['service', 'services', 'what do you do', 'offer', 'solutions', 'specialize'],
@@ -50,7 +53,7 @@ const KNOWLEDGE_BASE: KnowledgeBase = {
     },
     {
       keywords: ['support', 'help', 'after', 'follow up', 'maintenance'],
-      answer: 'Every plan includes ongoing support. Growth and Scale plans get faster response times and optional check-ins.',
+      answer: 'Pay-As-You-Go includes basic support. Professional includes priority support. Business includes the Professional features and two human consultant calls per month.',
     },
     {
       keywords: ['industry', 'sector', 'horeca', 'retail', 'e-commerce', 'logistics', 'work with'],
@@ -95,273 +98,52 @@ const KNOWLEDGE_BASE: KnowledgeBase = {
   defaultFallback: 'Thanks for the details. To give you a useful, specific answer, I’d recommend a short discovery call. You can book one on our website or email hello@vancoresys.com.',
 };
 
-function matchAnswer(message: string): string {
-  const lower = message.toLowerCase();
-
-  for (const item of KNOWLEDGE_BASE.faq) {
-    if (item.keywords.some((keyword) => lower.includes(keyword))) {
-      return item.answer;
-    }
-  }
-
-  if (lower.includes('company') || lower.includes('about') || lower.includes('who are you') || lower.includes('tell me about vancore')) {
-    return KNOWLEDGE_BASE.companyInfo;
-  }
-
-  if (lower.includes('founder') || lower.includes('ceo') || lower.includes('momchil') || lower.includes('zhanet') || lower.includes('team') || lower.includes('leadership')) {
-    return KNOWLEDGE_BASE.teamInfo;
-  }
-
-  if (lower.includes('method') || lower.includes('process') || lower.includes('approach') || lower.includes('framework') || lower.includes('how do you work')) {
-    return KNOWLEDGE_BASE.processInfo;
-  }
-
-  return KNOWLEDGE_BASE.defaultFallback;
-}
-
-function nextStep(currentStep: number): number {
-  if (currentStep >= 3) return 7;
-  return currentStep + 1;
-}
-
-function stripReasoning(text: string): string {
-  const badOpeners = [
-    'The user is asking about',
-    'However, I need to be careful',
-    'I should answer based on',
-    'Let me provide a balanced',
-    "I don't have specific",
-    'I should give a helpful response',
-    'Since this is a specific product',
-    'The user is',
-    'Actually, looking at my system prompt',
-    'Since I don\'t have real-time access',
-    'I should answer this directly',
-    'I don\'t have exact current',
-    'VANCORE appears to be',
-    'Typical pricing models',
-    'I should give them accurate',
-    'Let me provide general',
-    'But wait',
-    'there\'s a potential issue',
-    'these seem like different businesses',
-    'the user might be referring to VANCORE',
-    'or they might be confused',
-    'Got it, let\'s see',
-    'Got it, let\'s tackle this',
-    'First, I need to',
-    'Wait let\'s structure it',
-    'First, start with the basics',
-    'Wait, let\'s',
-    'Wait,',
-    'Wait',
-    'let\'s make it natural',
-    'Oh right,',
-    'Oh right',
-    'Next,',
-    'Then mention',
-    'Then our',
-    'Maybe add',
+function limitedReply(message: string, stage: number) {
+  const bg = /[а-яА-Я]/.test(message);
+  if (/\b(pric(?:e|es|ing)|subscription|rates)\b|цен(?:а|и|ите)|абонамент/i.test(message)) return bg
+    ? 'Плановете са Pay-As-You-Go — €25 еднократно, Professional — €49 месечно и Business — €99 месечно.'
+    : KNOWLEDGE_BASE.faq[0].answer;
+  if (/^(how (?:can|do) I contact|contact details|email address)|контакт|имейл/i.test(message)) return bg
+    ? 'Можеш да се свържеш с екипа на hello@vancoresys.com или да запазиш разговор през сайта.'
+    : KNOWLEDGE_BASE.faq[2].answer;
+  if (stage > 1) return bg
+    ? 'AI анализът е временно ограничен. Можеш да опиташ отново или да се свържеш с екипа на hello@vancoresys.com. Все още не е създаден или изпратен отчет.'
+    : 'AI analysis is temporarily limited. You can try again or contact our team at hello@vancoresys.com. No report has been created or sent yet.';
+  const questions = bg ? [
+    'Как измервате този проблем — например забавени поръчки, часове работа или пропуснати приходи?',
+    'Кои хора или екипи участват и къде точно се губи информацията или отговорността?',
+    'Какво вече сте опитали и какъв беше резултатът?',
+    'Каква конкретна промяна искате да постигнете и в какъв срок?',
+    'AI анализът е временно ограничен. Запазете разговор с екипа за преглед на събраната информация.'
+  ] : [
+    'How do you measure this problem — for example delayed orders, hours of work, or lost revenue?',
+    'Which people or teams are involved, and where is information or ownership lost?',
+    'What have you already tried, and what happened?',
+    'What specific change would you like to achieve, and by when?',
+    'AI analysis is temporarily limited. Book a call with our team to review the information.'
   ];
-
-  let cleaned = text;
-  for (const opener of badOpeners) {
-    const idx = cleaned.indexOf(opener);
-    if (idx !== -1) {
-      const nextDouble = cleaned.indexOf('\n\n', idx);
-      if (nextDouble !== -1) {
-        cleaned = cleaned.slice(0, idx) + cleaned.slice(nextDouble + 2);
-      } else {
-        cleaned = cleaned.slice(0, idx);
-      }
-    }
-  }
-
-  cleaned = cleaned
-    .replace(/I'm LFM[^\n]*/gi, '')
-    .replace(/built by Liquid AI[^\n]*/gi, '')
-    .replace(/enterprise-grade foundation model family[^\n]*/gi, '')
-    .replace(/VANCORE \(VANCORE\)[^\n]*/gi, '')
-    .replace(/on-device intelligence[^\n]*/gi, '')
-    .replace(/\bLFM\b/gi, '')
-    .replace(/\bLiquid AI\b/gi, '')
-    .replace(/^\n+/, '')
-    .trim();
-
-  return cleaned;
-}
-
-async function askNous(message: string): Promise<{ reply: string; step: number } | null> {
-  if (!NOUS_API_KEY) return null;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-  try {
-    const res = await fetch('https://inference-api.nousresearch.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${NOUS_API_KEY}`,
-        'HTTP-Referer': 'https://www.vancoresys.com',
-        'X-Title': 'VANCORE AI Analyst',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: message },
-        ],
-        max_tokens: 800,
-        temperature: 0.35,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('Nous API error:', res.status, errorText);
-      return null;
-    }
-
-    const data = await res.json();
-    const rawReply = data?.choices?.[0]?.message?.content?.trim() || '';
-    const reasoningReply = data?.choices?.[0]?.message?.reasoning_details?.[0]?.text?.trim() || '';
-    const combined = rawReply || reasoningReply || '';
-
-    if (!combined) {
-      return null;
-    }
-
-    const paragraphs = combined.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-
-    // Scan backwards to find the first paragraph that looks like a real user-facing answer.
-    let cleaned = '';
-    for (let i = paragraphs.length - 1; i >= 0; i--) {
-      const candidate = stripReasoning(paragraphs[i]);
-      if (!candidate) continue;
-      const lower = candidate.toLowerCase();
-      if (
-        lower.includes('the user is asking') ||
-        lower.includes('i should answer') ||
-        lower.includes('got it') ||
-        lower.includes('let me provide') ||
-        lower.includes('wait let') ||
-        lower.includes('wait, let') ||
-        lower.includes('but wait') ||
-        lower.includes('let\'s see') ||
-        lower.includes('let\'s tackle') ||
-        lower.includes('first, i need to') ||
-        lower.includes('wait') ||
-        lower.includes('oh right') ||
-        lower.includes('next,') ||
-        lower.includes('then mention') ||
-        lower.includes('then our') ||
-        lower.includes('maybe add')
-      ) {
-        continue;
-      }
-      cleaned = candidate;
-      break;
-    }
-
-    if (!cleaned) {
-      return null;
-    }
-
-    return { reply: cleaned, step: 1 };
-  } catch (error) {
-    clearTimeout(timeoutId);
-    console.error('Nous API timeout/network error:', error);
-    return null;
-  }
+  return questions[Math.min(Math.max(stage - 1, 0), questions.length - 1)];
 }
 
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return Response.json({ error: 'Access denied' }, { status: 403 });
   try {
-    const body = await request.json();
-    const message = String(body?.message || '').trim();
-    const sessionId = String(body?.sessionId || '').trim();
-    const step = Number(body?.step || 0);
-
-    if (!message) {
-      return new Response(
-        JSON.stringify({
-          reply: 'Please share a short description of your case.',
-          step: 0,
-          sessionId: sessionId || 'session-' + Date.now(),
-          quickReplies: [],
-          placeholder: 'Type your answer...',
-        }),
-        {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }
-      );
-    }
-
-    const nousResult = await askNous(message);
-    if (nousResult) {
-      return new Response(
-        JSON.stringify({
-          reply: nousResult.reply,
-          step: nousResult.step,
-          sessionId: sessionId || 'session-' + Date.now(),
-          quickReplies: [],
-          placeholder: 'Type your answer...',
-        }),
-        {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }
-      );
-    }
-
-    const kbReply = matchAnswer(message);
-    return new Response(
-      JSON.stringify({
-        reply: kbReply,
-        step: nextStep(step),
-        sessionId: sessionId || 'session-' + Date.now(),
-        quickReplies: [],
-        placeholder: 'Type your answer...',
-      }),
-      {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      }
-    );
+    const raw = await request.text();
+    if (raw.length > 35000) return Response.json({ error: 'Message history is too long' }, { status: 413 });
+    let body;
+    try { body = JSON.parse(raw); } catch { return Response.json({ error: 'Invalid JSON' }, { status: 400 }); }
+    if (typeof body?.message !== 'string' || body.message.trim().length > 6000) return Response.json({ error: 'A message of up to 6,000 characters is required' }, { status: 400 });
+    const message = body.message.trim(), history = validateVeraHistory(body.history);
+    if (!history) return Response.json({ error: 'Invalid conversation history' }, { status: 400 });
+    const sessionId = typeof body.sessionId === 'string' && /^[a-zA-Z0-9-]{1,100}$/.test(body.sessionId) ? body.sessionId : randomUUID();
+    const step = Math.min(6, history.filter(turn => turn.role === 'user').length + 1);
+    const headers = { 'Cache-Control': 'private, no-store' };
+    if (!message || /^(hello|hi|здравей|здравейте)[!. ]*$/i.test(message)) return Response.json({ reply: /[а-яА-Я]/.test(message) ? 'Здравей! Какъв конкретен проблем в бизнеса искаш да разгледаме?' : 'Hello! What specific business problem would you like to explore?', step: 1, sessionId, mode: 'ready', quickReplies: [], placeholder: 'Type your answer...' }, { headers });
+    const instructions = SYSTEM_PROMPT + '\nRespond in the language of the latest user message. Use the conversation history to avoid repeating answered questions, including numbers, targets and deadlines. Acknowledge the latest answer before asking one focused diagnostic question. If the user requests a plan, base it only on their stated facts and label recommendations as preliminary. Distinguish provided facts from hypotheses. Do not claim to book meetings, send emails or save reports. Return the complete final answer only; no private reasoning.';
+    const result = await askProvider(instructions, history, message);
+    return Response.json({ reply: result?.reply || limitedReply(message, step), step, sessionId, mode: result ? 'ai' : 'limited', quickReplies: [], placeholder: 'Type your answer...' }, { headers });
   } catch {
-    return new Response(
-      JSON.stringify({
-        reply: 'Sorry — Vera is unavailable right now. Please try again or contact hello@vancoresys.com.',
-        step: 0,
-        sessionId: '',
-        quickReplies: [],
-        placeholder: '',
-      }),
-      {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      }
-    );
+    return Response.json({ error: 'Vera is temporarily unavailable. Please retry.' }, { status: 503, headers: { 'Cache-Control': 'private, no-store' } });
   }
 }
-
-export async function GET() {
-  return new Response(
-    JSON.stringify({
-      ok: true,
-      endpoint: '/api/ai-analyst',
-      mode: 'hybrid',
-      model: MODEL,
-      hasNousKey: !!NOUS_API_KEY,
-    }),
-    {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    }
-  );
-}
+export async function GET() { return Response.json({ ok: true, endpoint: '/api/ai-analyst', mode: 'hybrid' }, { headers: { 'Cache-Control': 'no-store' } }); }

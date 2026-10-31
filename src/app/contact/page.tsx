@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { PLAN_DETAILS, PlanId, planId } from '@/lib/plans';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<PlanId | null>(null);
+  useEffect(() => { setSelectedPlan(planId(new URLSearchParams(window.location.search).get('plan'))); }, []);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,7 +25,7 @@ export default function ContactPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, plan: selectedPlan || undefined }),
       });
 
       const data = await res.json();
@@ -58,6 +61,7 @@ export default function ContactPage() {
           <p className="font-sans text-base md:text-lg text-[#6b6b6b] leading-relaxed max-w-2xl">
             By appointment only. Reach out and we'll schedule a short call to understand your situation and determine if we're the right fit.
           </p>
+          {selectedPlan && <p role="status" className="mt-4 text-sm text-[#991930]">Plan enquiry: {PLAN_DETAILS[selectedPlan].name} — {PLAN_DETAILS[selectedPlan].price}. Our team will confirm activation after agreement.</p>}
         </div>
       </section>
 
@@ -185,19 +189,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[#f7f6f2] border-t border-[#e5e5e5]">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="text-sm text-[#9a9a9a]">© 2026 Vancore Systems. All rights reserved.</div>
-            <div className="flex gap-4 text-sm">
-              <a href="/privacy" className="text-[#6b6b6b] hover:text-[#991930]">Privacy</a>
-              <a href="/terms" className="text-[#6b6b6b] hover:text-[#991930]">Terms</a>
-              <a href="/cookies" className="text-[#6b6b6b] hover:text-[#991930]">Cookies</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+
     </main>
   );
 }

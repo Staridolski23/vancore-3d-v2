@@ -1,4 +1,5 @@
 'use client';
+import { authenticatedFetch, signOut } from '@/lib/authenticated-fetch';
 
 import AdminDashboard from '@/components/AdminDashboard';
 import { useState, useEffect } from 'react';
@@ -6,7 +7,7 @@ import { useState, useEffect } from 'react';
 const ADMIN_EMAILS = ['momchil@vancore.ai', 'zhanet@vancore.ai', 'office@vancoresys.com'];
 
 export default function AdminPage() {
-  const [state, setState] = useState<'loading' | 'dashboard'>('loading');
+  const [state, setState] = useState<'loading' | 'dashboard' | 'error'>('loading');
   const [token, setToken] = useState('');
 
   useEffect(() => {
@@ -14,27 +15,27 @@ export default function AdminPage() {
     const adminToken = localStorage.getItem('vancore_client_token');
     if (adminToken && adminToken.length > 20) {
       // Verify token and check if admin
-      fetch('/api/auth/profile', {
+      authenticatedFetch('/api/auth/profile', {
         headers: { Authorization: 'Bearer ' + adminToken },
       }).then(res => {
         if (res.ok) {
           res.json().then(data => {
-            if (data.user?.role === 'admin' || ADMIN_EMAILS.includes(data.user?.email?.toLowerCase())) {
-              setToken(adminToken);
+            if (ADMIN_EMAILS.includes(data.user?.email?.toLowerCase())) {
+              setToken(localStorage.getItem('vancore_client_token') || adminToken);
               setState('dashboard');
             } else {
-              // Not an admin - redirect to login
-              localStorage.removeItem('vancore_client_token');
-              window.location.href = '/login';
+              // Preserve the valid client session when admin access is denied.
+              window.location.replace('/client-portal');
             }
           });
-        } else {
+        } else if (res.status === 401 || res.status === 403) {
           localStorage.removeItem('vancore_client_token');
           window.location.href = '/login';
+        } else {
+          setState('error');
         }
       }).catch(() => {
-        localStorage.removeItem('vancore_client_token');
-        window.location.href = '/login';
+        setState('error');
       });
     } else {
       // No token - redirect to login
@@ -42,12 +43,14 @@ export default function AdminPage() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await signOut(); } catch { window.alert('Unable to sign out. Please retry.'); return; }
     setToken('');
     localStorage.removeItem('vancore_client_token');
     window.location.href = '/login';
   };
 
+  if (state === 'error') return <div role="alert" className="p-8 text-red-500">The sign-in service is temporarily unavailable. <button onClick={() => window.location.reload()} className="underline">Retry</button></div>;
   if (state === 'loading') {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">

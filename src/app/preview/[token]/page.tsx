@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 
 type Section = { title?: string; subtitle?: string; type?: string; styles?: Record<string, string> };
 
-export default function PreviewPage({ params }: { params: { token: string } }) {
+export default function PreviewPage() {
+  const params = useParams<{ token: string }>();
   const [sections, setSections] = useState<Record<string, Section>>({});
   const [order, setOrder] = useState<string[]>([]);
   const [error, setError] = useState('');

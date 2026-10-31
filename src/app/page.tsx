@@ -27,7 +27,7 @@ function AnimatedSection({ children, className = '' }: { children: React.ReactNo
 
 export default function Home() {
   return (
-    <main id="main-content" className="min-h-screen bg-white text-[#111]">
+    <main className="min-h-screen bg-white text-[#111]">
       <Hero />
       <AnimatedSection>
         <Stats />

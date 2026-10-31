@@ -3,3 +3,9 @@ node_modules/
 *.log
 .DS_Store
 .env.local
+
+.env*
+!.env.example
+*.tsbuildinfo
+supabase/.temp/
+supabase/.branches/

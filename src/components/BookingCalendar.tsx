@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
+import { WORK_HOURS, companyClock, DURATION_MINUTES, TIME_ZONE } from '@/lib/booking-policy';
 
 interface TimeSlot {
   time: string;
@@ -19,19 +21,17 @@ interface DayStatus {
   slots: TimeSlot[];
 }
 
-const WORK_HOURS = [
-  '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-  '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-  '15:00', '15:30', '16:00', '16:30', '17:00'
-];
-
 function getMinutesFromTime(time: string): number {
   const [h, m] = time.split(':').map(Number);
   return h * 60 + m;
 }
 
 export default function BookingCalendar() {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date(2000,0,1));
+  const [ready, setReady] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState('');
+  const [availabilityLoading, setAvailabilityLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookings, setBookings] = useState<Record<string, string[]>>({});
@@ -48,21 +48,34 @@ export default function BookingCalendar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
 
+  useEffect(() => {
+    const [year,month] = companyClock().date.split('-').map(Number);
+    setCurrentMonth(new Date(year,month-1,1));
+    setReady(true);
+  }, []);
+
   // Fetch bookings for current month
   useEffect(() => {
+    if (!ready) return;
+    const controller = new AbortController();
+    setAvailabilityLoading(true);
+    setAvailabilityError('');
+    setSelectedDate(null); setSelectedTime(null); setShowForm(false);
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    fetch(`/api/bookings?year=${year}&month=${month}`)
-      .then(res => res.json())
-      .then(data => setBookings(data.bookings || {}))
-      .catch(() => {});
-  }, [currentMonth]);
+    fetch(`/api/bookings?year=${year}&month=${month}`,{signal:controller.signal})
+      .then(res => { if(!res.ok)throw new Error('Availability unavailable');return res.json(); })
+      .then(data => {if(!controller.signal.aborted)setBookings(data.bookings || {});})
+      .catch(() => {if(!controller.signal.aborted){setBookings({});setAvailabilityError('Availability could not be loaded. Please reload before choosing a time.');}})
+      .finally(() => {if(!controller.signal.aborted)setAvailabilityLoading(false);});
+    return () => controller.abort();
+  }, [currentMonth,ready]);
 
   // Fetch user profile if logged in
   useEffect(() => {
     const token = localStorage.getItem('vancore_client_token');
     if (token) {
-      fetch('/api/auth/profile', {
+      authenticatedFetch('/api/auth/profile', {
         headers: { Authorization: 'Bearer ' + token },
       }).then(res => {
         if (res.ok) {
@@ -97,17 +110,16 @@ export default function BookingCalendar() {
       days.push({ date: '', dayName: '', dayNum: 0, isWeekend: false, isPast: false, isToday: false, allBooked: false, slots: [] });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    const currentTimeMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+    const clock = companyClock();
+    const todayStr = clock.date;
+    const currentTimeMinutes = clock.minutes;
 
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const dayDate = new Date(year, month, d);
       const dayOfWeek = dayDate.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      const isPast = dayDate < today;
+      const isPast = dateStr < todayStr;
       const isToday = dateStr === todayStr;
 
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -144,7 +156,7 @@ export default function BookingCalendar() {
   };
 
   const handleDateClick = (day: DayStatus) => {
-    if (day.isWeekend || day.isPast || day.allBooked || !day.date) return;
+    if (availabilityLoading || availabilityError || day.isWeekend || day.isPast || day.allBooked || !day.date) return;
     setSelectedDate(day.date);
     setSelectedTime(null);
     setShowForm(false);
@@ -158,6 +170,7 @@ export default function BookingCalendar() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting || availabilityLoading || availabilityError) return;
     setError('');
 
     if (!formData.name || !formData.email || !selectedDate || !selectedTime) {
@@ -165,8 +178,9 @@ export default function BookingCalendar() {
       return;
     }
 
+    setSubmitting(true);
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await authenticatedFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -186,11 +200,18 @@ export default function BookingCalendar() {
       // Refresh bookings
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth();
-      const refreshRes = await fetch(`/api/bookings?year=${year}&month=${month}`);
-      const refreshData = await refreshRes.json();
-      setBookings(refreshData.bookings || {});
+      try {
+        const refreshRes = await fetch(`/api/bookings?year=${year}&month=${month}`);
+        if (!refreshRes.ok) throw new Error('Availability refresh failed');
+        const refreshData = await refreshRes.json();
+        setBookings(refreshData.bookings || {});
+      } catch {
+        setAvailabilityError('Your request was saved, but availability could not be refreshed. Please reload before booking again.');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to book appointment');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -199,12 +220,16 @@ export default function BookingCalendar() {
 
   const selectedDay = days.find(d => d.date === selectedDate);
 
+  if (!ready) return <p role="status">Loading calendar...</p>;
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Book a Call</h2>
         <p className="text-[#9a9a9a]">Select a date and time for your consultation</p>
+        <p className="text-sm text-[#9a9a9a] mt-2">{DURATION_MINUTES} minutes · All times in {TIME_ZONE}</p>
       </div>
+      {availabilityError && <p role="alert" className="text-red-300 mb-4">{availabilityError}</p>}
 
       {/* Legend */}
       <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 justify-center">
@@ -257,8 +282,12 @@ export default function BookingCalendar() {
         {/* Days */}
         <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
           {days.map((day, i) => (
-            <div
+            <button
               key={i}
+              type="button"
+              aria-label={day.date || 'Empty date'}
+              aria-pressed={selectedDate === day.date}
+              disabled={availabilityLoading || Boolean(availabilityError) || !day.date || day.isWeekend || day.isPast || day.allBooked}
               onClick={() => handleDateClick(day)}
               className={`
                 aspect-square flex flex-col items-center justify-center rounded text-xs sm:text-sm transition-all min-h-[32px] sm:min-w-[40px]
@@ -282,7 +311,7 @@ export default function BookingCalendar() {
                   )}
                 </>
               )}
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -300,11 +329,11 @@ export default function BookingCalendar() {
               {selectedDay.slots.map((slot) => (
                 <button
                   key={slot.time}
-                  onClick={() => slot.available && handleTimeClick(slot.time)}
-                  disabled={!slot.available}
+                  onClick={() => !availabilityLoading && !availabilityError && !submitted && slot.available && handleTimeClick(slot.time)}
+                  disabled={!slot.available || availabilityLoading || Boolean(availabilityError) || submitted}
                   className={`
                     py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all
-                    ${slot.available
+                    ${slot.available && !availabilityLoading && !availabilityError && !submitted
                       ? 'bg-[#10b981] text-white hover:bg-[#059669] cursor-pointer active:scale-95'
                       : slot.isPast
                         ? 'bg-[#1f2937] text-[#4b5563] cursor-not-allowed line-through'
@@ -388,9 +417,10 @@ export default function BookingCalendar() {
 
             <button
               type="submit"
+              disabled={submitting}
               className="w-full py-3 sm:py-2.5 rounded-lg bg-[#991930] text-white text-sm font-semibold hover:bg-[#a83d1f] active:scale-[0.98] transition-all"
             >
-              Confirm Booking
+              {submitting ? 'Saving...' : 'Request this time'}
             </button>
           </form>
         </div>
@@ -400,16 +430,16 @@ export default function BookingCalendar() {
       {submitted && (
         <div className="mt-6 bg-[#10b981]/10 border border-[#10b981]/30 rounded-xl p-6 text-center">
           <div className="text-3xl mb-2">✓</div>
-          <h4 className="text-lg font-semibold text-white mb-2">Booking Confirmed!</h4>
+          <h4 className="text-lg font-semibold text-white mb-2">Booking request received</h4>
           <p className="text-sm text-[#9a9a9a]">
-            Your call is scheduled for {selectedDay?.dayName}, {selectedDate} at {selectedTime}.
-            We'll send you a confirmation email shortly.
+            Your requested time is {selectedDate} at {selectedTime} ({TIME_ZONE}).
+            Our team will confirm the meeting details.
           </p>
           <button
-            onClick={() => { setSubmitted(false); setShowForm(false); setSelectedTime(null); setFormData({ name: '', email: '', phone: '', company: '', description: '' }); }}
-            className="mt-4 text-sm text-[#991930] hover:underline"
+            onClick={() => { if(availabilityError){window.location.reload();return;} setSubmitted(false); setShowForm(false); setSelectedTime(null); setFormData({ name: '', email: '', phone: '', company: '', description: '' }); }}
+            className="mt-4 text-sm text-white underline underline-offset-4"
           >
-            Book another call
+            {availabilityError ? 'Reload availability' : 'Book another call'}
           </button>
         </div>
       )}

@@ -11,6 +11,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.vancoresys.com'),
   title: 'VANCORE — AI-Powered Business Analysis',
   description: 'A boutique business analysis consultancy. We help companies see clearly through their internal complexity — and act on what they find.',
   icons: {
@@ -59,7 +60,7 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         <div className="content-layer">
           <Header />
-          {children}
+          <div id="main-content" tabIndex={-1}>{children}</div>
           <Footer />
         </div>
         <CookieBanner />

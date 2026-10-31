@@ -1,6 +1,7 @@
 'use client';
 
 import { useSiteContent } from '@/hooks/useSiteContent';
+import { CONSENT_OPEN } from '@/lib/cookie-consent';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -83,6 +84,7 @@ export default function Footer() {
               <a href="/privacy" className="hover:text-[#991930]">Privacy Policy</a>
               <a href="/terms" className="hover:text-[#991930]">Terms of Service</a>
               <a href="/cookies" className="hover:text-[#991930]">Cookie Policy</a>
+              <button onClick={()=>window.dispatchEvent(new Event(CONSENT_OPEN))} className="hover:text-[#991930]">Cookie settings</button>
               <a href="/legal/compliance" className="hover:text-[#991930]">Legal & Compliance</a>
             </nav>
           </div>

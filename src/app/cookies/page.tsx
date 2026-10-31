@@ -1,12 +1,12 @@
 'use client';
-
+import {CONSENT_OPEN} from '@/lib/cookie-consent';
 
 export default function CookiesPage() {
   return (
     <div className="min-h-screen bg-white text-[#111]">
       <main className="max-w-4xl mx-auto px-6 py-20">
         <h1 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-8">Cookie Policy</h1>
-        <p className="text-sm text-[#6b6b6b] mb-8">Last updated: July 2026</p>
+        <p className="text-sm text-[#6b6b6b] mb-8">Last updated: 31 October 2026</p>
         <div className="space-y-8 text-sm text-[#333] leading-relaxed">
           <section>
             <h2 className="text-lg font-semibold text-[#111] mb-3">1. What Are Cookies</h2>
@@ -46,10 +46,12 @@ export default function CookiesPage() {
           <section>
             <h2 className="text-lg font-semibold text-[#111] mb-3">4. Third-Party Cookies</h2>
             <p>Some cookies are placed by third-party services integrated into our website, such as analytics and hosting providers. These providers may process data in accordance with their own privacy policies and applicable data protection agreements.</p>
+            <p className="mt-3">Optional support chat uses tawk.to for signed-in clients. Its script is loaded only after you allow Support chat in Cookie settings. Turning it off disconnects and hides the chat widget. See <a href="https://www.tawk.to/privacy-policy/" target="_blank" rel="noopener noreferrer" className="underline">tawk.to’s privacy policy</a>.</p>
           </section>
           <section>
             <h2 className="text-lg font-semibold text-[#111] mb-3">5. Managing Cookies</h2>
             <p>You can control or disable cookies through your browser settings. Disabling essential cookies may affect the functionality of the Service. You can also withdraw consent for non-essential cookies where consent prompts are provided.</p>
+            <button onClick={()=>window.dispatchEvent(new Event(CONSENT_OPEN))} className="mt-3 text-[#991930] underline">Cookie settings</button>
           </section>
           <section>
             <h2 className="text-lg font-semibold text-[#111] mb-3">6. Updates</h2>

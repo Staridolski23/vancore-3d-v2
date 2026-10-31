@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-type View = 'login' | 'register' | 'forgot-password' | 'verify-sent' | 'register-success';
+type View = 'login' | 'register' | 'forgot-password' | 'verify-sent' | 'register-success' | 'reset-password';
 
 function LoginForm() {
   const router = useRouter();
@@ -19,9 +19,28 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState('');
+  const [recovery, setRecovery] = useState<{ accessToken: string; refreshToken: string } | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const recoveryAddress = useRef<string | null>(null);
 
   // Sync view with URL parameter
   useEffect(() => {
+    const address = window.location.pathname + window.location.search;
+    if (recoveryAddress.current === address && !window.location.hash) return;
+    if (recoveryAddress.current !== address) recoveryAddress.current = null;
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    if (fragment.get('type') === 'recovery' || fragment.has('error_code')) {
+      // Keep recovery credentials only in memory and remove them from the URL.
+      recoveryAddress.current = address;
+      window.history.replaceState(null, '', address);
+      const accessToken = fragment.get('access_token'), refreshToken = fragment.get('refresh_token');
+      if (accessToken && refreshToken && !fragment.has('error_code')) {
+        setRecovery({ accessToken, refreshToken }); setPassword(''); setView('reset-password');
+      } else {
+        setError('This recovery link is invalid or expired. Request a new one.'); setView('forgot-password');
+      }
+      return;
+    }
     const tab = searchParams.get('tab');
     if (tab === 'register') {
       setView('register');
@@ -77,6 +96,19 @@ function LoginForm() {
     }
   };
 
+  const handleRecovery = async (e: React.FormEvent) => {
+    e.preventDefault(); setError('');
+    if (!recovery || password.length < 8 || password.length > 128 || password !== confirmPassword) { setError('Enter matching passwords of 8–128 characters.'); return; }
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'recover-password', ...recovery, newPassword: password }) });
+      if (!response.ok) { setError('Your password could not be reset. Check the link and password requirements, or request a new link.'); return; }
+      localStorage.removeItem('vancore_client_token'); setRecovery(null); setPassword(''); setConfirmPassword('');
+      setSuccess('Password updated. Sign in with your new password.'); setView('login');
+    } catch { setError('Connection error. Your password change could not be confirmed.'); }
+    finally { setLoading(false); }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -113,10 +145,10 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/forgot-password', {
+      const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ action: 'forgot-password', email }),
       });
 
       const data = await res.json();
@@ -154,6 +186,15 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
+        {view === 'reset-password' && <form onSubmit={handleRecovery} className="bg-[#111] rounded-xl p-6 border border-white/5 space-y-4">
+          <h1 className="text-xl font-bold text-white">Set a new password</h1>
+          <label htmlFor="recovery-password" className="block text-sm text-white">New password</label>
+          <input id="recovery-password" type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={password} onChange={event => setPassword(event.target.value)} className="w-full rounded-lg bg-[#1a1a1a] p-3 text-white" />
+          <label htmlFor="recovery-confirm" className="block text-sm text-white">Confirm new password</label>
+          <input id="recovery-confirm" type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className="w-full rounded-lg bg-[#1a1a1a] p-3 text-white" />
+          {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+          <button disabled={loading} className="w-full rounded-lg bg-[#991930] p-3 text-white disabled:opacity-50">{loading ? 'Updating...' : 'Update password'}</button>
+        </form>}
         {/* Login View */}
         {view === 'login' && (
           <>

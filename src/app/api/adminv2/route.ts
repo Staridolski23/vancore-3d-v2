@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, verifyToken } from '@/lib/supabase';
+import { supabaseAdmin, verifyToken, createAuthClient } from '@/lib/supabase';
+import { sameOrigin, setRefreshCookie } from '@/lib/session-cookie';
 
 // Admin emails
 const ADMIN_EMAILS = [
@@ -35,9 +36,10 @@ async function adminAuth(req: NextRequest) {
 // POST /api/adminv2/login
 export async function POST(request: NextRequest) {
   try {
+    if (!sameOrigin(request)) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     const { email, password } = await request.json();
 
-    const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
+    const { data, error } = await createAuthClient().auth.signInWithPassword({ email, password });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -58,12 +60,9 @@ export async function POST(request: NextRequest) {
       id: data.user.id,
       email: data.user.email,
       role: 'admin',
-      plan: 'business',
-      credits: 99999,
-      subscription_status: 'active',
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       token: data.session.access_token,
       user: {
         id: data.user.id,
@@ -72,6 +71,8 @@ export async function POST(request: NextRequest) {
       },
       redirectTo: '/admin-v2',
     });
+    setRefreshCookie(response, data.session.refresh_token);
+    return response;
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

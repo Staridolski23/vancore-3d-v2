@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'FAQ | VANCORE',
@@ -125,7 +124,6 @@ export default function FAQPage() {
           </div>
         </div>
       </section>
-      <Footer />
     </main>
   );
 }
