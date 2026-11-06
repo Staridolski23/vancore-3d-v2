@@ -132,3 +132,10 @@
 - Recovery template is the provider default: subject Reset your password, button {{ .ConfirmationURL }}. No hardcoded Vercel address was observed. Raw Source/Save are disabled: the UI requires custom SMTP or Pro for editing; no paid upgrade, SMTP switch or secret transfer was performed. Captured the visible template and restriction in outputs/VANCORE-reset-template-locked-20261107.png and saved a proposed, unapplied replacement in ops/backend/reset-password-email.candidate.html.
 - Read-only verification of the existing backend Zoho SMTP connection timed out (smtp.zoho.com:587, ETIMEDOUT); no message sent by that diagnostic and no credentials logged. It does not establish whether credentials are valid, so do not activate this unverified transport in Supabase.
 - Sent exactly one owner-authorized recovery request through the actual maintenance web form in the existing in-app browser. The form showed the conditional accepted-request message; Supabase /recover logged 200 with target https://api.vancoresys.com/auth/reset-password and recovery_sent_at 2026-11-06T22:05:24.48666Z (7 November 00:05 Sofia). The public recovery document still returns 200 without a redirect. Inbox receipt and a real user password change/sign-in remain unverified. No live template or account password changed.
+
+### 7 November: owner confirmed successful password recovery
+
+- After the fresh recovery email and public callback test, the owner confirmed successful entry into VANCORE following the requested reset/new-password/sign-in sequence.
+- Acceptance source: explicit owner confirmation in this chat. No password, real token or email link was requested, read or archived.
+- The reported password-recovery issue is accepted as resolved. This confirmation does not establish completion of the broader VANCORE technical audit.
+- The hosted email template remains the provider default. The prepared branded template is unapplied because custom SMTP or Pro is required; this customization is not necessary for the confirmed recovery flow.
