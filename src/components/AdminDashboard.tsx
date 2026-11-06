@@ -1,5 +1,6 @@
 'use client';
 import { authenticatedFetch } from '@/lib/authenticated-fetch';
+import AdminInbox from '@/components/AdminInbox';
 
 import { useState, useEffect } from 'react';
 import { LayoutGrid, Users, Calendar, FileText, BarChart3, Settings, Image as ImageIcon, Users as UsersIcon, CreditCard, CheckCircle, TrendingUp, Star } from 'lucide-react';
@@ -47,7 +48,7 @@ interface Booking {
 }
 
 export default function AdminDashboard({ token: propToken }: { token?: string }) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'analytics' | 'settings' | 'reviews'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'analytics' | 'settings' | 'reviews' | 'inbox'>('dashboard');
   const [clients, setClients] = useState<Client[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalClients: 0, activeSubscriptions: 0, verifiedEmails: 0 });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -361,6 +362,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         {[
           { key: 'dashboard', label: 'Dashboard', icon: <LayoutGrid key="dashboard-icon" className="w-4 h-4" /> },
           { key: 'clients', label: 'Clients', icon: <Users key="clients-icon" className="w-4 h-4" /> },
+          { key: 'inbox', label: 'Enquiries', icon: <FileText key="inbox-icon" className="w-4 h-4" /> },
           { key: 'bookings', label: 'Bookings', icon: <Calendar key="bookings-icon" className="w-4 h-4" />, badge: newBookingCount },
           { key: 'content', label: 'Site Content', icon: <FileText key="content-icon" className="w-4 h-4" /> },
           { key: 'media', label: 'Media', icon: <ImageIcon key="media-icon" className="w-4 h-4" /> },
@@ -370,8 +372,10 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         ].map((tab) => (
           <button
             key={tab.key}
+            aria-label={tab.label}
+            aria-pressed={activeTab === tab.key}
             onClick={() => setActiveTab(tab.key as typeof activeTab)}
-            className={`flex-1 py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap relative ${
+            className={`flex-1 shrink-0 min-w-[44px] min-h-[44px] py-2.5 px-3 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap relative ${
               activeTab === tab.key
                 ? 'bg-[#991930] text-white'
                 : 'text-[#9a9a9a] hover:text-white hover:bg-white/5'
@@ -387,6 +391,8 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           </button>
         ))}
       </div>
+
+      {activeTab === 'inbox' && <AdminInbox token={propToken} />}
 
       {/* Dashboard Tab */}
       {activeTab === 'dashboard' && (

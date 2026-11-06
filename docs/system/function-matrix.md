@@ -13,7 +13,7 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Profile | Real unchanged save and privilege-field regression passed | Two-user isolation; failure preserves edits |
 | Admin access | Client redirected with session preserved | Consistent backend and database roles |
 | Admin clients/plan/credits | Read path verified; mutation error handling needs repair | Validated writes with audit trail and truthful success |
-| Contact forms | Payload mismatch reproduced without external requests | Unified contract, durable record, controlled email delivery |
+| Contact forms | 7 November: shared bounded contract, atomic SQLite enquiry/outbox; native tests and live restart persistence/cleanup passed; all existing rows preserved | SMTP verification and controlled notification acceptance; frontend inbox release |
 | Booking create | Live interval guards and validated create installed; concurrent disposable-DB test passed | Real authorized client round trip; notifications |
 | Booking status/change/cancel | Disposable DB tests passed | Isolated actual-service round trip; no real customer edits |
 | Proposal accept/reject | Transaction/conflict/repeat tests passed | Authorized owner/admin resolution and notifications |

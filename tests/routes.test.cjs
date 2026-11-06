@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const ts=require('typescript');
-class NextResponse extends Response { static json(data,init){return new NextResponse(JSON.stringify(data),{...init,headers:{'Content-Type':'application/json'}});} }
+class NextResponse extends Response { static json(data,init){const headers=new Headers(init?.headers);headers.set('Content-Type','application/json');return new NextResponse(JSON.stringify(data),{...init,headers});} }
 function load(relative, mocks={}) {
   const filename=path.join(__dirname,'..',relative);
   const source=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
@@ -11,6 +11,7 @@ function load(relative, mocks={}) {
     if(id==='@/lib/booking-policy')return require('../ops/backend/booking-policy.cjs');
     if(id==='@/lib/session-cookie')return load('src/lib/session-cookie.ts');
     if(id==='@/lib/auth-redirect')return load('src/lib/auth-redirect.ts');
+    if(id==='../../ops/backend/contact-input.cjs')return require('../ops/backend/contact-input.cjs');
     if(Object.hasOwn(mocks,id))return mocks[id];
     if(id==='server-only')return {};
     if(id==='next/server')return {NextResponse};
@@ -172,6 +173,18 @@ test('settings deny unauthenticated updates without contacting an obsolete verif
     '@/lib/request-auth':{requireAdmin:async()=>NextResponse.json({error:'Unauthorized'},{status:401})},
   });
   assert.equal((await routes.PUT(req('/api/adminv2/settings',{booking_enabled:false}))).status,401);
+});
+
+test('admin enquiry proxy denies non-admins and preserves upstream error status',async()=>{
+ const denied=load('src/app/api/adminv2/incoming/route.ts',{'@/lib/request-auth':{requireAdmin:async()=>NextResponse.json({error:'Denied'},{status:403})},'@/lib/backend':{backendFetch:()=>{throw Error('must not read');}}});
+ assert.equal((await denied.GET(req('/api/adminv2/incoming'))).status,403);
+ for(const fixture of [response([{id:'synthetic',message:'Saved enquiry'}]),response({error:'Outage'},503),response({wrongShape:true})]){
+  const route=load('src/app/api/adminv2/incoming/route.ts',{'@/lib/request-auth':{requireAdmin:async()=>null},'@/lib/backend':{backendFetch:async()=>fixture}});
+  const expectedStatus=fixture.status===503?503:Array.isArray(await fixture.clone().json())?200:502;
+  const result=await route.GET(req('/api/adminv2/incoming'));
+  assert.equal(result.status,expectedStatus);
+  if(result.status===200){assert.equal((await result.json()).messages[0].id,'synthetic');assert.match(result.headers.get('cache-control'),/no-store/);}
+ }
 });
 test('public signup preserves confirmation flow and never overwrites an existing profile',async()=>{
  let signup,profileOptions;
