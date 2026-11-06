@@ -2,6 +2,7 @@
 const crypto = require('node:crypto');
 const jwt = require('jsonwebtoken');
 const ADMIN_EMAILS = new Set(['momchil@vancore.ai', 'zhanet@vancore.ai', 'office@vancoresys.com']);
+const verificationUnavailable = () => Object.assign(new Error('Identity verification temporarily unavailable'), {code:'AUTH_VERIFICATION_UNAVAILABLE'});
 
 function createSupabaseVerifier({ projectUrl, fetchKeys = fetch, now = Date.now } = {}) {
   const origin = new URL(projectUrl).origin;
@@ -10,12 +11,15 @@ function createSupabaseVerifier({ projectUrl, fetchKeys = fetch, now = Date.now 
   let keys = [], loadedAt = 0, pending;
   async function refresh() {
     pending ||= (async () => {
-      const response = await fetchKeys(issuer + '/.well-known/jwks.json', { signal: AbortSignal.timeout(5000), redirect: 'error' });
-      if (!response.ok) throw new Error('Signing keys unavailable');
-      const body = await response.json();
-      if (!Array.isArray(body.keys)) throw new Error('Invalid signing keys');
-      keys = body.keys.filter(key => ['ES256', 'RS256'].includes(key.alg) && ['EC','RSA'].includes(key.kty));
-      loadedAt = now();
+      try {
+        const response = await fetchKeys(issuer + '/.well-known/jwks.json', { signal: AbortSignal.timeout(5000), redirect: 'error' });
+        if (!response.ok) throw verificationUnavailable();
+        const body = await response.json();
+        if (!Array.isArray(body.keys)) throw verificationUnavailable();
+        const candidate = body.keys.filter(key => ['ES256', 'RS256'].includes(key.alg) && ['EC','RSA'].includes(key.kty));
+        if (!candidate.length) throw verificationUnavailable();
+        keys = candidate; loadedAt = now();
+      } catch { throw verificationUnavailable(); }
     })().finally(() => { pending = null; });
     return pending;
   }
@@ -43,11 +47,15 @@ function createApiSecurity({ verify, db, enforce = () => process.env.VANCORE_AUT
     req.vancorePrincipalChecked = true;
     const authorization = req.get('Authorization') || '';
     if (!authorization.startsWith('Bearer ')) return null;
-    try { req.principal = await verify(authorization.slice(7)); } catch { req.principal = null; }
+    try { req.principal = await verify(authorization.slice(7)); } catch (error) {
+      req.principal = null;
+      req.vancoreAuthUnavailable = error?.code === 'AUTH_VERIFICATION_UNAVAILABLE';
+    }
     return req.principal;
   }
   async function requireAdmin(req, res, next) {
     const user = await principal(req);
+    if (req.vancoreAuthUnavailable) return res.status(503).json({error:'Unable to verify access. Please try again.'});
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
     if (!user.isAdmin) return res.status(403).json({ error: 'Administrator access required' });
     next();
@@ -60,6 +68,7 @@ function createApiSecurity({ verify, db, enforce = () => process.env.VANCORE_AUT
       const path = req.path, method = req.method;
       if (method === 'OPTIONS') return next();
       if (method === 'GET' && ['/api/health','/api/content'].includes(path)) return next();
+      if (req.vancoreAuthUnavailable) return res.status(503).json({error:'Unable to verify access. Please try again.'});
       if (method === 'POST' && ['/api/contact','/api/ai-analyst','/api/analyze'].includes(path)) return next();
       if (path.startsWith('/api/auth/') || path.startsWith('/api/client/')) return res.status(410).json({ error: 'Use the current website sign-in' });
       if (path === '/api/bookings' && method === 'POST') {

@@ -4,6 +4,24 @@ const req=createRequire(backend+'/package.json');
 const jwt=req('jsonwebtoken');const express=req('express');
 const {createSupabaseVerifier,createApiSecurity}=require('./backend-auth.cjs');
 const id='00000000-0000-4000-8000-000000000001';
+
+test('temporary key-service outages are distinguished from invalid client tokens',async()=>{
+ const {privateKey}=crypto.generateKeyPairSync('ec',{namedCurve:'prime256v1'});
+ const token=jwt.sign({sub:id,role:'authenticated',email:'client@example.invalid'},privateKey,{algorithm:'ES256',keyid:'fixture',issuer:'https://project.supabase.co/auth/v1',audience:'authenticated',expiresIn:60});
+ for(const fetchKeys of [async()=>{throw Error('Network outage');},async()=>Response.json({error:'Unavailable'},{status:503}),async()=>Response.json({keys:[]})]){
+  await assert.rejects(createSupabaseVerifier({projectUrl:'https://project.supabase.co',fetchKeys})(token),e=>e.code==='AUTH_VERIFICATION_UNAVAILABLE');
+ }
+ const app=express();let unavailable=true;
+ const security=createApiSecurity({db:{},enforce:()=>true,verify:async()=>{throw Object.assign(Error('Fixture'),{code:unavailable?'AUTH_VERIFICATION_UNAVAILABLE':'INVALID_TOKEN'});}});
+ app.use(security.middleware);app.get('/admin-fixture',security.requireAdmin,(_req,res)=>res.json({secret:'must never return'}));
+ const server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});const base='http://127.0.0.1:'+server.address().port,headers={Authorization:'Bearer fixture'};
+ try{
+  assert.equal((await fetch(base+'/api/bookings',{headers})).status,503);
+  assert.equal((await fetch(base+'/admin-fixture',{headers})).status,503);
+  assert.equal((await fetch(base+'/api/bookings')).status,401);
+  unavailable=false;assert.equal((await fetch(base+'/api/bookings',{headers})).status,401);
+ }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});
 test('Supabase tokens require a trusted asymmetric signature, issuer, audience and expiry',async()=>{
  const {privateKey,publicKey}=crypto.generateKeyPairSync('ec',{namedCurve:'prime256v1'});
  const jwk={...publicKey.export({format:'jwk'}),kid:'test',alg:'ES256'};let calls=0;

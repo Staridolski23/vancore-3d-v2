@@ -47,9 +47,15 @@ function installBookingMaintenance(app, db, transactionDb = db) {
       if (!previous) return res.status(404).json({ error: 'Booking not found' });
       const { status = previous.status, date = previous.date, time = previous.time } = req.body;
       if (!validDate(date) || !validTime(time) || !['new', 'scheduled', 'confirmed', 'cancelled', 'rescheduled', 'completed'].includes(status)) return res.status(400).json({ error: 'Invalid date, time or status' });
+      if (req.principal && !req.principal.isAdmin) {
+        if (String(previous.email||'').trim().toLowerCase() !== req.principal.email) return res.status(403).json({error:'Access denied'});
+        if (date !== previous.date || time !== previous.time || !['confirmed','cancelled'].includes(status)) return res.status(403).json({error:'Request a booking change for the team to review'});
+        if (previous.status === 'completed' || (previous.status === 'cancelled' && status !== 'cancelled')) return res.status(409).json({error:'This booking is no longer active'});
+        if (status === 'confirmed' && !['new','scheduled','confirmed'].includes(previous.status)) return res.status(409).json({error:'This booking cannot be confirmed in its current state'});
+      }
       const now = new Date().toISOString();
       const reason = req.body.cancellation_reason === undefined ? previous.cancellation_reason : String(req.body.cancellation_reason).slice(0, 2000);
-      const result = await run('UPDATE bookings SET date = ?, time = ?, status = ?, confirmed_at = ?, cancelled_at = ?, cancellation_reason = ? WHERE id = ?', [date, time, status, status === 'confirmed' ? now : previous.confirmed_at, status === 'cancelled' ? now : previous.cancelled_at, reason, req.params.id]);
+      const result = await run('UPDATE bookings SET date = ?, time = ?, status = ?, confirmed_at = ?, cancelled_at = ?, cancellation_reason = ? WHERE id = ?', [date, time, status, status === 'confirmed' ? previous.confirmed_at || now : previous.confirmed_at, status === 'cancelled' ? previous.cancelled_at || now : previous.cancelled_at, reason, req.params.id]);
       res.json({ success: true, changes: result.changes });
     } catch (error) { errorResponse(res, error); }
   });
@@ -58,7 +64,12 @@ function installBookingMaintenance(app, db, transactionDb = db) {
     try {
       const { date, time } = req.body;
       if (!validDate(date) || !validTime(time)) return res.status(400).json({ error: 'Valid date and time are required' });
-      if (!await get('SELECT id FROM bookings WHERE id = ?', [req.params.id])) return res.status(404).json({ error: 'Booking not found' });
+      const booking=await get('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+      if (!booking) return res.status(404).json({ error: 'Booking not found' });
+      if (req.principal && !req.principal.isAdmin) {
+        if (String(booking.email||'').trim().toLowerCase()!==req.principal.email) return res.status(403).json({error:'Access denied'});
+        if (['cancelled','completed'].includes(booking.status)) return res.status(409).json({error:'This booking is no longer active'});
+      }
       const result = await run('INSERT INTO booking_proposals (booking_id, proposed_date, proposed_time) VALUES (?, ?, ?)', [req.params.id, date, time]);
       res.json({ success: true, id: result.lastID });
     } catch (error) { errorResponse(res, error); }

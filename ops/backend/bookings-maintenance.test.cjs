@@ -82,6 +82,26 @@ test('booking updates and proposal acceptance work against a disposable SQLite d
   } finally { server.closeAllConnections(); await new Promise(resolve=>server.close(resolve)); await new Promise(resolve=>db.close(resolve)); }
 });
 
+test('verified clients cannot move, complete, revive or change another clients booking',async()=>{
+ const sqlite3=requireBackend('sqlite3'),express=requireBackend('express');
+ const {createApiSecurity}=require('./backend-auth.cjs');const db=new sqlite3.Database(':memory:');
+ await new Promise((resolve,reject)=>db.exec("CREATE TABLE bookings(id INTEGER PRIMARY KEY,date TEXT,time TEXT,status TEXT,email TEXT,confirmed_at TEXT,cancelled_at TEXT,cancellation_reason TEXT);CREATE TABLE booking_proposals(id INTEGER PRIMARY KEY,booking_id INTEGER,proposed_date TEXT,proposed_time TEXT,status TEXT DEFAULT 'pending');INSERT INTO bookings(id,date,time,status,email) VALUES(1,'2099-01-05','09:00','new','one@example.invalid'),(2,'2099-01-05','12:00','new','two@example.invalid'),(3,'2099-01-06','09:00','completed','one@example.invalid')",e=>e?reject(e):resolve()));
+ const app=express();app.use(express.json());app.use(createApiSecurity({db,enforce:()=>true,verify:async()=>({id:'fixture-one',email:'one@example.invalid',isAdmin:false})}).middleware);installBookingMaintenance(app,db);
+ const server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));}),base='http://127.0.0.1:'+server.address().port;
+ const send=(path,body,method='PUT')=>fetch(base+path,{method,headers:{Authorization:'Bearer fixture-one','Content-Type':'application/json'},body:JSON.stringify(body)});
+ try{
+  assert.equal((await send('/api/bookings/2',{status:'cancelled'})).status,403);
+  assert.equal((await send('/api/bookings/1',{date:'2099-01-07',status:'confirmed'})).status,403);
+  assert.equal((await send('/api/bookings/1',{status:'completed'})).status,403);
+  assert.equal((await send('/api/bookings/3',{status:'cancelled'})).status,409);
+  assert.equal((await send('/api/bookings/1',{status:'confirmed'})).status,200);
+  assert.equal((await send('/api/bookings/1/propose',{date:'2099-01-08',time:'10:00'},'POST')).status,200);
+  assert.equal((await send('/api/bookings/1',{status:'cancelled',cancellation_reason:'Synthetic cancellation'})).status,200);
+  assert.equal((await send('/api/bookings/1',{status:'confirmed'})).status,409);
+  assert.equal((await send('/api/bookings/1/propose',{date:'2099-01-08',time:'10:00'},'POST')).status,409);
+ }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await new Promise(resolve=>db.close(resolve));}
+});
+
 test('concurrent creation and all reschedule paths enforce 45-minute intervals across SQLite connections',async()=>{
  const sqlite3=requireBackend('sqlite3'),express=requireBackend('express'),fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');
  const scratch=await fs.mkdtemp(path.join(os.tmpdir(),'vancore-interval-')),filename=path.join(scratch,'disposable.db');

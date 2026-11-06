@@ -4,7 +4,7 @@ function installPortalMaintenance(app,db,security,baseDir) {
  const get=(sql,params)=>new Promise((resolve,reject)=>db.get(sql,params,(error,row)=>error?reject(error):resolve(row)));
  const all=(sql,params)=>new Promise((resolve,reject)=>db.all(sql,params,(error,rows)=>error?reject(error):resolve(rows)));
  const run=(sql,params)=>new Promise((resolve,reject)=>db.run(sql,params,error=>error?reject(error):resolve()));
- async function user(req,res){const principal=await security.principal(req);if(!principal)res.status(401).json({error:'Unauthorized'});return principal;}
+ async function user(req,res){const principal=await security.principal(req);if(!principal)res.status(req.vancoreAuthUnavailable?503:401).json({error:req.vancoreAuthUnavailable?'Identity verification temporarily unavailable. Please try again.':'Unauthorized'});return principal;}
  function filenameValid(name){return typeof name==='string'&&name.length<=200&&!name.startsWith('.')&&path.basename(name)===name&&!/[\\/\x00-\x1f]/.test(name);}
  function localFile(name,folders){
   if(!filenameValid(name))return null;
