@@ -26,13 +26,18 @@ function installBookingMaintenance(app, db, transactionDb = db) {
   // Registered before legacy handlers so there is only one implementation per route.
   app.get('/api/bookings', async (req, res) => {
     try {
-      let sql = 'SELECT * FROM bookings', params = [];
-      if (req.query.year !== undefined || req.query.month !== undefined) {
+      const monthly = req.query.year !== undefined || req.query.month !== undefined;
+      // This boundary also applies during legacy compatibility. Only the
+      // middleware's verified administrator may request full monthly records.
+      const publicCalendar = req.publicAvailability || (monthly && !req.principal?.isAdmin);
+      let sql = `SELECT ${publicCalendar ? 'date,time,status' : '*'} FROM bookings`, params = [];
+      if (monthly) {
         try { params = monthRange(req.query.year, req.query.month); } catch { return res.status(400).json({ error: 'Invalid month' }); }
         sql += ' WHERE date >= ? AND date < ?';
       }
       const rows = await all(sql + ' ORDER BY date ASC, time ASC', params);
-      res.json({ bookings: req.publicAvailability ? rows.map(({date,time,status})=>({date,time,status})) : rows });
+      res.set('Cache-Control', 'no-store');
+      res.json({ bookings: publicCalendar ? rows.map(({date,time,status})=>({date,time,status})) : rows });
     } catch (error) { errorResponse(res, error); }
   });
 

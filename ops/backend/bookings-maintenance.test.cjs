@@ -15,6 +15,32 @@ test('date and time reject impossible inputs', () => {
   assert.equal(validTime('25:00'), false);
   assert.equal(validTime('09:30'), true);
 });
+
+test('public monthly availability never leaks client fields during legacy compatibility',async()=>{
+ const sqlite3=requireBackend('sqlite3'),express=requireBackend('express');
+ const {createApiSecurity}=require('./backend-auth.cjs');
+ const db=new sqlite3.Database(':memory:');
+ await new Promise((resolve,reject)=>db.exec("CREATE TABLE bookings(id INTEGER PRIMARY KEY,date TEXT,time TEXT,status TEXT,name TEXT,email TEXT,phone TEXT,company TEXT,description TEXT);INSERT INTO bookings VALUES(1,'2026-11-10','09:00','new','Synthetic private name','private@example.invalid','private-phone','private-company','private-description')",e=>e?reject(e):resolve()));
+ const app=express();app.use(createApiSecurity({db,enforce:()=>false,verify:async token=>{
+  if(token==='fixture-admin')return{id:'fixture-admin-id',email:'admin@example.invalid',isAdmin:true};
+  if(token==='fixture-client')return{id:'fixture-client-id',email:'client@example.invalid',isAdmin:false};
+  throw Error('Invalid token');
+ }}).middleware);installBookingMaintenance(app,db);
+ const server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});
+ const base='http://127.0.0.1:'+server.address().port;
+ try{
+  for(const token of [null,'fixture-client','forged-admin']){
+   const response=await fetch(base+'/api/bookings?year=2026&month=10',{headers:token?{Authorization:'Bearer '+token}:{}});
+   assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/);
+   const rows=(await response.json()).bookings;assert.equal(rows.length,1);
+   assert.deepEqual(Object.keys(rows[0]).sort(),['date','status','time']);
+   assert.equal(rows[0].time,'09:00');
+  }
+  const admin=await(await fetch(base+'/api/bookings?year=2026&month=10',{headers:{Authorization:'Bearer fixture-admin'}})).json();
+  assert.equal(admin.bookings[0].email,'private@example.invalid');
+  assert.equal((await fetch(base+'/api/bookings?year=2026')).status,400);
+ }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await new Promise(resolve=>db.close(resolve));}
+});
 test('booking updates and proposal acceptance work against a disposable SQLite database', async () => {
   const sqlite3 = requireBackend('sqlite3');
   const express = requireBackend('express');

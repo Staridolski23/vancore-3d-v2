@@ -6,10 +6,10 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 |---|---|---|
 | Public pages/navigation | 18 production pages HTTP 200 | Mobile/keyboard/link validation after fixes |
 | Assets/PWA/SEO | PNG icons restored; broken industry photos use fallback; single footer verified on 14 routes | Remaining resource inventory and correct per-page metadata |
-| Anonymous availability | Maintenance Next maps dates/times; legacy backend still exposes rows | Both entry points exclude PII |
+| Anonymous availability | 7 November: direct backend monthly query now returns date/time/status only, including compatibility mode; live readback passed | Close other private legacy routes through coordinated production auth rollout |
 | User sign-in | Real client and admin preview sessions passed | Refresh/expiry/logout/network recovery |
 | Registration | Confirmation flow fixed; regression test passed | Actual signup/verify/expired link with disposable account |
-| Password recovery | Email request exists; completion missing | Recovery session and password entry completed by user |
+| Password recovery | 7 November: actual email/public callback and successful reset/sign-in confirmed by owner | Accepted; branded template is an optional blocked SMTP/Pro customization |
 | Profile | Real unchanged save and privilege-field regression passed | Two-user isolation; failure preserves edits |
 | Admin access | Client redirected with session preserved | Consistent backend and database roles |
 | Admin clients/plan/credits | Read path verified; mutation error handling needs repair | Validated writes with audit trail and truthful success |
