@@ -23,4 +23,6 @@
 
 ## Reproducibility gaps at baseline
 
+7 November release: production now runs reviewed source `b7d3fa6d2e8a57ad094d31633f76d7c1c9ed2ef0` (Vercel `6476unZrkt1n4idgkAZrRxHmDRMT`). Backend `VANCORE_AUTH_ENFORCE=true` is live and saved in the PM2 restart state; the earlier compatibility exception is no longer active. Unauthenticated private list/write requests return 401, while public monthly calendars expose only date/time/status. Three existing administrator profiles were checked to match the currently enforced administrator allow-list. Role-management consistency, actual authenticated A/B/admin acceptance and remaining features still require work.
+
 Live backend has no Git checkout and historically includes legacy credential constants. Reviewed maintenance modules are tracked here; full legacy source/configuration remains only in private archives until secrets are removed. Supabase full data/auth/storage export needs a separately verified recovery path; a schema migration and local SQLite archive do not constitute that export.

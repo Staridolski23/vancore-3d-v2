@@ -6,7 +6,7 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 |---|---|---|
 | Public pages/navigation | 18 production pages HTTP 200 | Mobile/keyboard/link validation after fixes |
 | Assets/PWA/SEO | PNG icons restored; broken industry photos use fallback; single footer verified on 14 routes | Remaining resource inventory and correct per-page metadata |
-| Anonymous availability | 7 November: direct backend monthly query now returns date/time/status only, including compatibility mode; live readback passed | Close other private legacy routes through coordinated production auth rollout |
+| Anonymous availability | 7 November: both public entry points exclude PII; production frontend updated and direct private routes now require identity | Actual client/admin calendar acceptance and notifications |
 | User sign-in | Real client and admin preview sessions passed | Refresh/expiry/logout/network recovery |
 | Registration | Confirmation flow fixed; regression test passed | Actual signup/verify/expired link with disposable account |
 | Password recovery | 7 November: actual email/public callback and successful reset/sign-in confirmed by owner | Accepted; branded template is an optional blocked SMTP/Pro customization |
@@ -31,7 +31,7 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Vera language/pricing | English FAQ prices passed; Bulgarian fallback failed | BG/EN diagnostic tests and correct catalog |
 | Reports | Generic AI request and transient UI state | Client evidence, durable report/version/export |
 | Billing | Owner chose manual enquiries; public/portal buttons and selected-plan form payload pass isolated browser checks | Real enquiry delivery; authorized team activation with audit and consistent limits |
-| Security | Supabase migration and JWT/ownership regression passed | Anonymous/A/B/admin matrix on all direct/proxy routes |
+| Security | 7 November: production b7d3fa6; backend enforcement active and saved for restart; 13 native tests and 11 live negative probes passed | Complete authenticated A/B/admin acceptance and unify role-management paths |
 | Backup | Daily SQLite integrity and prior isolated restore passed | Off-machine copy, full Supabase export and new restore exercise |
 | Restart/monitoring | PM2 startup service now active/enabled; controlled cold start and recovery checks passed | Actual machine reboot/complete restore and failure alerts |
 | Runtime updates | API and PM2 daemon run Node 24.22.2; nine native/backend tests passed; old system interpreter retained for rollback | Remaining dependency/OS inventory; remove old runtime after agreed retention |
