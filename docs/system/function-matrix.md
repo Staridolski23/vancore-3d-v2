@@ -16,12 +16,12 @@ Updated: 7 November 2026; older baseline evidence is retained where checks remai
 | Contact forms | 7 November: atomic SQLite enquiry/outbox, native tests, live restart persistence and real preview browser-to-DB round trip passed; production 6c4aeb0 Ready; all existing rows preserved | SMTP verification and controlled notification acceptance; real admin inbox acceptance and pagination |
 | Booking create | Live interval guards and validated create installed; concurrent disposable-DB test passed | Real authorized client round trip; notifications |
 | Booking status/change/cancel | Production f11c60d and later; native backend tests and final-build browser confirm/cancel/proposal/busy/conflict/network/malformed/refresh-outage tests passed; no premature reschedule | Actual-service authorized write round trip; administrator outcome handling |
-| Proposal accept/reject | Transaction/conflict/repeat tests passed | Authorized owner/admin resolution and notifications |
+| Proposal accept/reject | Transaction/conflict/repeat tests and 7 November inactive-target regression pass; live booking module prevents proposal acceptance reviving cancelled/completed bookings | Durable pending list and authorized administrator browser resolution; notifications |
 | Calendar/ICS | Production f11c60d and later; UTC export uses Sofia time and 45-minute policy; winter/summer/both DST boundaries and visitor TZ independence passed; actual browser button file inspected | Real calendar-app import acceptance; notification delivery |
 | Document list | Real empty client list; ownership regression passed | Client A/B see only own fixtures |
 | Document download | Temporary file/DB test passed | Actual storage/download with disposable files |
 | Image upload/serve | Server and Next limits installed; magic-byte serving tested | Controlled real upload, invalid MIME/size, cleanup |
-| Reviews | Filters and moderation handler tested with disposable rows | Actual fixture submit/approve/reject and public visibility |
+| Reviews | Production e4f8d6c: isolated moderation rejection/hold/success/network/malformed/refresh-failure checks; errors preserve rows and distinguish unavailable lists from empty | Actual fixture submit/approve/reject and public visibility; backend missing-row acknowledgement |
 | Optional support chat | Explicit support consent, client verification, SDK shutdown and navigation/logout lifecycle pass 10 synthetic browser scenarios | Real provider handshake/operator receipt and account-bound history isolation |
 | CMS | Actual unchanged admin save passed; legacy rows preserved | Versioned content preview/rollback; copy agreement |
 | Portal messages | Actual authenticated empty history and isolated persistence test passed | Team reply and distinct AI/support histories |

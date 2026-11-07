@@ -82,6 +82,27 @@ test('booking updates and proposal acceptance work against a disposable SQLite d
   } finally { server.closeAllConnections(); await new Promise(resolve=>server.close(resolve)); await new Promise(resolve=>db.close(resolve)); }
 });
 
+test('pending proposals cannot revive cancelled or completed bookings, including administrator requests',async()=>{
+ const sqlite3=requireBackend('sqlite3'),express=requireBackend('express');const db=new sqlite3.Database(':memory:');
+ const run=sql=>new Promise((resolve,reject)=>db.exec(sql,e=>e?reject(e):resolve()));
+ const get=sql=>new Promise((resolve,reject)=>db.get(sql,(e,row)=>e?reject(e):resolve(row)));
+ await run("CREATE TABLE bookings(id INTEGER PRIMARY KEY,date TEXT,time TEXT,status TEXT,confirmed_at TEXT,cancelled_at TEXT,cancellation_reason TEXT);CREATE TABLE booking_proposals(id INTEGER PRIMARY KEY,booking_id INTEGER,proposed_date TEXT,proposed_time TEXT,status TEXT DEFAULT 'pending');INSERT INTO bookings(id,date,time,status) VALUES(1,'2099-01-05','09:00','new'),(2,'2099-01-06','10:00','completed');INSERT INTO booking_proposals VALUES(1,1,'2099-01-07','12:00','pending'),(2,2,'2099-01-08','12:00','pending');");
+ const app=express();app.use(express.json());app.use((req,res,next)=>{req.principal={id:'synthetic-admin',isAdmin:true};next();});installBookingMaintenance(app,db);
+ const server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));}),base='http://127.0.0.1:'+server.address().port;
+ const send=(path,body,method)=>fetch(base+path,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ try{
+  assert.equal((await send('/api/bookings/1',{status:'cancelled'},'PUT')).status,200);
+  for(const id of [1,2]){
+   assert.equal((await send('/api/bookings/proposals/'+id,{status:'accepted'},'PATCH')).status,409);
+   assert.equal((await get('SELECT status FROM booking_proposals WHERE id='+id)).status,'pending');
+   assert.equal((await send('/api/bookings/'+id+'/propose',{date:'2099-01-09',time:'11:00'},'POST')).status,409);
+  }
+  assert.equal((await get('SELECT status FROM bookings WHERE id=1')).status,'cancelled');
+  assert.equal((await get('SELECT status FROM bookings WHERE id=2')).status,'completed');
+  assert.equal((await send('/api/bookings/proposals/1',{status:'rejected'},'PATCH')).status,200);
+ }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await new Promise(resolve=>db.close(resolve));}
+});
+
 test('verified clients cannot move, complete, revive or change another clients booking',async()=>{
  const sqlite3=requireBackend('sqlite3'),express=requireBackend('express');
  const {createApiSecurity}=require('./backend-auth.cjs');const db=new sqlite3.Database(':memory:');

@@ -2,7 +2,7 @@
 
 ## Runtime
 
-1. Public site: `https://www.vancoresys.com`, Vercel, Next.js App Router, React 18, Tailwind 3. Current accepted production source: `1c52bdefe30f3225cd16286869c182c53acbbf7f`, deployment `BLKrH2t4dLouCjcxWACM6bzKdZ2X` (7 November).
+1. Public site: `https://www.vancoresys.com`, Vercel, Next.js App Router, React 18, Tailwind 3. Current accepted production source: `e4f8d6cd2aec7119034685fa7797f367f1fddd24`, deployment `GjyfH1eo7PYe8EvoWb3YcovHC1R4` (7 November). The first canonical identity recovery baseline is 1c52bde; later rollbacks must preserve that boundary.
 2. Supabase project `wqvhivuyvzdbuguuojhk`, Ireland: identity, profiles, conversations/messages/notes/reports/tasks and legacy content tables. The service key stays in server configuration. The 26 October profile/content security migration is applied.
 3. Backend: `https://api.vancoresys.com`, DigitalOcean (Frankfurt is the historical stated region; fresh infrastructure verification remains pending), Nginx -> Express/PM2, application `/home/vancore/vancore-backend`, SQLite `data/vancore.db`.
 4. Backend stores bookings/proposals, document metadata, incoming messages, reviews and historical CRM/AI records. Uploaded/document bytes are separate files and must be backed up with the database.

@@ -66,9 +66,9 @@ function installBookingMaintenance(app, db, transactionDb = db) {
       if (!validDate(date) || !validTime(time)) return res.status(400).json({ error: 'Valid date and time are required' });
       const booking=await get('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
       if (!booking) return res.status(404).json({ error: 'Booking not found' });
+      if (['cancelled','completed'].includes(booking.status)) return res.status(409).json({error:'This booking is no longer active'});
       if (req.principal && !req.principal.isAdmin) {
         if (String(booking.email||'').trim().toLowerCase()!==req.principal.email) return res.status(403).json({error:'Access denied'});
-        if (['cancelled','completed'].includes(booking.status)) return res.status(409).json({error:'This booking is no longer active'});
       }
       const result = await run('INSERT INTO booking_proposals (booking_id, proposed_date, proposed_time) VALUES (?, ?, ?)', [req.params.id, date, time]);
       res.json({ success: true, id: result.lastID });
@@ -93,8 +93,11 @@ function installBookingMaintenance(app, db, transactionDb = db) {
           return res.status(proposal ? 409 : 404).json({ error: proposal ? 'Proposal already resolved' : 'Proposal not found' });
         }
         if (status === 'accepted') {
-          const result = await transactionRun('UPDATE bookings SET date = ?, time = ?, status = ? WHERE id = ?', [proposal.proposed_date, proposal.proposed_time, 'rescheduled', proposal.booking_id]);
-          if (!result.changes) throw new Error('Booking not found');
+          const result = await transactionRun("UPDATE bookings SET date = ?, time = ?, status = ? WHERE id = ? AND coalesce(status,'new') NOT IN ('cancelled','completed')", [proposal.proposed_date, proposal.proposed_time, 'rescheduled', proposal.booking_id]);
+          if (!result.changes) {
+            await transactionRun('ROLLBACK TO accept_proposal'); await transactionRun('RELEASE accept_proposal'); transaction = false;
+            return res.status(409).json({error:'This booking is no longer active'});
+          }
         }
         await transactionRun('UPDATE booking_proposals SET status = ? WHERE id = ?', [status, req.params.id]);
         await transactionRun('RELEASE accept_proposal'); transaction = false;
