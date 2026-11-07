@@ -15,8 +15,13 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            ops/qa-runtime/package-lock.json
       - run: npm ci --ignore-scripts
       - run: npm test
+      - run: npm ci --ignore-scripts --prefix ops/qa-runtime
+      - run: node --test ops/supabase/account-change-audit.test.cjs
       - run: npm run build
       - run: npm run typecheck
       - run: npm audit --audit-level=moderate

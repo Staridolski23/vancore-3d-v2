@@ -4,8 +4,6 @@ import { authenticatedFetch, signOut } from '@/lib/authenticated-fetch';
 import AdminDashboard from '@/components/AdminDashboard';
 import { useState, useEffect } from 'react';
 
-const ADMIN_EMAILS = ['momchil@vancore.ai', 'zhanet@vancore.ai', 'office@vancoresys.com'];
-
 export default function AdminPage() {
   const [state, setState] = useState<'loading' | 'dashboard' | 'error'>('loading');
   const [token, setToken] = useState('');
@@ -20,7 +18,7 @@ export default function AdminPage() {
       }).then(res => {
         if (res.ok) {
           res.json().then(data => {
-            if (ADMIN_EMAILS.includes(data.user?.email?.toLowerCase())) {
+            if (data.user?.role === 'admin') {
               setToken(localStorage.getItem('vancore_client_token') || adminToken);
               setState('dashboard');
             } else {

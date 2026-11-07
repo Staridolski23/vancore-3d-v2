@@ -12,7 +12,11 @@ function load(relative, mocks={}) {
     if(id==='@/lib/session-cookie')return load('src/lib/session-cookie.ts');
     if(id==='@/lib/auth-redirect')return load('src/lib/auth-redirect.ts');
     if(id==='../../ops/backend/contact-input.cjs')return require('../ops/backend/contact-input.cjs');
-    if(Object.hasOwn(mocks,id))return mocks[id];
+    if(Object.hasOwn(mocks,id)) {
+      if(id==='@/lib/request-auth')return {isAdminUser:user=>user?.vancoreRole==='admin',authFailure:()=>NextResponse.json({error:'Unauthorized'},{status:401}),...mocks[id]};
+      if(id==='@/lib/supabase')return {isAuthUnavailable:error=>error?.code==='AUTH_VERIFICATION_UNAVAILABLE',...mocks[id]};
+      return mocks[id];
+    }
     if(id==='server-only')return {};
     if(id==='next/server')return {NextResponse};
     throw Error('Unmocked dependency '+id);
@@ -143,15 +147,15 @@ test('profile update reads the request once and requires authentication',async()
   assert.equal(result.status,401);
 });
 test('profile writes use verified identity and ignore caller privilege fields',async()=>{
- let profile,authId;
+ let profile,targetId;
  const routes=load('src/app/api/auth/route.ts',{
   '@/lib/request-auth':{requestUser:async()=>({id:'verified-client',email:'owner@example.com'}),isAdminEmail:()=>false},
-  '@/lib/supabase':{supabaseAdmin:{from:()=>({upsert:async value=>{profile=value;return {error:null};}}),auth:{admin:{updateUserById:async id=>{authId=id;return {error:null};}}}}},
+  '@/lib/supabase':{supabaseAdmin:{from:()=>({update:value=>{profile=value;return{eq:(_key,id)=>{targetId=id;return{select:()=>({single:async()=>({data:{id},error:null})})};}}}}),auth:{admin:{updateUserById:async()=>{throw Error('Profile saves must not write editable auth metadata');}}}}},
   '@supabase/supabase-js':{},
  });
  const result=await routes.POST(req('/api/auth',{action:'update-profile',id:'victim',email:'victim@example.com',name:'Updated',phone:'123',role:'admin',plan:'business',credits:99999}));
- assert.equal(result.status,200);assert.equal(profile.id,'verified-client');assert.equal(profile.email,'owner@example.com');assert.equal(profile.phone,'123');assert.equal(authId,'verified-client');
- for(const field of ['role','plan','credits','subscription_status'])assert.ok(!Object.hasOwn(profile,field));
+ assert.equal(result.status,200);assert.equal(targetId,'verified-client');assert.equal(profile.phone,'123');assert.ok(!Object.hasOwn(profile,'company'));
+ for(const field of ['id','email','role','plan','credits','subscription_status'])assert.ok(!Object.hasOwn(profile,field));
 });
 
 test('password changes use the parsed body once and an isolated sign-in client',async()=>{

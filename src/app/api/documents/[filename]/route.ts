@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requestUser } from '@/lib/request-auth';
+import { requestUser, authFailure } from '@/lib/request-auth';
 import { backendFetch } from '@/lib/backend';
 export async function GET(request: NextRequest, context: { params: Promise<{ filename: string }> }) {
-  if (!await requestUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await requestUser(request)) return authFailure(request);
   const { filename } = await context.params;
   try {
     const response = await backendFetch('/api/documents/' + encodeURIComponent(filename));

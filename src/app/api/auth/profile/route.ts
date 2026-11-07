@@ -1,47 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, verifyToken } from '@/lib/supabase';
+import { requestUser, authFailure } from '@/lib/request-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const user = await verifyToken(token);
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    // Get profile from Supabase users table
-    const { data: profile, error } = await supabaseAdmin
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 = no rows found, which is OK for new users
-      console.error('Profile fetch error:', error);
-    }
+    const user = await requestUser(request);
+    if (!user) return authFailure(request);
+    const profile = user.vancoreProfile;
 
     return NextResponse.json({
       user: {
         id: user.id,
         email: user.email,
-        name: profile?.name || user.user_metadata?.name || '',
-        company: profile?.company || user.user_metadata?.company || '',
-        phone: profile?.phone || user.user_metadata?.phone || '',
-        vat_id: profile?.vat_id || user.user_metadata?.vat_id || '',
+        name: profile.name || '',
+        company: profile.company || '',
+        phone: profile.phone || '',
+        vat_id: profile.vat_id || '',
         plan: profile?.plan || 'starter',
         credits: profile?.credits ?? 5,
         subscription_status: profile?.subscription_status || 'free',
-        role: profile?.role || 'client',
+        role: user.vancoreRole,
       },
-    });
+    }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: 'Your profile is temporarily unavailable. Please retry.' }, { status: 503 });
   }
 }

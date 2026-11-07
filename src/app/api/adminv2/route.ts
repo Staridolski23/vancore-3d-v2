@@ -1,110 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, verifyToken, createAuthClient } from '@/lib/supabase';
+import { createAuthClient, getAccountProfile } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/request-auth';
+import { listAdminAccounts } from '@/lib/admin-accounts';
 import { sameOrigin, setRefreshCookie } from '@/lib/session-cookie';
 
-// Admin emails
-const ADMIN_EMAILS = [
-  'momchil@vancore.ai',
-  'zhanet@vancore.ai',
-  'office@vancoresys.com',
-];
-
-// Middleware to check admin auth
-async function adminAuth(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { error: 'Not authorized', status: 401 };
-  }
-
-  const token = authHeader.split(' ')[1];
-  const user = await verifyToken(token);
-  
-  if (!user) {
-    return { error: 'Invalid token', status: 401 };
-  }
-
-  // Check if user is admin by email (simpler, no DB query needed)
-  const isAdmin = ADMIN_EMAILS.includes(user.email?.toLowerCase() || '');
-  
-  if (!isAdmin) {
-    return { error: 'Admin access required', status: 403 };
-  }
-
-  return { user, profile: { role: 'admin' } };
-}
-
-// POST /api/adminv2/login
 export async function POST(request: NextRequest) {
   try {
     if (!sameOrigin(request)) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     const { email, password } = await request.json();
-
+    if (typeof email !== 'string' || typeof password !== 'string') return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
     const { data, error } = await createAuthClient().auth.signInWithPassword({ email, password });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 401 });
-    }
-
-    if (!data.user?.email_confirmed_at) {
-      return NextResponse.json({ error: 'Please verify your email.' }, { status: 403 });
-    }
-
-    const isAdmin = ADMIN_EMAILS.includes(data.user.email?.toLowerCase() || '');
-    
-    if (!isAdmin) {
-      return NextResponse.json({ error: 'Admin access required.' }, { status: 403 });
-    }
-
-    // Update role if missing
-    await supabaseAdmin.from('users').upsert({
-      id: data.user.id,
-      email: data.user.email,
-      role: 'admin',
-    });
-
-    const response = NextResponse.json({
-      token: data.session.access_token,
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-        role: 'admin',
-      },
-      redirectTo: '/admin-v2',
-    });
-    setRefreshCookie(response, data.session.refresh_token);
-    return response;
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
+    if (error) return NextResponse.json({ error: error.status && error.status < 500 && error.status !== 429 ? 'Sign-in failed. Check your credentials.' : 'Sign-in is temporarily unavailable.' }, { status: error.status && error.status < 500 && error.status !== 429 ? 401 : 503 });
+    if (!data.user?.email_confirmed_at || !data.session) return NextResponse.json({ error: 'Please verify your email.' }, { status: 403 });
+    const profile = await getAccountProfile(data.user.id);
+    if (profile.role !== 'admin') return NextResponse.json({ error: 'Administrator access required.' }, { status: 403 });
+    const response = NextResponse.json({ token: data.session.access_token, user: { id: data.user.id, email: data.user.email, name: profile.name || '', role: profile.role }, redirectTo: '/admin-v2' }, { headers: { 'Cache-Control': 'private, no-store' } });
+    setRefreshCookie(response, data.session.refresh_token); return response;
+  } catch { return NextResponse.json({ error: 'Administrator sign-in is temporarily unavailable.' }, { status: 503 }); }
 }
 
-// GET /api/adminv2/dashboard
 export async function GET(request: NextRequest) {
+  const denied = await requireAdmin(request); if (denied) return denied;
   try {
-    const auth = await adminAuth(request);
-    if (auth.error) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
-
-    // Get metrics from Supabase users table
-    const { data: profiles } = await supabaseAdmin
-      .from('users')
-      .select('id, role, subscription_status, email');
-
-    const users = profiles || [];
-    const totalUsers = users.length;
-    const activeSubs = users.filter((u: any) => u.subscription_status === 'active').length;
-
-    // Get verified count from auth
-    const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const verifiedEmails = (authUsers?.users || []).filter((u: any) => u.email_confirmed_at).length;
-
-    return NextResponse.json({
-      totalClients: totalUsers,
-      activeSubscriptions: activeSubs,
-      verifiedEmails,
-    });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
+    const clients = await listAdminAccounts();
+    return NextResponse.json({ totalClients: clients.length, activeSubscriptions: clients.filter(client => client.plan !== 'starter' && client.subscription_status === 'active').length, verifiedEmails: clients.filter(client => client.email_verified).length }, { headers: { 'Cache-Control': 'private, no-store' } });
+  } catch { return NextResponse.json({ error: 'Dashboard metrics could not be loaded. Please retry.' }, { status: 503 }); }
 }

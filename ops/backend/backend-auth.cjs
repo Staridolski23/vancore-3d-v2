@@ -1,12 +1,18 @@
 'use strict';
 const crypto = require('node:crypto');
 const jwt = require('jsonwebtoken');
-const ADMIN_EMAILS = new Set(['momchil@vancore.ai', 'zhanet@vancore.ai', 'office@vancoresys.com']);
 const verificationUnavailable = () => Object.assign(new Error('Identity verification temporarily unavailable'), {code:'AUTH_VERIFICATION_UNAVAILABLE'});
 
-function createSupabaseVerifier({ projectUrl, fetchKeys = fetch, now = Date.now } = {}) {
+function createSupabaseVerifier({ projectUrl, publishableKey, fetchKeys = fetch, fetchRole = fetch, now = Date.now } = {}) {
   const origin = new URL(projectUrl).origin;
   if (!origin.startsWith('https://')) throw new Error('Supabase HTTPS URL required');
+  if (publishableKey === undefined) {
+    // Reuse the existing public recovery configuration, never a secret key.
+    const config = JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname,'auth-recovery-config.json'),'utf8'));
+    if (config.url !== origin) throw new Error('Role lookup project mismatch');
+    publishableKey = config.publishableKey;
+  }
+  if (typeof publishableKey !== 'string' || !publishableKey.startsWith('sb_publishable_')) throw new Error('Public Supabase role lookup configuration required');
   const issuer = origin + '/auth/v1';
   let keys = [], loadedAt = 0, pending;
   async function refresh() {
@@ -35,7 +41,19 @@ function createSupabaseVerifier({ projectUrl, fetchKeys = fetch, now = Date.now 
     const claims = jwt.verify(token, publicKey, { algorithms: [key.alg], issuer, audience: 'authenticated', clockTolerance: 5 });
     if (claims.role !== 'authenticated' || typeof claims.sub !== 'string' || !/^[0-9a-f-]{36}$/i.test(claims.sub) || typeof claims.email !== 'string' || !claims.email) throw new Error('Invalid user');
     const email = claims.email.toLowerCase();
-    return { id: claims.sub, email, isAdmin: ADMIN_EMAILS.has(email) };
+    let profile;
+    try {
+      const response = await fetchRole(origin + '/rest/v1/users?select=id,role&id=eq.' + encodeURIComponent(claims.sub), {
+        headers: { apikey: publishableKey, Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(5000), redirect: 'error', cache: 'no-store',
+      });
+      if (!response.ok) throw verificationUnavailable();
+      const rows = await response.json();
+      if (!Array.isArray(rows) || rows.length !== 1 || rows[0].id !== claims.sub || !['client','consultant','admin'].includes(rows[0].role)) throw verificationUnavailable();
+      profile = rows[0];
+    } catch { throw verificationUnavailable(); }
+    // Re-read the protected role on each authenticated request so revocation
+    // does not depend on JWT refresh or a stale administrator email allowlist.
+    return { id: claims.sub, email, role: profile.role, isAdmin: profile.role === 'admin' };
   };
 }
 

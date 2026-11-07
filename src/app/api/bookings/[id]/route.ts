@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { backendFetch, backendResponse } from '@/lib/backend';
-import { requestUser, isAdminEmail } from '@/lib/request-auth';
+import { requestUser, isAdminUser, authFailure } from '@/lib/request-auth';
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const user = await requestUser(request);
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return authFailure(request);
   const { id } = await context.params;
   if (!/^\d+$/.test(id)) return NextResponse.json({ error: 'Invalid booking' }, { status: 400 });
   try {
@@ -12,7 +12,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     if (!existing.ok) return NextResponse.json({ error: 'Booking not found' }, { status: existing.status });
     const data = await existing.json();
     const booking = data.booking || data;
-    if (!isAdminEmail(user.email) && String(booking.email).toLowerCase() !== user.email?.toLowerCase()) {
+    if (!isAdminUser(user) && String(booking.email).toLowerCase() !== user.email?.toLowerCase()) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
     const body = await request.json();

@@ -1,15 +1,9 @@
-import { requestUser, isAdminEmail } from '@/lib/request-auth';
+import { requestUser, isAdminEmail, authFailure } from '@/lib/request-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, createAuthClient } from '@/lib/supabase';
+import { supabaseAdmin, createAuthClient, getAccountProfile, isAuthUnavailable } from '@/lib/supabase';
 import { SignInWithPasswordCredentials } from '@supabase/supabase-js';
 import { setRefreshCookie, sameOrigin } from '@/lib/session-cookie';
 import { authEmailRedirect, AUTH_RECOVERY_URL } from '@/lib/auth-redirect';
-
-const ADMIN_EMAILS = [
-  'momchil@vancore.ai',
-  'zhanet@vancore.ai',
-  'office@vancoresys.com',
-];
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +25,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (error) {
+        if ((error.status || 0) >= 500 || error.status === 429 || error.status === 0) return NextResponse.json({ error: 'Registration is temporarily unavailable. Please retry.' }, { status: 503 });
         if (error.message.includes('already registered') || error.message.includes('already exists')) {
           return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 });
         }
@@ -38,7 +33,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (data.user && data.user.identities?.length) {
-        await supabaseAdmin.from('users').upsert({
+        const { error: profileError } = await supabaseAdmin.from('users').upsert({
           id: data.user.id,
           email,
           name: name || '',
@@ -49,6 +44,7 @@ export async function POST(request: NextRequest) {
           subscription_status: 'free',
           phone: phone || '',
         }, { onConflict: 'id', ignoreDuplicates: true });
+        if (profileError) return NextResponse.json({ error: 'Your account was created, but profile setup could not be completed. Please contact the VANCORE team.' }, { status: 503 });
       }
 
       return NextResponse.json({ 
@@ -65,7 +61,8 @@ export async function POST(request: NextRequest) {
       } as SignInWithPasswordCredentials);
 
       if (error) {
-        return NextResponse.json({ error: error.message }, { status: 401 });
+        const temporary = !error.status || error.status >= 500 || error.status === 429;
+        return NextResponse.json({ error: temporary ? 'Sign-in is temporarily unavailable. Please retry.' : 'Sign-in failed. Check your email and password.' }, { status: temporary ? 503 : 401 });
       }
 
       if (!data.user?.email_confirmed_at) {
@@ -75,7 +72,8 @@ export async function POST(request: NextRequest) {
         }, { status: 403 });
       }
 
-      const role = ADMIN_EMAILS.includes(data.user.email?.toLowerCase() || '') ? 'admin' : 'client';
+      const profile = await getAccountProfile(data.user.id);
+      const role = profile.role;
       const redirectTo = role === 'admin' ? '/admin-v2' : '/client-portal';
 
       const response = NextResponse.json({
@@ -83,12 +81,12 @@ export async function POST(request: NextRequest) {
         user: {
           id: data.user.id,
           email: data.user.email,
-          name: data.user.user_metadata?.name || '',
-          company: data.user.user_metadata?.company || '',
-          phone: data.user.user_metadata?.phone || '',
-          plan: data.user.user_metadata?.plan || 'starter',
-          credits: data.user.user_metadata?.credits ?? 5,
-          subscription_status: data.user.user_metadata?.subscription_status || 'free',
+          name: profile.name || '',
+          company: profile.company || '',
+          phone: profile.phone || '',
+          plan: profile.plan || 'starter',
+          credits: profile.credits ?? 0,
+          subscription_status: profile.subscription_status || 'free',
           role,
         },
         redirectTo,
@@ -154,45 +152,25 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'update-profile') {
-      const { name, company, phone, vat_id } = body;
       const user = await requestUser(request);
-      if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      const email = user.email;
-
-      const { error: profileError } = await supabaseAdmin
-        .from('users')
-        .upsert({
-          id: user.id,
-          email,
-          name: name || '',
-          company: company || '',
-          phone: phone || '',
-          vat_id: vat_id || '',
-          // Preserve the existing role; profile edits cannot grant privileges.
-        });
-
-      if (profileError) {
-        return NextResponse.json({ error: profileError.message }, { status: 400 });
+      if (!user) return authFailure(request);
+      const profileUpdate: Record<string, string> = {};
+      for (const [field, limit] of Object.entries({ name: 150, company: 200, phone: 50, vat_id: 50 })) {
+        if (!Object.hasOwn(body, field)) continue;
+        if (typeof body[field] !== 'string' || body[field].length > limit) return NextResponse.json({ error: 'Check your profile values and try again.' }, { status: 400 });
+        profileUpdate[field] = body[field].trim();
       }
-
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
-        user_metadata: {
-          name: name || '',
-          company: company || '',
-          phone: phone || '',
-          vat_id: vat_id || '',
-        },
-      });
-
-      if (authError) {
-        return NextResponse.json({ error: authError.message }, { status: 400 });
-      }
-
+      if (!Object.keys(profileUpdate).length) return NextResponse.json({ error: 'No editable profile fields were supplied.' }, { status: 400 });
+      const { data: saved, error: profileError } = await supabaseAdmin.from('users').update({ ...profileUpdate, updated_at: new Date().toISOString() }).eq('id', user.id).select('id').single();
+      if (profileError || saved?.id !== user.id) return NextResponse.json({ error: 'Your profile could not be saved. Please retry.' }, { status: 503 });
+      // The protected profile is canonical. A second metadata write must not
+      // turn a successfully saved profile into an apparent failure.
       return NextResponse.json({ success: true, message: 'Profile updated successfully.' });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (e: any) {
+    if (isAuthUnavailable(e)) return NextResponse.json({ error: 'Sign-in verification is temporarily unavailable. Please retry.' }, { status: 503 });
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

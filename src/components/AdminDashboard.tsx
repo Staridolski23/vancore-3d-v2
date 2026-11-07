@@ -1,23 +1,11 @@
 'use client';
 import { authenticatedFetch } from '@/lib/authenticated-fetch';
 import AdminInbox from '@/components/AdminInbox';
+import AdminClientEditor from '@/components/AdminClientEditor';
+import type { AdminClient as Client } from '@/lib/account-types';
 
 import { useState, useEffect } from 'react';
 import { LayoutGrid, Users, Calendar, FileText, BarChart3, Settings, Image as ImageIcon, Users as UsersIcon, CreditCard, CheckCircle, TrendingUp, Star } from 'lucide-react';
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  company: string;
-  phone: string;
-  plan: string;
-  role?: string;
-  subscription_status: string;
-  created_at: string;
-  email_verified: number;
-  credits: number;
-}
 
 interface DashboardMetrics {
   totalClients: number;
@@ -55,6 +43,8 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   const [reviews, setReviews] = useState<any[]>([]);
   const [clientSearch, setClientSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState('');
+  const [clientsError, setClientsError] = useState('');
   const [siteContent, setSiteContent] = useState<SiteContent[]>([]);
   const [editingContent, setEditingContent] = useState<SiteContent | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -251,6 +241,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
   };
 
   const fetchData = async () => {
+    setMetricsError(''); setClientsError('');
     try {
       const token = propToken || localStorage.getItem('vancore_client_token') || '';
       if (!token) { setLoading(false); return; }
@@ -258,15 +249,21 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
 
       try {
         const res = await authenticatedFetch('/api/adminv2', { headers });
-        if (res.ok) { const data = await res.json(); setMetrics(data); }
-      } catch (e) { console.error('Failed to fetch metrics:', e); }
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (![data.totalClients, data.activeSubscriptions, data.verifiedEmails].every(value => Number.isInteger(value) && value >= 0)) throw new Error();
+        setMetrics(data);
+      } catch { setMetricsError('Dashboard metrics could not be loaded. Please retry.'); }
 
       try {
         const clientsRes = await authenticatedFetch('/api/adminv2/clients', { headers });
-        if (clientsRes.ok) { const data = await clientsRes.json(); setClients(data.clients || []); }
-      } catch (e) { console.error('Failed to fetch clients:', e); }
+        if (!clientsRes.ok) throw new Error();
+        const data = await clientsRes.json();
+        if (!Array.isArray(data.clients) || !data.clients.every((item: Client) => item && typeof item.id === 'string' && typeof item.email === 'string')) throw new Error();
+        setClients(data.clients);
+      } catch { setClientsError('Client accounts could not be loaded. Please retry.'); }
     } catch (e) {
-      console.error('Failed to fetch data:', e);
+      setClientsError('Administrator data could not be loaded. Please retry.');
     } finally {
       setLoading(false);
     }
@@ -293,51 +290,6 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       setContentError('Content could not be saved. Your edit is still open.');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const updateClientRole = async (clientId: string, newRole: string) => {
-    try {
-      const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      await authenticatedFetch('/api/adminv2/clients/' + clientId, {
-        method: 'PATCH',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-      });
-      setClients(prev => prev.map(c => c.id === clientId ? { ...c, role: newRole } : c));
-      setSelectedClient(prev => prev ? { ...prev, role: newRole } : null);
-    } catch (e) {
-      console.error('Failed to update client role:', e);
-    }
-  };
-
-  const updateClientPlan = async (clientId: string, newPlan: string) => {
-    try {
-      const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      await authenticatedFetch('/api/adminv2/clients/' + clientId, {
-        method: 'PATCH',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: newPlan }),
-      });
-      setClients(prev => prev.map(c => c.id === clientId ? { ...c, plan: newPlan } : c));
-      setSelectedClient(prev => prev ? { ...prev, plan: newPlan } : null);
-    } catch (e) {
-      console.error('Failed to update client plan:', e);
-    }
-  };
-
-  const updateClientCredits = async (clientId: string, credits: number) => {
-    try {
-      const token = propToken || localStorage.getItem('vancore_client_token') || '';
-      await authenticatedFetch('/api/adminv2/clients/' + clientId, {
-        method: 'PATCH',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credits }),
-      });
-      setClients(prev => prev.map(c => c.id === clientId ? { ...c, credits } : c));
-      setSelectedClient(prev => prev ? { ...prev, credits } : null);
-    } catch (e) {
-      console.error('Failed to update client credits:', e);
     }
   };
 
@@ -393,14 +345,15 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       </div>
 
       {activeTab === 'inbox' && <AdminInbox token={propToken} />}
+      {(metricsError || clientsError) && <div role="alert" className="text-sm text-red-300"><p>{metricsError}</p><p>{clientsError}</p><button onClick={fetchData} className="underline">Retry administrator data</button></div>}
 
       {/* Dashboard Tab */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <MetricCard label="Total Clients" value={String(metrics.totalClients || 0)} icon={<UsersIcon className="w-5 h-5" />} />
-            <MetricCard label="Active Subs" value={String(metrics.activeSubscriptions || 0)} icon={<CreditCard className="w-5 h-5" />} />
-            <MetricCard label="Verified" value={String(metrics.verifiedEmails || 0)} icon={<CheckCircle className="w-5 h-5" />} />
+            <MetricCard label="Total Clients" value={metricsError ? '—' : String(metrics.totalClients || 0)} icon={<UsersIcon className="w-5 h-5" />} />
+            <MetricCard label="Active Subs" value={metricsError ? '—' : String(metrics.activeSubscriptions || 0)} icon={<CreditCard className="w-5 h-5" />} />
+            <MetricCard label="Verified" value={metricsError ? '—' : String(metrics.verifiedEmails || 0)} icon={<CheckCircle className="w-5 h-5" />} />
           </div>
 
           {/* Recent Clients */}
@@ -456,7 +409,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       )}
 
       {/* Clients Tab */}
-      {activeTab === 'clients' && (
+      {activeTab === 'clients' && !clientsError && (
         <div className="space-y-4">
           <input
             type="text"
@@ -600,7 +553,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       )}
 
       {/* Analytics Tab */}
-      {activeTab === 'analytics' && (
+      {activeTab === 'analytics' && !metricsError && !clientsError && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             <MetricCard label="Total Clients" value={String(metrics.totalClients || 0)} icon={<UsersIcon className="w-5 h-5" />} />
@@ -986,129 +939,15 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
         </div>
       )}
 
-      {/* Client Detail Modal */}
-      {selectedClient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="bg-[#111] rounded-xl p-6 border border-white/10 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Client Details</h3>
-              <button onClick={() => setSelectedClient(null)} className="text-[#6b6b6b] hover:text-white">✕</button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#991930]/20 flex items-center justify-center text-[#991930] text-lg font-bold">
-                  {(selectedClient.name || selectedClient.email).charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="text-lg font-semibold text-white">{selectedClient.name || selectedClient.email}</div>
-                  <div className="text-sm text-[#6b6b6b]">{selectedClient.email}</div>
-                  {selectedClient.phone && <div className="text-xs text-[#9a9a9a] mt-0.5">📞 {selectedClient.phone}</div>}
-                  {selectedClient.company && <div className="text-xs text-[#9a9a9a0]">🏢 {selectedClient.company}</div>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-[10px] text-[#6b6b6b]">Plan</div>
-                  <div className="text-sm text-white">{selectedClient.plan}</div>
-                </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-[10px] text-[#6b6b6b]">Status</div>
-                  <div className="text-sm text-white">{selectedClient.subscription_status}</div>
-                </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-[10px] text-[#6b6b6b]">Credits</div>
-                  <div className="text-sm text-white">{selectedClient.credits}</div>
-                </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-[10px] text-[#6b6b6b]">Joined</div>
-                  <div className="text-sm text-white">{new Date(selectedClient.created_at).toLocaleDateString()}</div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs text-[#6b6b6b] mb-1.5">Plan</label>
-                <select
-                  value={selectedClient.plan || 'starter'}
-                  onChange={(e) => updateClientPlan(selectedClient.id, e.target.value)}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
-                >
-                  <option value="starter">Starter (Free)</option>
-                  <option value="professional">Professional (€49/mo)</option>
-                  <option value="business">Business (€99/mo)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs text-[#6b6b6b] mb-1.5">Credits</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    value={selectedClient.credits || 0}
-                    onChange={(e) => setSelectedClient({ ...selectedClient, credits: parseInt(e.target.value) || 0 })}
-                    className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
-                  />
-                  <button
-                    onClick={() => updateClientCredits(selectedClient.id, selectedClient.credits || 0)}
-                    className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs text-[#6b6b6b] mb-1.5">Add Credits</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    id="add-credits"
-                    placeholder="e.g. 10"
-                    className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-[#6b6b6b] focus:outline-none focus:border-[#991930]/50"
-                  />
-                  <button
-                    onClick={() => {
-                      const input = document.getElementById('add-credits') as HTMLInputElement;
-                      const amount = parseInt(input.value) || 0;
-                      if (amount > 0) {
-                        const newCredits = (selectedClient.credits || 0) + amount;
-                        setSelectedClient({ ...selectedClient, credits: newCredits });
-                        updateClientCredits(selectedClient.id, newCredits);
-                        input.value = '';
-                      }
-                    }}
-                    className="px-4 py-2 bg-[#10b981] text-white text-sm font-medium rounded-lg hover:bg-[#059669] transition-colors"
-                  >
-                    + Add
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs text-[#6b6b6b] mb-1.5">Role</label>
-                <select
-                  value={selectedClient.role || 'client'}
-                  onChange={(e) => updateClientRole(selectedClient.id, e.target.value)}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#991930]/50"
-                >
-                  <option value="client">Client</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <div className="flex gap-2">
-                <button className="flex-1 px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                  📧 Send Email
-                </button>
-                <button className="flex-1 px-4 py-2 bg-white/5 text-white text-sm font-medium rounded-lg hover:bg-white/10 transition-colors border border-white/10">
-                  📅 Book Meeting
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {selectedClient && <AdminClientEditor key={selectedClient.id} client={selectedClient} token={propToken}
+        onClose={() => setSelectedClient(null)}
+        onUpdated={saved => {
+          const next = clients.map(item => item.id === saved.id ? { ...item, ...saved } : item);
+          setClients(next);
+          setMetrics({ totalClients: next.length, activeSubscriptions: next.filter(item => item.plan !== 'starter' && item.subscription_status === 'active').length, verifiedEmails: next.filter(item => item.email_verified).length });
+          setSelectedClient(previous => previous?.id === saved.id ? { ...previous, ...saved } : previous);
+        }}
+        onBookMeeting={() => { setNewBooking({ name: selectedClient.name || '', email: selectedClient.email, phone: selectedClient.phone || '', company: selectedClient.company || '', date: '', time: '', description: '' }); setActiveTab('bookings'); setAddBookingMode(true); setSelectedClient(null); }} />}
 
       {/* Reviews Tab */}
       {activeTab === 'reviews' && (

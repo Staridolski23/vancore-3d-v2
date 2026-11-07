@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { backendResponse } from '@/lib/backend';
-import { requestUser, requireAdmin, isAdminEmail } from '@/lib/request-auth';
+import { requestUser, requireAdmin, isAdminUser, authFailure } from '@/lib/request-auth';
 export async function GET(request: NextRequest) {
   const user = await requestUser(request);
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return authFailure(request);
   const email = new URL(request.url).searchParams.get('email');
-  if (!isAdminEmail(user.email) && (!email || email.toLowerCase() !== user.email?.toLowerCase())) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+  if (!isAdminUser(user) && (!email || email.toLowerCase() !== user.email?.toLowerCase())) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
   return backendResponse('/api/documents' + (email ? '?client_email=' + encodeURIComponent(email) : ''));
 }
 export async function POST(request: NextRequest) {
