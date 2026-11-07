@@ -62,7 +62,7 @@ Installer ops/backend/deploy-contact-maintenance.py guards the previous server c
 
 Before enabling delivery, verify the existing official Zoho SMTP destination without exposing credentials, review the queued backlog, and accept one controlled notification. The worker retries up to five attempts and recovers leases after ten minutes; it does not guarantee exactly-once delivery across a provider-success/process-crash boundary. Completed jobs are not manually retriable through the retry endpoint. Notification outages do not remove saved enquiries. The admin inbox shows at most the latest 100 enquiries; pagination remains outstanding.
 
-## Canonical account role rollout and rollback constraints (candidate)
+## Canonical account role rollout and rollback constraints (7 November)
 
 The protected public.users.role is the intended authority across Next, direct backend and RLS. Existing public recovery configuration supplies only the public project URL/publishable key for the backend role lookup; never substitute a secret key or log a user bearer. Backend installer ops/backend/deploy-account-roles.py requires pinned source/module checksums and a fresh provider-derived administrator-alignment attestation, takes an online archive, and keeps strict auth plus disabled contact mail in saved PM2 state. Validate an actual authenticated client read after installation, before publishing the new editor.
 

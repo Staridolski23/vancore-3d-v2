@@ -2,11 +2,11 @@
 
 ## Runtime
 
-1. Public site: `https://www.vancoresys.com`, Vercel, Next.js App Router, React 18, Tailwind 3. Production still differs from the maintenance branch at the 31 October baseline.
+1. Public site: `https://www.vancoresys.com`, Vercel, Next.js App Router, React 18, Tailwind 3. Current accepted production source: `1c52bdefe30f3225cd16286869c182c53acbbf7f`, deployment `BLKrH2t4dLouCjcxWACM6bzKdZ2X` (7 November).
 2. Supabase project `wqvhivuyvzdbuguuojhk`, Ireland: identity, profiles, conversations/messages/notes/reports/tasks and legacy content tables. The service key stays in server configuration. The 26 October profile/content security migration is applied.
-3. Backend: `https://api.vancoresys.com`, DigitalOcean Frankfurt, Nginx -> Express/PM2, application `/home/vancore/vancore-backend`, SQLite `data/vancore.db`.
+3. Backend: `https://api.vancoresys.com`, DigitalOcean (Frankfurt is the historical stated region; fresh infrastructure verification remains pending), Nginx -> Express/PM2, application `/home/vancore/vancore-backend`, SQLite `data/vancore.db`.
 4. Backend stores bookings/proposals, document metadata, incoming messages, reviews and historical CRM/AI records. Uploaded/document bytes are separate files and must be backed up with the database.
-5. Vera currently calls Nous from Next.js and has an FAQ fallback. Baseline faults: provider rejects the request, conversation history/lead persistence are incomplete, fallback is not visibly identified.
+5. Vera calls Nous from Next.js with bounded latency and an explicitly labelled FAQ/limited fallback. Inference passed in maintenance preview; durable conversation/lead/report persistence remains incomplete.
 6. Email: backend SMTP configuration. Stripe dependency exists, but checkout/webhook fulfillment is not implemented in the inspected Next routes.
 7. Hermes/WSL is a separate agent environment; website operation does not depend on the laptop running it. Do not start historical messaging/paid-model automations as part of maintenance.
 
@@ -15,13 +15,13 @@
 ## Trust boundaries
 
 - Browser input and user metadata are not authority for roles, plans or client identity.
-- Next verifies Supabase identity; backend independently verifies the JWT signature, issuer, audience and expiry and checks ownership.
+- Next verifies Supabase identity; backend independently verifies the JWT signature, issuer, audience and expiry and checks ownership. Both read the protected public.users role on each authenticated request without role caching; editable metadata and email lists are not authority. Identity/profile outages return 503.
 - Anonymous availability must include only dates/times. Private metadata and document bytes require identity and ownership checks.
-- The backend compatibility flag is temporary and must be removed/disabled through coordinated rollout; protecting Next alone does not protect the direct backend.
+- Strict backend auth is active and saved in PM2. Keep it active during rollback; protecting Next alone does not protect the direct backend.
 - Never restore an older database as part of a routine code rollback: preserve newly created records.
 - UI prices and AI statements must use the owner-confirmed €25 one-time, €49/month, €99/month catalog.
 
-## Reproducibility gaps at baseline
+## Historical rollout and remaining reproducibility gaps
 
 7 November release: production now runs reviewed source `b7d3fa6d2e8a57ad094d31633f76d7c1c9ed2ef0` (Vercel `6476unZrkt1n4idgkAZrRxHmDRMT`). Backend `VANCORE_AUTH_ENFORCE=true` is live and saved in the PM2 restart state; the earlier compatibility exception is no longer active. Unauthenticated private list/write requests return 401, while public monthly calendars expose only date/time/status. Three existing administrator profiles were checked to match the currently enforced administrator allow-list. Role-management consistency, actual authenticated A/B/admin acceptance and remaining features still require work.
 

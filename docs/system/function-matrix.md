@@ -1,6 +1,6 @@
 # Function and acceptance matrix
 
-Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat changed checks before rollout. No status here means all possible edge cases are covered.
+Updated: 7 November 2026; older baseline evidence is retained where checks remain outstanding. Repeat changed checks before rollout. No status here means all possible edge cases are covered.
 
 | Function | Baseline evidence | Remaining acceptance |
 |---|---|---|
@@ -11,13 +11,13 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Registration | Confirmation flow fixed; regression test passed | Actual signup/verify/expired link with disposable account |
 | Password recovery | 7 November: actual email/public callback and successful reset/sign-in confirmed by owner | Accepted; branded template is an optional blocked SMTP/Pro customization |
 | Profile | Real unchanged save and privilege-field regression passed | Two-user isolation; failure preserves edits |
-| Admin access | Client redirected with session preserved | Consistent backend and database roles |
-| Admin clients/plan/credits | Read path verified; mutation error handling needs repair | Validated writes with audit trail and truthful success |
+| Admin access | Protected database role used by Next/backend/RLS; live client bookings/documents read after verifier rollout; client redirected with session preserved | Actual administrator browser acceptance; complete A/B isolation |
+| Admin clients/plan/credits | Production 1c52bde; isolated editor success/failure/draft/focus tests; hosted atomic account/audit and privilege tests PASS with ROLLBACK | Actual authorized administrator browser write round trip; commercial quota confirmation |
 | Contact forms | 7 November: atomic SQLite enquiry/outbox, native tests, live restart persistence and real preview browser-to-DB round trip passed; production 6c4aeb0 Ready; all existing rows preserved | SMTP verification and controlled notification acceptance; real admin inbox acceptance and pagination |
 | Booking create | Live interval guards and validated create installed; concurrent disposable-DB test passed | Real authorized client round trip; notifications |
-| Booking status/change/cancel | Native backend tests and final-build browser confirm/cancel/proposal/busy/conflict/network/malformed/refresh-outage tests passed; no premature reschedule | Preview/production release of latest client fixes; actual-service authorized write round trip |
+| Booking status/change/cancel | Production f11c60d and later; native backend tests and final-build browser confirm/cancel/proposal/busy/conflict/network/malformed/refresh-outage tests passed; no premature reschedule | Actual-service authorized write round trip; administrator outcome handling |
 | Proposal accept/reject | Transaction/conflict/repeat tests passed | Authorized owner/admin resolution and notifications |
-| Calendar/ICS | UTC export uses Sofia time and 45-minute policy; winter/summer/both DST boundaries and visitor TZ independence passed; actual browser button file inspected | Latest frontend release and real calendar-app import acceptance; notification delivery |
+| Calendar/ICS | Production f11c60d and later; UTC export uses Sofia time and 45-minute policy; winter/summer/both DST boundaries and visitor TZ independence passed; actual browser button file inspected | Real calendar-app import acceptance; notification delivery |
 | Document list | Real empty client list; ownership regression passed | Client A/B see only own fixtures |
 | Document download | Temporary file/DB test passed | Actual storage/download with disposable files |
 | Image upload/serve | Server and Next limits installed; magic-byte serving tested | Controlled real upload, invalid MIME/size, cleanup |
@@ -31,8 +31,8 @@ Baseline: 31 October 2026; evidence includes the 26 October audit. Repeat change
 | Vera language/pricing | English FAQ prices passed; Bulgarian fallback failed | BG/EN diagnostic tests and correct catalog |
 | Reports | Generic AI request and transient UI state | Client evidence, durable report/version/export |
 | Billing | Owner chose manual enquiries; public/portal buttons and selected-plan form payload pass isolated browser checks | Real enquiry delivery; authorized team activation with audit and consistent limits |
-| Security | 7 November: production 6c4aeb0, strict backend enforcement active/saved; 16 native backend tests and live negative probes pass; actual hosted profile RLS/7 protected field tests pass with ROLLBACK | Complete authenticated A/B/admin acceptance and unify role-management paths |
-| Backup | Daily SQLite backup, private off-host copies and both-DB restores pass before/after latest contact rollout; source bundles archived | Full managed Supabase export/hosted restoration and complete infrastructure recovery |
+| Security | Production 1c52bde; canonical protected roles, strict backend enforcement active/saved; native tests/live negative probes and hosted profile/audit ROLLBACK checks pass | Complete authenticated A/B/admin acceptance; remaining security review items |
+| Backup | Private off-host SQLite archives and both-DB restores pass before/after role rollout; targeted 11-profile Supabase restore and guard/audit tests pass; source bundles archived | Full managed Supabase export/hosted restoration and complete infrastructure recovery |
 | Restart/monitoring | PM2 startup service now active/enabled; controlled cold start and recovery checks passed | Actual machine reboot/complete restore and failure alerts |
 | Runtime updates | API and PM2 daemon run Node 24.22.2; nine native/backend tests passed; old system interpreter retained for rollback | Remaining dependency/OS inventory; remove old runtime after agreed retention |
 
