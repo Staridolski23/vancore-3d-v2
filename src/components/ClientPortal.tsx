@@ -1,8 +1,10 @@
 'use client';
 import { authenticatedFetch, signOut } from '@/lib/authenticated-fetch';
 import { planEnquiryUrl, PlanId, planId } from '@/lib/plans';
+import { bookingCalendar, bookingStartUtc } from '@/lib/booking-calendar';
+import { validDate, validTime } from '@/lib/booking-policy';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 interface UserInfo {
@@ -38,8 +40,11 @@ export default function ClientPortal() {
   const [messages, setMessages] = useState<{id: string; role: string; content: string}[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [profileLoadError, setProfileLoadError] = useState('');
-  const [cancelReason, setCancelReason] = useState('');
-  const [penaltyWarning, setPenaltyWarning] = useState<string | null>(null);
+  const [bookingMessage, setBookingMessage] = useState('');
+  const [savingBooking, setSavingBooking] = useState(false);
+  const bookingActionRunning = useRef(false);
+  const [bookingDraft, setBookingDraft] = useState<{ id: string | number; action: 'cancel' | 'propose'; date: string; time: string; reason: string } | null>(null);
+  const [pendingChanges, setPendingChanges] = useState<(string | number)[]>([]);
   const [reportContent, setReportContent] = useState('');
   const searchParams = useSearchParams();
 
@@ -147,38 +152,18 @@ export default function ClientPortal() {
 
   const downloadICS = (booking: any) => {
     try {
-      const dateStr = String(booking.date || '').trim();
-      const timeStr = String(booking.time || '').trim();
-      if (!dateStr || !timeStr) return;
-      const [year, month, day] = dateStr.split('-').map(Number);
-      const [hour, minute] = timeStr.split(':').map(Number);
-      const start = new Date(year || 1970, (month || 1) - 1, day || 1, hour || 0, minute || 0);
-      const end = new Date(start.getTime() + (60 * 60 * 1000));
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const formatDT = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-      const ics = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//VANCORE//NONSGML Client Portal//EN',
-        'BEGIN:VEVENT',
-        `DTSTART:${formatDT(start)}`,
-        `DTEND:${formatDT(end)}`,
-        `SUMMARY:VANCORE Consultation`,
-        `DESCRIPTION:Booked consultation via vancoresys.com`,
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\n');
+      const ics = bookingCalendar(booking);
       const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `vancore-booking-${dateStr}.ics`;
+      link.download = `vancore-booking-${booking.date}.ics`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error('ICS download failed', e);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setBookingMessage('The calendar file could not be created. Please contact the VANCORE team to verify this appointment.');
     }
   };
 
@@ -222,60 +207,42 @@ export default function ClientPortal() {
     }
   };
 
-  const parseDateTime = (dateStr: string, timeStr: string) => {
-    const d = String(dateStr || '').trim();
-    const t = String(timeStr || '').trim();
-    if (!d || !t) return null;
-    const [year, month, day] = d.split('-').map(Number);
-    const [hour, minute] = t.split(':').map(Number);
-    return new Date(year || 1970, (month || 1) - 1, day || 1, hour || 0, minute || 0);
-  };
-
-  const confirmBooking = async (id: string | number) => {
-    const token = localStorage.getItem('vancore_client_token');
-    const response = await authenticatedFetch('/api/bookings/' + id, {
-      method: 'PUT',
-      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'confirmed', confirmed_at: new Date().toISOString() }),
-    });
-    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
-    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'confirmed', confirmed_at: new Date().toISOString() } : b));
-  };
-
-  const cancelBooking = async (id: string | number, dateStr: string, timeStr: string) => {
-    const when = parseDateTime(dateStr, timeStr);
-    const now = new Date();
-    let penalty = false;
-    if (when) {
-      const hoursUntil = (when.getTime() - now.getTime()) / (1000 * 60 * 60);
-      penalty = hoursUntil < 24;
-    }
-    const reason = window.prompt('Please provide a reason for cancellation') || '';
-    if (!reason) return;
-    const token = localStorage.getItem('vancore_client_token');
-    const response = await authenticatedFetch('/api/bookings/' + id, {
-      method: 'PUT',
-      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'cancelled', cancellation_reason: reason, penalty_applied: penalty }),
-    });
-    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
-    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled', cancellation_reason: reason, penalty_applied: penalty } : b));
-    setPenaltyWarning(penalty ? 'This booking was cancelled less than 24h before the session. A penalty may apply.' : null);
-  };
-
-  const requestBookingChange = async (id: string | number) => {
-    const newDate = prompt('New date (YYYY-MM-DD)');
-    if (!newDate) return;
-    const newTime = prompt('New time (HH:MM)');
-    if (!newTime) return;
-    const token = localStorage.getItem('vancore_client_token');
-    const response = await authenticatedFetch('/api/bookings/' + id + '/propose', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date: newDate, time: newTime, status: 'rescheduled' }),
-    });
-    if (!response.ok) { const error = await response.json().catch(() => ({})); window.alert(error.error || 'Unable to update the booking. Please try again.'); return; }
-    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'rescheduled' } : b));
+  const saveBooking = async (id: string | number, action: 'confirm' | 'cancel' | 'propose') => {
+    if (bookingActionRunning.current || !user) return;
+    const draft = bookingDraft;
+    if (action !== 'confirm' && (!draft || draft.id !== id || draft.action !== action)) return;
+    if (action === 'cancel' && !draft?.reason.trim()) { setBookingMessage('Enter a reason for cancellation.'); return; }
+    if (action === 'propose' && (!validDate(draft?.date) || !validTime(draft?.time))) { setBookingMessage('Enter a valid date and time in the Sofia time zone.'); return; }
+    bookingActionRunning.current = true; setSavingBooking(true); setBookingMessage('');
+    let acknowledged = false;
+    try {
+      const body = action === 'propose' ? { date: draft!.date, time: draft!.time } : action === 'cancel' ? { status: 'cancelled', cancellation_reason: draft!.reason.trim() } : { status: 'confirmed' };
+      const response = await authenticatedFetch('/api/bookings/' + id + (action === 'propose' ? '/propose' : ''), {
+        method: action === 'propose' ? 'POST' : 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      if (!response.ok) { setBookingMessage(response.status === 409 ? 'This change conflicts with the current appointment or an occupied time. Reload your bookings and try another time.' : 'The change was not accepted. Please reload your bookings and try again.'); return; }
+      const result = await response.json();
+      if (result.success !== true) throw new Error('Uncertain update');
+      acknowledged = true; setBookingDraft(null);
+      if (action === 'propose') {
+        setPendingChanges(previous => previous.includes(id) ? previous : [...previous, id]);
+        setBookingMessage('Change request submitted for team review. Your current appointment remains unchanged until the team accepts it.');
+        return;
+      }
+      setPendingChanges(previous => previous.filter(bookingId => bookingId !== id));
+      const refreshed = await authenticatedFetch('/api/bookings?email=' + encodeURIComponent(user.email));
+      if (!refreshed.ok) throw new Error('Refresh unavailable');
+      const data = await refreshed.json(); if (!Array.isArray(data.bookings)) throw new Error('Invalid bookings');
+      setBookings(data.bookings);
+      let message = action === 'cancel' ? 'Booking cancelled.' : 'Booking confirmed.';
+      if (action === 'cancel') {
+        const previous = bookings.find(booking => booking.id === id);
+        try { if (previous && bookingStartUtc(previous.date, previous.time).getTime() - Date.now() < 24 * 60 * 60 * 1000) message += ' This is less than 24 hours before the appointment. Contact the team about the applicable cancellation terms.'; } catch { /* Saved cancellation remains valid if a legacy timestamp needs review. */ }
+      }
+      setBookingMessage(message);
+    } catch {
+      setBookingMessage(acknowledged ? 'Your change was saved, but the updated list could not be loaded. Reload the page to see the current appointment.' : 'The result could not be confirmed because the connection failed. Reload your bookings before submitting again.');
+    } finally { bookingActionRunning.current = false; setSavingBooking(false); }
   };
 
   const generateReport = async (): Promise<string> => {
@@ -422,6 +389,7 @@ export default function ClientPortal() {
         <div className="space-y-4">
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
             <h3 className="text-base font-semibold text-white mb-4">My Bookings</h3>
+            {(bookingMessage || savingBooking) && <p role="status" className="text-sm text-[#b7b7b7] mb-4">{savingBooking ? 'Saving your booking change…' : bookingMessage}</p>}
             {dataErrors.bookings ? null : bookings.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">📅</div>
@@ -448,27 +416,43 @@ export default function ClientPortal() {
                         {booking.status || 'new'}
                       </span>
                     </div>
-                    {booking.status === 'confirmed' && (
+                    {['confirmed', 'rescheduled'].includes(booking.status) && (
                       <button onClick={() => downloadICS(booking)} className="text-xs text-[#991930] hover:underline mt-2">
                         Add to Calendar
                       </button>
                     )}
-                    {booking.status === 'new' && (
-                      <button onClick={() => confirmBooking(booking.id)} className="text-xs text-[#10b981] hover:underline mt-2">
+                    {['new', 'scheduled'].includes(booking.status) && (
+                      <button disabled={savingBooking} onClick={() => saveBooking(booking.id, 'confirm')} className="text-xs text-[#10b981] hover:underline mt-2 disabled:opacity-50">
                         Confirm
                       </button>
                     )}
-                    {(booking.status === 'new' || booking.status === 'confirmed') && (
+                    {['new', 'scheduled', 'confirmed', 'rescheduled'].includes(booking.status) && (
                       <>
-                        <button onClick={() => requestBookingChange(booking.id)} className="text-xs text-[#3b82f6] hover:underline mt-2 ml-3">
+                        <button disabled={savingBooking || pendingChanges.includes(booking.id)} onClick={() => { setBookingMessage(''); setBookingDraft({ id: booking.id, action: 'propose', date: booking.date, time: booking.time, reason: '' }); }} className="text-xs text-[#3b82f6] hover:underline mt-2 ml-3 disabled:opacity-50">
                           Request change
                         </button>
-                        <button onClick={() => cancelBooking(booking.id, booking.date, booking.time)} className="text-xs text-red-400 hover:underline mt-2 ml-3">
+                        <button disabled={savingBooking} onClick={() => { setBookingMessage(''); setBookingDraft({ id: booking.id, action: 'cancel', date: booking.date, time: booking.time, reason: '' }); }} className="text-xs text-red-400 hover:underline mt-2 ml-3 disabled:opacity-50">
                           Cancel
                         </button>
                       </>
                     )}
-                    {penaltyWarning && <p className="text-xs text-red-400 mt-2">{penaltyWarning}</p>}
+                    {pendingChanges.includes(booking.id) && <p className="text-xs text-blue-300 mt-2">Change requested — awaiting team review.</p>}
+                    {bookingDraft && bookingDraft.id === booking.id && <form onSubmit={event => { event.preventDefault(); void saveBooking(booking.id, bookingDraft.action); }} className="mt-4 space-y-3 border-t border-white/10 pt-4">
+                      {bookingDraft.action === 'propose' ? <>
+                        <p className="text-xs text-[#b7b7b7]">Propose a new appointment in the Sofia time zone. The current time stays booked until the team accepts the request.</p>
+                        <label className="block text-xs text-white" htmlFor={'change-date-' + booking.id}>New date</label>
+                        <input id={'change-date-' + booking.id} type="date" required disabled={savingBooking} value={bookingDraft.date} onChange={event => setBookingDraft(previous => previous ? { ...previous, date: event.target.value } : previous)} className="bg-[#111] text-white border border-white/20 rounded p-2" />
+                        <label className="block text-xs text-white" htmlFor={'change-time-' + booking.id}>New time (Sofia)</label>
+                        <input id={'change-time-' + booking.id} type="time" required disabled={savingBooking} value={bookingDraft.time} onChange={event => setBookingDraft(previous => previous ? { ...previous, time: event.target.value } : previous)} className="bg-[#111] text-white border border-white/20 rounded p-2" />
+                      </> : <>
+                        <label className="block text-xs text-white" htmlFor={'cancel-reason-' + booking.id}>Reason for cancellation</label>
+                        <textarea id={'cancel-reason-' + booking.id} required maxLength={2000} disabled={savingBooking} value={bookingDraft.reason} onChange={event => setBookingDraft(previous => previous ? { ...previous, reason: event.target.value } : previous)} className="w-full bg-[#111] text-white border border-white/20 rounded p-2" />
+                      </>}
+                      <div className="flex flex-wrap gap-3">
+                        <button type="submit" disabled={savingBooking} className="px-3 py-2 bg-[#991930] rounded text-xs text-white disabled:opacity-50">{bookingDraft.action === 'propose' ? 'Submit change request' : 'Confirm cancellation'}</button>
+                        <button type="button" disabled={savingBooking} onClick={() => setBookingDraft(null)} className="px-3 py-2 border border-white/20 rounded text-xs text-white disabled:opacity-50">Close</button>
+                      </div>
+                    </form>}
                     {booking.company && <div className="text-xs text-[#6b6b6b] mb-1">🏢 {booking.company}</div>}
                     {booking.phone && <div className="text-xs text-[#6b6b6b] mb-1">📞 {booking.phone}</div>}
                     {booking.description && <div className="text-xs text-[#6b6b6b] mt-2 italic">"{booking.description}"</div>}
