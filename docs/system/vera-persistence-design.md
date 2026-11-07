@@ -1,0 +1,36 @@
+# Vera persistence: implementation and acceptance plan
+
+Status: inspected 7 November 2026; design only, not a deployed feature. Current chat inference works, but the session ID/history and lead form are browser-managed. Reports are transient. Preserve current inference while adding storage; no quota or automatic plan allowance is defined by this document.
+
+## Findings established from code and hosted policies
+
+- The active UI is VeraChat.tsx, called from app/ai-analyst/page.tsx. It sends leadData on start, but the API ignores it; the conversation ID is accepted from the browser and does not identify a durable server record. Refresh loses the conversation.
+- The API validates bounded history but trusts its provenance. Browser-supplied assistant turns must not become authoritative evidence for a saved report. Server storage must distinguish legacy imported/draft content from server-generated turns.
+- The generic report generator in ClientPortal does not read a persisted case or save a version. Portal History currently shows support messages, which must remain distinct from Vera conversations.
+- Existing public conversations/messages tables have owner/staff policies. In particular, authenticated owners may insert message rows without an assistant-role provenance restriction. Reusing these rows as verified model output requires an additive guard or a separate private canonical store; do not silently trust historical roles.
+- Existing reports are owner/staff readable and administrator writable. Inspect actual columns, constraints, dependent readers and export paths before extending. Do not rewrite historical reports/conversations or change their ownership by matching email.
+- The greeting accepts lead details but authenticated UI marks consent flags true automatically. Do not fabricate a consent event from these defaults. Record only explicit submitted choices and their policy version, or an appropriate separately reviewed signed-in workflow.
+- Commercial prices are confirmed at €25 once / €49 monthly / €99 monthly. Question allowances and validity are awaiting owner clarification. Payment collection, automatic upgrades, hard stops and credit deductions must not be invented.
+
+## Sequence
+
+1. Take a private catalog/data snapshot of every affected table, function, trigger, policy and grant. Restore those dependencies into isolated Postgres and establish row counts/fingerprints before writing a migration. Existing owner/staff boundaries must continue to pass before and after.
+2. Add a server-controlled conversation store with explicit provenance. Prefer a private schema with service-only RPCs, using the audited account migration pattern; keep ordinary browsers away from private capability hashes and canonical assistant writes. Every RPC validates its effective server role and its own ownership predicates.
+3. Authenticate through the existing verified Supabase identity. Use immutable user UUID for signed-in ownership. Never authorize using a submitted email, metadata role or conversation ID alone. Missing/failed identity verification must retain the 401/503 distinction.
+4. Anonymous conversations require a cryptographically random capability in a Secure/HttpOnly/SameSite cookie; store only its digest. Do not put it in a URL, browser-readable storage, analytics or logs. An anonymous contact address is a lead address, not a verified account. Claiming a conversation after login must require the original capability and an explicit user action; never attach by matching email. Logout/account changes must not reveal the previous account's history.
+5. Make start and turn writes idempotent using request IDs, unique constraints and optimistic conversation versions. Reserve a bounded generation lease in a short transaction; do not hold a database transaction while waiting for the model. A retry returns the original result or a clearly pending outcome. Expired attempts must be fenced so an old provider completion cannot overwrite a newer attempt. Preserve the user's draft and retry ID when the network result is uncertain.
+6. Construct model context from canonical stored turns, within the existing input/output budgets. Keep complete stored text separately from bounded model context. Label failed/limited responses accurately and avoid including fabricated error bubbles as assistant facts in future context. Preserve BG/EN behavior and the distinction between user facts, hypotheses and recommendations.
+7. Add authenticated conversation list/read endpoints and a portal Vera-history view separate from human support. Resume the selected conversation after refresh. Anonymous resume uses only its cookie capability. Add an explicit new-conversation action and visible persistence/outage state; local UI success is insufficient without a committed server result.
+8. Save a structured brief/report against a specific conversation revision. Record source turn IDs, facts, unknowns, preliminary recommendations, model/mode, generation timestamp and version. A report created from limited or insufficient context must disclose that limitation. Export from the stored version; do not regenerate different content on download.
+9. Persist explicit lead choices with purpose, policy version and timestamp without placing contact details into model instructions unnecessarily. Provide a reviewable team handoff record before any notification. Do not enable SMTP or send a real team message during implementation tests; provider delivery and operator receipt require separate controlled acceptance.
+10. Apply agreed server-side plan rules only after the owner confirms quotas. Quota consumption, generation reservation and retry must be transactional/idempotent. A request to choose a plan remains an enquiry; only an authorized team member activates it through the audited editor.
+
+## Required acceptance evidence
+
+- Anonymous A/B capability isolation; guessed IDs; expired/malformed cookies; Auth outage; client A/B/admin/consultant boundaries; metadata/email impersonation; logout/account switching; no secrets in response/error/log/URL.
+- Concurrent starts/turns, repeated request IDs, conflicting versions, interrupted provider calls, lease expiry, stale completions, database/audit failures, malformed provider output and retry without duplicate turns or charges.
+- Real browser start → API → canonical committed rows → response → refresh/resume, plus portal list/report read/export. Use only disposable synthetic cases and retain exact-ID cleanup evidence. Never contact a human team or edit a real customer's case as a fixture.
+- BG/EN pricing and diagnostic follow-up, known-fact retention, one focused question, honest limited mode, report grounded in the selected case with no facts imported from another account.
+- Before/after private snapshots and offline restoration, migration ledger synchronization, exact-head CI/build, protected-preview acceptance, production source/deployment verification, repeated private/public boundaries and forward recovery preserving canonical identity and newly created history.
+
+Do not call this complete from schema creation, a provider reply or a mock-only UI pass. Actual persistence/resume/export and ownership checks must each have evidence. Whole-system UX work follows these technical checks.
