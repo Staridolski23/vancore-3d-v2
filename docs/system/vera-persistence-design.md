@@ -1,6 +1,6 @@
 # Vera persistence: implementation and acceptance plan
 
-Status: implementation candidate prepared 8 November 2026; hosted migration and coordinated release acceptance are recorded in the change log when completed. The preceding production version still uses browser-managed history until that release. The confirmed limits below are implemented in the candidate, not inferred from marketing text.
+Status: core persistence/quota/brief release is live on 8 November 2026, source 5a9d5f9cfc26c1ec788a4efe7139431b1a1c8e07, production 9cPqvbLo29A9wDaHU1KhUdgjEQBj. Hosted migration, real signed-in model response, resume, portal library and download passed; exact evidence and boundaries are recorded in the change log. Broader report, handoff, retention and long-history work below remains open.
 
 ## Candidate implementation and deliberate boundaries
 
@@ -14,7 +14,7 @@ The library currently displays the latest 50 conversations/briefs and the latest
 
 The candidate retires direct-backend legacy model endpoints so they cannot bypass the website's history/quota path. Old immutable deployment URLs must be checked for protection before claiming the boundary complete. Rollback must retain both canonical account roles and metered Vera/retired legacy paths; never restore an unmetered old application as a whole.
 
-## Findings established from code and hosted policies
+## Historical findings before this release
 
 - The active UI is VeraChat.tsx, called from app/ai-analyst/page.tsx. It sends leadData on start, but the API ignores it; the conversation ID is accepted from the browser and does not identify a durable server record. Refresh loses the conversation.
 - The API validates bounded history but trusts its provenance. Browser-supplied assistant turns must not become authoritative evidence for a saved report. Server storage must distinguish legacy imported/draft content from server-generated turns.
@@ -22,7 +22,7 @@ The candidate retires direct-backend legacy model endpoints so they cannot bypas
 - Existing public conversations/messages tables have owner/staff policies. In particular, authenticated owners may insert message rows without an assistant-role provenance restriction. Reusing these rows as verified model output requires an additive guard or a separate private canonical store; do not silently trust historical roles.
 - Existing reports are owner/staff readable and administrator writable. Inspect actual columns, constraints, dependent readers and export paths before extending. Do not rewrite historical reports/conversations or change their ownership by matching email.
 - The greeting accepts lead details but authenticated UI marks consent flags true automatically. Do not fabricate a consent event from these defaults. Record only explicit submitted choices and their policy version, or an appropriate separately reviewed signed-in workflow.
-- Owner-confirmed prices and limits (7 November): Starter 5 questions; PAYG €25 once, 500 questions valid for 3 months; Professional €49/month and Business €99/month, unlimited conversations. Selection remains an enquiry followed by team activation after agreement. These rules are confirmed requirements, not yet deployed enforcement. Automatic payment collection/upgrades are not authorized by this confirmation.
+- Owner-confirmed prices and limits (7 November): Starter 5 questions; PAYG €25 once, 500 questions valid for 3 months; Professional €49/month and Business €99/month, unlimited conversations. Selection remains an enquiry followed by team activation after agreement. Enforcement shipped in the release above. Automatic payment collection/upgrades are outside this manual workflow.
 
 ## Sequence
 

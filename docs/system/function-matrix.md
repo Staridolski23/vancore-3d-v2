@@ -25,11 +25,11 @@ Updated: 7 November 2026; older baseline evidence is retained where checks remai
 | Optional support chat | Explicit support consent, client verification, SDK shutdown and navigation/logout lifecycle pass 10 synthetic browser scenarios | Real provider handshake/operator receipt and account-bound history isolation |
 | CMS | Actual unchanged admin save passed; legacy rows preserved | Versioned content preview/rollback; copy agreement |
 | Portal messages | Actual authenticated empty history and isolated persistence test passed | Team reply and distinct AI/support histories |
-| Vera inference | Tagged preview request succeeded; 4 AI replies and 1 limited response in 5 synthetic turns | Larger bounded provider budget recheck; outage/recovery consistency |
-| Vera session/context | Bounded browser history reaches model; synthetic follow-up UI/API checks passed | Durable server history, restored session, ownership; avoid repeated known questions |
-| Vera lead/brief | leadData ignored and progress incomplete | Saved lead/consent, structured brief and handoff |
-| Vera language/pricing | English FAQ prices passed; Bulgarian fallback failed | BG/EN diagnostic tests and correct catalog |
-| Reports | Generic AI request and transient UI state | Client evidence, durable report/version/export |
+| Vera inference | 8 November real signed-in Bulgarian answer committed with model provenance and exactly one question charged; isolated limited/failure/idempotency tests pass | Broader diagnostic quality evaluation and longer-case fact memory |
+| Vera session/context | Private UUID/capability-owned ledger, canonical six-pair context, actual reload/resume and account isolation tests pass | Anonymous explicit claiming, retention cleanup, long-history pagination and broader abuse controls |
+| Vera lead/brief | Explicit visitor choices stored; signed-in consent not fabricated; immutable preliminary versioned TXT briefs saved/read/exported | Human handoff queue and operator receipt; richer analytical brief structure |
+| Vera language/pricing | Confirmed €25/€49/€99 catalog and limits enforced; BG/EN limited-mode tests pass and real Bulgarian answer accepted | Wider language/diagnostic corpus and evidence-based advice evaluation |
+| Reports | Real saved preliminary brief visible/downloadable in production portal; targeted exact-data restore passes | Human-reviewed business reports, PDF, automated periodic analysis |
 | Billing | Owner chose manual enquiries; public/portal buttons and selected-plan form payload pass isolated browser checks | Real enquiry delivery; authorized team activation with audit and consistent limits |
 | Security | Production 1c52bde; canonical protected roles, strict backend enforcement active/saved; native tests/live negative probes and hosted profile/audit ROLLBACK checks pass | Complete authenticated A/B/admin acceptance; remaining security review items |
 | Backup | Private off-host SQLite archives and both-DB restores pass before/after role rollout; targeted 11-profile Supabase restore and guard/audit tests pass; source bundles archived | Full managed Supabase export/hosted restoration and complete infrastructure recovery |
