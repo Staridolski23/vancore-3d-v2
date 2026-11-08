@@ -21,9 +21,9 @@ export default function AIAnalyst() {
               Our AI does the preliminary work, so we don&apos;t waste yours.
             </p>
             <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed max-w-md">
-              Vera is our AI business analyst. In five to seven sharp questions, she maps the contours of your problem and prepares a brief so our human consultants arrive informed — not introducing themselves.
+              Vera is our AI business analyst. She explores your business problem with focused questions. You can save a preliminary conversation brief and contact our team for a human review.
             </p>
-            <a href="/contact" className="inline-flex">
+            <a href="/ai-analyst" className="inline-flex">
               <button className="btn-hover inline-flex items-center gap-2 mt-8 px-5 py-3 bg-[#991930] text-white text-sm font-sans font-medium">
               Talk to Vera
               <svg
@@ -47,7 +47,7 @@ export default function AIAnalyst() {
           <div className="border border-[#e5e5e5] rounded-sm overflow-hidden">
             <div className="bg-[#f7f6f2] px-4 py-3 border-b border-[#e5e5e5] flex items-center gap-2">
               <VeraAvatar className="w-5 h-5" />
-              <div className="text-[10px] font-sans font-semibold tracking-[0.2em] text-[#6b6b6b] uppercase">Live preview</div>
+              <div className="text-[10px] font-sans font-semibold tracking-[0.2em] text-[#6b6b6b] uppercase">Example conversation</div>
             </div>
             <div className="p-5 space-y-3">
               <div className="flex gap-3">

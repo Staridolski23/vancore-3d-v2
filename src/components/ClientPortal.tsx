@@ -1,4 +1,6 @@
 'use client';
+import VeraLibrary from '@/components/VeraLibrary';
+import type { VeraQuota } from '@/lib/vera-types';
 import { authenticatedFetch, signOut } from '@/lib/authenticated-fetch';
 import { planEnquiryUrl, PlanId, planId } from '@/lib/plans';
 import { bookingCalendar, bookingStartUtc } from '@/lib/booking-calendar';
@@ -21,6 +23,18 @@ interface UserInfo {
 }
 
 export default function ClientPortal() {
+  const [identityEpoch, setIdentityEpoch] = useState(0);
+  useEffect(() => {
+    const changed = () => setIdentityEpoch(value => value + 1);
+    const storage = (event: StorageEvent) => { if (event.key === 'vancore_client_token') changed(); };
+    window.addEventListener('vancore:auth-changed', changed); window.addEventListener('storage', storage);
+    return () => { window.removeEventListener('vancore:auth-changed', changed); window.removeEventListener('storage', storage); };
+  }, []);
+  return <ClientPortalBody key={identityEpoch} />;
+}
+
+function ClientPortalBody() {
+  const [veraQuota, setVeraQuota] = useState<VeraQuota | null>(null);
   const [user, setUser] = useState<UserInfo | null>(null);
   const [status, setStatus] = useState<'loading' | 'login' | 'dashboard'>('loading');
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'reviews' | 'documents' | 'reports' | 'history' | 'billing' | 'settings'>('overview');
@@ -45,7 +59,6 @@ export default function ClientPortal() {
   const bookingActionRunning = useRef(false);
   const [bookingDraft, setBookingDraft] = useState<{ id: string | number; action: 'cancel' | 'propose'; date: string; time: string; reason: string } | null>(null);
   const [pendingChanges, setPendingChanges] = useState<(string | number)[]>([]);
-  const [reportContent, setReportContent] = useState('');
   const searchParams = useSearchParams();
 
   // Check if coming from Vera with plan selection
@@ -54,34 +67,41 @@ export default function ClientPortal() {
   const nameParam = searchParams.get('name');
 
   useEffect(() => {
+    let current = true;
     const token = localStorage.getItem('vancore_client_token');
     if (token) {
       authenticatedFetch('/api/auth/profile', {
         headers: { Authorization: 'Bearer ' + token },
       }).then(res => {
+        if (!current) return;
         if (res.ok) {
-          res.json().then(data => {
+          return res.json().then(data => {
+            if (!current) return;
             setUser(data.user);
             setProfileDraft({ name: data.user.name || '', company: data.user.company || '', phone: data.user.phone || '', vat_id: data.user.vat_id || '' });
             setStatus('dashboard');
             if (planParam) {
               setActiveTab('billing');
             }
+            authenticatedFetch('/api/ai-analyst').then(async response => {
+              if (!response.ok) throw new Error(); const saved = await response.json();
+              if (current && saved.quota) setVeraQuota(saved.quota);
+            }).catch(() => { if (current) setDataErrors(previous => ({ ...previous, vera: 'Question allowance could not be loaded. Reload to retry.' })); });
             // Fetch bookings
             authenticatedFetch('/api/bookings?email=' + data.user.email)
               .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-              .then(data => setBookings(data.bookings || []))
-              .catch(() => setDataErrors(previous => ({ ...previous, bookings: 'Your bookings could not be loaded. Please reload to retry.' })));
+              .then(data => { if (current) setBookings(data.bookings || []); })
+              .catch(() => current && setDataErrors(previous => ({ ...previous, bookings: 'Your bookings could not be loaded. Please reload to retry.' })));
             // Fetch documents
             authenticatedFetch('/api/documents?email=' + data.user.email)
               .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-              .then(data => setDocuments(data.documents || []))
-              .catch(() => setDataErrors(previous => ({ ...previous, documents: 'Your documents could not be loaded. Please reload to retry.' })));
+              .then(data => { if (current) setDocuments(data.documents || []); })
+              .catch(() => current && setDataErrors(previous => ({ ...previous, documents: 'Your documents could not be loaded. Please reload to retry.' })));
             // Fetch reviews
             authenticatedFetch('/api/reviews?user_id=' + data.user.id)
               .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-              .then(data => setReviews(data.reviews || []))
-              .catch(() => setDataErrors(previous => ({ ...previous, reviews: 'Your reviews could not be loaded. Please reload to retry.' })));
+              .then(data => { if (current) setReviews(data.reviews || []); })
+              .catch(() => current && setDataErrors(previous => ({ ...previous, reviews: 'Your reviews could not be loaded. Please reload to retry.' })));
           });
         } else if (res.status === 401 || res.status === 403) {
           localStorage.removeItem('vancore_client_token');
@@ -90,11 +110,13 @@ export default function ClientPortal() {
           setProfileLoadError('Your profile could not be loaded. Please retry.');
         }
       }).catch(() => {
+        if (!current) return;
         setProfileLoadError('Your profile could not be loaded. Please retry.');
       });
     } else {
       setStatus('login');
     }
+    return () => { current = false; };
   }, []);
 
   useEffect(() => {
@@ -245,20 +267,6 @@ export default function ClientPortal() {
     } finally { bookingActionRunning.current = false; setSavingBooking(false); }
   };
 
-  const generateReport = async (): Promise<string> => {
-    try {
-      const res = await authenticatedFetch('/api/ai-analyst', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: 'Please generate a concise business status report for the logged-in client.' }),
-      });
-      const data = await res.json();
-      return data.reply || data.message || 'Report generation failed.';
-    } catch (e) {
-      return 'Error generating report.';
-    }
-  };
-
   if (status === 'loading') {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -338,8 +346,8 @@ export default function ClientPortal() {
             </div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <div className="text-lg font-semibold text-white">{currentPlan === 'business' ? 'Business' : currentPlan === 'professional' ? 'Professional' : 'Starter'}</div>
-                <div className="text-sm text-[#6b6b6b]">{currentPlan === 'business' ? '€99/mo' : currentPlan === 'professional' ? '€49/mo' : '€0'}</div>
+                <div className="text-lg font-semibold text-white">{currentPlan === 'business' ? 'Business' : currentPlan === 'professional' ? 'Professional' : currentPlan === 'payg' ? 'Pay-As-You-Go' : 'Starter'}</div>
+                <div className="text-sm text-[#6b6b6b]">{currentPlan === 'business' ? '€99/mo' : currentPlan === 'professional' ? '€49/mo' : currentPlan === 'payg' ? '€25 one-time' : '€0'}</div>
               </div>
               {user?.subscription_status !== 'active' && (
                 <button onClick={() => setActiveTab('billing')} className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
@@ -349,8 +357,8 @@ export default function ClientPortal() {
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 bg-white/5 rounded-lg text-center">
-                <div className="text-xl font-bold text-white">{user?.credits || 0}</div>
-                <div className="text-[10px] text-[#6b6b6b] uppercase">Credits</div>
+                <div className="text-xl font-bold text-white">{veraQuota ? (veraQuota.unlimited ? '∞' : veraQuota.remaining) : '—'}</div>
+                <div className="text-[10px] text-[#6b6b6b] uppercase">Questions available</div>
               </div>
               <div className="p-3 bg-white/5 rounded-lg text-center">
                 <div className="text-xl font-bold text-white">—</div>
@@ -543,41 +551,12 @@ export default function ClientPortal() {
       )}
 
       {/* Reports Tab */}
-      {activeTab === 'reports' && (
-        <div className="space-y-4">
-          <div className="bg-[#111] rounded-xl p-6 border border-white/5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold text-white">Your Reports</h3>
-              <button onClick={async () => {
-                const report = await generateReport();
-                setReportContent(report);
-              }} className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                Generate Report
-              </button>
-            </div>
-            <div className="text-center py-12">
-              <div className="text-4xl mb-3">📄</div>
-              <p className="text-sm text-[#6b6b6b] mb-4">You don't have any reports yet.</p>
-              <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                Talk to Vera
-              </a>
-            </div>
-          </div>
-          {reportContent && (
-            <div className="bg-[#111] rounded-xl p-6 border border-white/5">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-white">Generated Report</h4>
-                <button onClick={() => setReportContent('')} className="text-xs text-[#991930] hover:underline">Close</button>
-              </div>
-              <pre className="text-xs text-[#9a9a9a] whitespace-pre-wrap leading-relaxed">{reportContent}</pre>
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === 'reports' && <VeraLibrary mode="reports" />}
 
       {/* History Tab */}
       {activeTab === 'history' && (
         <div className="space-y-4">
+          <VeraLibrary mode="history" />
           <div className="bg-[#111] rounded-xl p-6 border border-white/5">
             <h3 className="text-base font-semibold text-white mb-4">Messages with VANCORE</h3>
             <p className="text-xs text-[#9a9a9a] mb-4">Messages sent to the VANCORE team through the client portal.</p>

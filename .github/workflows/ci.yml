@@ -21,7 +21,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm ci --ignore-scripts --prefix ops/qa-runtime
-      - run: node --test ops/supabase/account-change-audit.test.cjs
+      - run: node --test ops/supabase/*.test.cjs
       - run: npm run build
       - run: npm run typecheck
       - run: npm audit --audit-level=moderate

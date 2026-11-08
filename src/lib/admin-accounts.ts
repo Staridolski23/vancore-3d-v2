@@ -4,7 +4,7 @@ import { supabaseAdmin, AccountProfile } from './supabase';
 export function accountChangeInput(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const body = value as Record<string, unknown>;
-  const fields = ['role', 'plan', 'credits', 'creditDelta', 'subscription_status'];
+  const fields = ['role', 'plan', 'credits', 'creditDelta', 'subscription_status', 'renewPayg'];
   if (Object.keys(body).some(key => ![...fields, 'expectedUpdatedAt', 'note'].includes(key)) || !Object.hasOwn(body, 'expectedUpdatedAt')) return null;
   const version = body.expectedUpdatedAt;
   if (version !== null && (typeof version !== 'string' || version.length > 40 || !/^\d{4}-\d{2}-\d{2}T/.test(version) || !Number.isFinite(Date.parse(version)))) return null;
@@ -12,6 +12,7 @@ export function accountChangeInput(value: unknown) {
   if ('role' in body && !['client', 'consultant', 'admin'].includes(body.role as string)) return null;
   if ('plan' in body && (!['starter', 'payg', 'professional', 'business'].includes(body.plan as string) || !('subscription_status' in body))) return null;
   if ('subscription_status' in body && !['free', 'active'].includes(body.subscription_status as string)) return null;
+  if ('renewPayg' in body && (body.renewPayg !== true || body.plan !== 'payg' || body.subscription_status !== 'active' || 'credits' in body || 'creditDelta' in body)) return null;
   if ('credits' in body && 'creditDelta' in body) return null;
   if ('credits' in body && (typeof body.credits !== 'number' || !Number.isInteger(body.credits) || body.credits < 0 || body.credits > 2147483647)) return null;
   if ('creditDelta' in body && (typeof body.creditDelta !== 'number' || !Number.isInteger(body.creditDelta) || Math.abs(body.creditDelta) > 2147483647)) return null;
@@ -40,7 +41,7 @@ export async function listAdminAccounts() {
       clients.push({
         id: user.id, email: user.email || '', name: profile.name || '', company: profile.company || '', phone: profile.phone || '',
         plan: profile.plan, credits: profile.credits, role: profile.role, subscription_status: profile.subscription_status,
-        updated_at: profile.updated_at ?? null, email_verified: user.email_confirmed_at ? 1 : 0, created_at: user.created_at,
+        subscription_end: profile.subscription_end ?? null, updated_at: profile.updated_at ?? null, email_verified: user.email_confirmed_at ? 1 : 0, created_at: user.created_at,
       });
     }
     if (data.users.length < pageSize) break;

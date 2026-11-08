@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (error) return databaseError(error.code);
     if (!data?.account || data.account.id !== id || typeof data.changed !== 'boolean' || (data.changed && typeof data.auditId !== 'string')) return databaseError();
     const account = data.account;
-    return NextResponse.json({ success: true, client: { id: account.id, role: account.role, plan: account.plan, credits: account.credits, subscription_status: account.subscription_status, updated_at: account.updated_at }, auditId: data.auditId }, { headers: { 'Cache-Control': 'private, no-store' } });
+    return NextResponse.json({ success: true, client: { id: account.id, role: account.role, plan: account.plan, credits: account.credits, subscription_status: account.subscription_status, subscription_end: account.subscription_end, updated_at: account.updated_at }, auditId: data.auditId }, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch { return databaseError(); }
 }
 

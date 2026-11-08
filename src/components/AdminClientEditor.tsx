@@ -39,7 +39,7 @@ export default function AdminClientEditor({ client, token, onUpdated, onClose, o
   }, [client.id, headers]);
   useEffect(() => { void loadAudit(); return () => { auditGeneration.current++; }; }, [loadAudit]);
 
-  const save = async (change: Record<string, string | number>) => {
+  const save = async (change: Record<string, string | number | boolean>) => {
     if (running.current) return false;
     running.current = true; setBusy(true); setMessage('');
     try {
@@ -102,11 +102,12 @@ export default function AdminClientEditor({ client, token, onUpdated, onClose, o
       <p className="text-sm text-[#b7b7b7]">Saved: {client.plan || 'Unknown plan'} · {client.subscription_status || 'Unknown status'} · {client.credits ?? 'Unknown'} credits · {client.role || 'Unknown role'}</p>
       {(message || busy) && <p role="status" className="text-sm text-amber-200">{busy ? 'Saving or loading account…' : message}</p>}
       <button disabled={busy} onClick={reload} className="px-3 py-2 border border-white/20 rounded text-sm disabled:opacity-50">Reload account</button>
+      {client.plan === 'payg' && <div className="space-y-2 text-sm"><p>PAYG valid until: {client.subscription_end && Number.isFinite(Date.parse(client.subscription_end)) ? new Date(client.subscription_end).toLocaleString() : 'Not activated with a valid expiry'}</p><p>Renew an expired or exhausted allocation after agreement: 500 questions for 3 months. Valid unused questions are not overwritten by early renewal.</p><button disabled={busy} className={buttonClass} onClick={() => save({ plan: 'payg', subscription_status: 'active', renewPayg: true })}>Renew expired or exhausted PAYG after agreement</button></div>}
       <div><label htmlFor="account-note" className="block text-sm mb-1">Change note (optional)</label><textarea id="account-note" value={note} maxLength={500} disabled={busy} onChange={event => setNote(event.target.value)} className={fieldClass}/></div>
       <div className="space-y-2"><label htmlFor="account-plan" className="block text-sm">Agreed plan</label>
         <select id="account-plan" value={plan} disabled={busy} onChange={event => setPlan(event.target.value)} className={fieldClass}><option value="starter">Starter (Free)</option><option value="payg">Pay-As-You-Go (€25 one-time)</option><option value="professional">Professional (€49/month)</option><option value="business">Business (€99/month)</option></select>
         <label htmlFor="account-status" className="block text-sm">Activation status</label><select id="account-status" value={status} disabled={busy} onChange={event => setStatus(event.target.value)} className={fieldClass}><option value="free">Free / not activated</option><option value="active">Active after agreement</option></select>
-        <p className="text-xs text-[#b7b7b7]">Activate paid plans after agreement with the client. Credits are managed separately.</p>
+        <p className="text-xs text-[#b7b7b7]">Activate paid plans after agreement. New PAYG activation grants 500 questions for 3 months; use explicit renewal for another agreed period. Returning to Starter preserves its previously used allowance.</p>
         <button disabled={busy} onClick={() => save({ plan, subscription_status: status })} className={buttonClass}>Save agreed plan</button>
       </div>
       <div className="space-y-2"><label htmlFor="account-credits" className="block text-sm">Credit total</label><input id="account-credits" type="number" min={0} max={2147483647} step={1} value={credits} disabled={busy} onChange={event => setCredits(event.target.value)} className={fieldClass}/><button disabled={busy} onClick={saveCredits} className={buttonClass}>Save credit total</button></div>

@@ -8,7 +8,7 @@ export default function AIAnalystPage() {
         <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">— AI ANALYST</div>
         <h1 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-6">Chat with Vera.</h1>
         <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed mb-8">
-          Describe your case. Vera will ask a few sharp questions and prepare a brief for our team.
+          Describe your case. Vera will ask focused questions. You can save a preliminary conversation brief for review; it is not automatically sent to the team.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-14">

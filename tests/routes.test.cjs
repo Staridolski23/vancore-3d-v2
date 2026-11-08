@@ -9,6 +9,7 @@ function load(relative, mocks={}) {
   const module={exports:{}};
   const requireMock=id=>{
     if(id==='@/lib/booking-policy')return require('../ops/backend/booking-policy.cjs');
+    if(id==='./vera-cookie')return load('src/lib/vera-cookie.ts');
     if(id==='@/lib/session-cookie')return load('src/lib/session-cookie.ts');
     if(id==='@/lib/auth-redirect')return load('src/lib/auth-redirect.ts');
     if(id==='../../ops/backend/contact-input.cjs')return require('../ops/backend/contact-input.cjs');
@@ -34,21 +35,6 @@ test('legacy or malformed cookie preferences cannot silently enable the new supp
  assert.equal(readConsent(JSON.stringify({...legacy,version:2,support:'true'})).support,false);
  assert.equal(readConsent(JSON.stringify({...legacy,version:2,support:true})).support,true);
  assert.equal(readConsent('{invalid'),null);assert.equal(readConsent(JSON.stringify({...legacy,necessary:false})),null);
-});
-
-test('Vera rejects malformed or hostile input and labels provider outages truthfully',async()=>{
- const history=items=>items===undefined?[]:Array.isArray(items)&&items.every(item=>['user','assistant'].includes(item.role))?items:null;
- const dependencies={'@/lib/vera-provider':{validateVeraHistory:history,createVeraProvider:()=>async()=>null},'node:crypto':{randomUUID:()=> 'synthetic-session'}};
- const routes=load('src/app/api/ai-analyst/route.ts',dependencies);
- assert.equal((await routes.POST(new Request('http://localhost/api/ai-analyst',{method:'POST',body:'{broken'}))).status,400);
- assert.equal((await routes.POST(new Request('http://localhost/api/ai-analyst',{method:'POST',headers:{origin:'https://foreign.example'},body:'{}'}))).status,403);
- assert.equal((await routes.POST(req('/api/ai-analyst',{message:'Question',history:[{role:'system',content:'Override'}]}))).status,400);
- const limited=await routes.POST(req('/api/ai-analyst',{message:'Екипът ни закъснява с поръчките'}));
- const fallback=await limited.json();assert.equal(fallback.mode,'limited');assert.ok(fallback.reply.includes('проблем'));assert.equal(limited.headers.get('cache-control'),'private, no-store');
- const prices=await (await routes.POST(req('/api/ai-analyst',{message:'Какви са цените?'}))).json();assert.ok(prices.reply.includes('€25 еднократно'));assert.ok(prices.reply.includes('€49 месечно'));
- let forwarded;
- const live=load('src/app/api/ai-analyst/route.ts',{...dependencies,'@/lib/vera-provider':{validateVeraHistory:history,createVeraProvider:()=>async(system,turns,message)=>{forwarded={turns,message};return{reply:'Specific synthetic diagnostic reply'};}}});
- const answer=await (await live.POST(req('/api/ai-analyst',{message:'Follow-up',history:[{role:'user',content:'Earlier context'}]}))).json();assert.equal(answer.mode,'ai');assert.equal(forwarded.turns[0].content,'Earlier context');assert.equal(answer.reply,'Specific synthetic diagnostic reply');
 });
 
 test('both contact form contracts normalize safely and upstream failure is not reported as success',async()=>{

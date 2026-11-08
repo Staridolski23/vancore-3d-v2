@@ -1,6 +1,18 @@
 # Vera persistence: implementation and acceptance plan
 
-Status: inspected 7 November 2026; design only, not a deployed feature. Current chat inference works, but the session ID/history and lead form are browser-managed. Reports are transient. Preserve current inference while adding storage; no quota or automatic plan allowance is defined by this document.
+Status: implementation candidate prepared 8 November 2026; hosted migration and coordinated release acceptance are recorded in the change log when completed. The preceding production version still uses browser-managed history until that release. The confirmed limits below are implemented in the candidate, not inferred from marketing text.
+
+## Candidate implementation and deliberate boundaries
+
+The private vera_actors/conversations/requests/reports tables and service-only vancore_vera RPC provide canonical context, UUID/capability ownership, short generation reservations, fenced retries, commit-time single credit consumption and immutable preliminary briefs. Model calls happen outside database transactions. Private browser grants are revoked explicitly; RLS without browser policies is intentional. Auth verification outages retain the 503 boundary and never become guest access.
+
+Starter usage is account-wide and cannot be reset by opening a new conversation or switching plans. PAYG activation grants 500 questions and a three-calendar-month expiry in the audited account transaction. Explicit renewal requires an expired or exhausted allocation; valid unused questions are not overwritten by an early renewal. Resuming a still-valid suspended PAYG allocation preserves its balance/expiry. Early top-up/carry-over commerce is not implemented. Active Professional/Business plans are unlimited; an existing explicit subscription_end is respected. Recurring payment collection/automatic monthly renewal is outside the manual activation workflow.
+
+Visitor access is scoped to a random HttpOnly/SameSite cookie and a server-stored digest, with 30-day access expiry. This is a browser session allowance, not proof of a unique person; clearing cookies creates a new anonymous visitor. Signed-in account limits survive browser changes. Cookie/session establishment precedes lead submission so an uncertain start can reuse its conversation ID. Explicit lead choices are saved without fabricating consent for signed-in users. Visitor history is not automatically claimed by email or login. Account claiming, retention/deletion workflows and broader bot-abuse controls remain separate work; access expiry does not claim physical data deletion.
+
+The library currently displays the latest 50 conversations/briefs and the latest 100 requests in a conversation, with that scope disclosed. Full source rows remain stored. Model context is bounded to the six most recent complete request/response pairs; persistence alone does not guarantee unlimited model memory. Saved briefs are versioned conversation snapshots with source request IDs, timestamps, mode and recorded model where available. They are not human-reviewed business reports. Exports are plain text; full analytical reports, PDF, automated monthly/weekly analysis and human handoff/notification acceptance remain separate work.
+
+The candidate retires direct-backend legacy model endpoints so they cannot bypass the website's history/quota path. Old immutable deployment URLs must be checked for protection before claiming the boundary complete. Rollback must retain both canonical account roles and metered Vera/retired legacy paths; never restore an unmetered old application as a whole.
 
 ## Findings established from code and hosted policies
 

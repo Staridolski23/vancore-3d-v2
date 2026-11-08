@@ -15,7 +15,7 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Pricing</h1>
-            <p className="text-lg text-[#9a9a9a] max-w-2xl mx-auto">Simple, transparent pricing. No hidden fees, cancel anytime. <span className="text-white font-medium">14-day free trial.</span></p>
+            <p className="text-lg text-[#9a9a9a] max-w-2xl mx-auto">Simple, transparent pricing. Paid plans are activated by our team after agreement. <span className="text-white font-medium">Start with 5 free Starter questions.</span></p>
             <p className="text-sm text-[#9a9a9a] mt-4">Request a plan below. Our team will confirm the details and activate it after agreement.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

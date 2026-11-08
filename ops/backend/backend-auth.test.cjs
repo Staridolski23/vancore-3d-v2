@@ -92,3 +92,14 @@ test('direct backend requests cannot bypass ownership or administrator checks',a
   r=await fetch(base+'/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'someone@example.com',client_id:'forged'})});assert.equal((await r.json()).client_id,'');
  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 });
+
+test('legacy model endpoints cannot bypass canonical history or quotas, even in old compatibility mode',async()=>{
+ for(const enforce of [true,false]){
+  let modelCalls=0,verificationCalls=0;const app=express();app.use(express.json());
+  app.use(createApiSecurity({enforce:()=>enforce,db:{get:(_s,_p,cb)=>cb(null,null)},verify:async()=>{verificationCalls++;return{id,email:'fixture@example.invalid',isAdmin:true};}}).middleware);
+  for(const route of ['/api/ai-analyst','/api/analyze'])app.post(route,(_req,res)=>{modelCalls++;res.json({ok:true});});
+  const server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});const base='http://127.0.0.1:'+server.address().port;
+  try{for(const route of ['/api/ai-analyst','/api/analyze'])for(const headers of [{},{Authorization:'Bearer fixture-admin'}])assert.equal((await fetch(base+route,{method:'POST',headers})).status,410);assert.equal(modelCalls,0);assert.equal(verificationCalls,0);}
+  finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+ }
+});

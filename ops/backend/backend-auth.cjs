@@ -80,6 +80,9 @@ function createApiSecurity({ verify, db, enforce = () => process.env.VANCORE_AUT
   }
   async function middleware(req, res, next) {
     if (!req.path.startsWith('/api/')) return next();
+    // The website owns durable Vera history and quotas. Retire unmetered
+    // legacy model routes even if the old compatibility flag is changed.
+    if (req.method === 'POST' && ['/api/ai-analyst','/api/analyze'].includes(req.path)) return res.status(410).json({error:'Use Vera on the VANCORE website'});
     try {
       const user = await principal(req);
       if (!enforce()) return next(); // Compatibility until the verified frontend is promoted.
@@ -87,7 +90,7 @@ function createApiSecurity({ verify, db, enforce = () => process.env.VANCORE_AUT
       if (method === 'OPTIONS') return next();
       if (method === 'GET' && ['/api/health','/api/content'].includes(path)) return next();
       if (req.vancoreAuthUnavailable) return res.status(503).json({error:'Unable to verify access. Please try again.'});
-      if (method === 'POST' && ['/api/contact','/api/ai-analyst','/api/analyze'].includes(path)) return next();
+      if (method === 'POST' && path === '/api/contact') return next();
       if (path.startsWith('/api/auth/') || path.startsWith('/api/client/')) return res.status(410).json({ error: 'Use the current website sign-in' });
       if (path === '/api/bookings' && method === 'POST') {
         if (user && !user.isAdmin && String(req.body.email).toLowerCase() !== user.email) return res.status(403).json({error:'Access denied'});
