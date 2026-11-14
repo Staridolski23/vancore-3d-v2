@@ -12,3 +12,9 @@ test('missing final text or provider failure cannot be represented as an AI succ
  assert.equal(await api.createVeraProvider({key:'test',fetcher:async()=>Response.json({choices:[{message:{reasoning_details:[{text:'hidden'}]}}]})})('System',[],'Question'),null);
  assert.equal(await api.createVeraProvider({key:'test',fetcher:async()=>Response.json({error:'private provider diagnostic'},{status:400})})('System',[],'Question'),null);
 });
+test('structured assessment requests use supported JSON/reasoning controls and reject truncated final output',async()=>{
+ const api=provider();let body;
+ const invoke=api.createVeraProvider({key:'synthetic-key',maxTokens:8192,jsonMode:true,reasoningEffort:'low',fetcher:async(url,init)=>{body=JSON.parse(init.body);return Response.json({choices:[{finish_reason:'stop',message:{content:'{"title":"Synthetic report"}'}}]});}});
+ assert.equal((await invoke('Return JSON',[],'Synthetic case')).reply,'{"title":"Synthetic report"}');assert.equal(body.max_tokens,8192);assert.equal(body.response_format.type,'json_object');assert.equal(body.reasoning_effort,'low');assert.equal(body.model,'stepfun/step-3.7-flash:free');
+ const truncated=api.createVeraProvider({key:'synthetic-key',fetcher:async()=>Response.json({choices:[{finish_reason:'length',message:{content:'{"title":"unfinished'}}],usage:{completion_tokens:4096,completion_tokens_details:{reasoning_tokens:4000}}})});assert.equal(await truncated('System',[],'Question'),null);
+});

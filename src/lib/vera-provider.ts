@@ -14,20 +14,21 @@ export function validateVeraHistory(input: unknown): VeraTurn[] | null {
   }
   return result;
 }
-export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetcher = fetch } = {}) {
+export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetcher = fetch, maxTokens = 4096, jsonMode = false, reasoningEffort }: { key?: string; fetcher?: typeof fetch; maxTokens?: number; jsonMode?: boolean; reasoningEffort?: 'low' | 'medium' | 'high' } = {}) {
   return async (system: string, history: VeraTurn[], message: string) => {
     if (!key) return null;
     try {
       const response = await fetcher('https://inference-api.nousresearch.com/v1/chat/completions', {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(45000),
         headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://www.vancoresys.com', 'X-Title': 'VANCORE AI Analyst' },
-        body: JSON.stringify({ model: VERA_MODEL, tags: ['user=vancore-web'], messages: [{ role: 'system', content: system }, ...history, { role: 'user', content: message }], max_tokens: 4096, temperature: 0.35 }),
+        body: JSON.stringify({ model: VERA_MODEL, tags: ['user=vancore-web'], messages: [{ role: 'system', content: system }, ...history, { role: 'user', content: message }], max_tokens: Number.isFinite(maxTokens) ? Math.max(512, Math.min(12000, Math.trunc(maxTokens))) : 4096, temperature: 0.35, ...(jsonMode ? { response_format: { type: 'json_object' } } : {}), ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}) }),
       });
       if (!response.ok) { console.error('Vera provider request failed', { status: response.status }); return null; }
       const data = await response.json();
       // Never substitute private reasoning fields for an absent final answer.
       const content = data?.choices?.[0]?.message?.content;
-      if (typeof content !== 'string' || !content.trim()) { console.error('Vera provider returned no final answer'); return null; }
+      const finishReason = ['stop', 'length', 'tool_calls', 'content_filter'].includes(data?.choices?.[0]?.finish_reason) ? data.choices[0].finish_reason : 'unknown';
+      if (typeof content !== 'string' || !content.trim() || finishReason === 'length') { console.error('Vera provider returned no complete final answer', { finishReason, completionTokens: Number.isFinite(data?.usage?.completion_tokens) ? data.usage.completion_tokens : null, reasoningTokens: Number.isFinite(data?.usage?.completion_tokens_details?.reasoning_tokens) ? data.usage.completion_tokens_details.reasoning_tokens : null }); return null; }
       const reply = content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*$/gi, '').trim();
       return reply ? { reply } : null;
     } catch (error) { console.error('Vera provider temporarily unavailable', { timedOut: error instanceof Error && error.name === 'TimeoutError' }); return null; }
