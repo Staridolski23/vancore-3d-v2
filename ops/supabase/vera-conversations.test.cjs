@@ -17,6 +17,25 @@ async function fixture(){
  const credits=async(user=client)=>(await db.query('SELECT credits FROM public.users WHERE id=$1',[user])).rows[0].credits;
  return{db,call,open,credits};
 }
+test('registration gate denies legacy visitors without deleting their data, and new accounts start with only their own empty library',async()=>{
+ const f=await fixture();try{
+  const cap='a'.repeat(64),lead={name:'Legacy synthetic visitor',email:'qa@example.invalid',consentTerms:true,consentData:true};
+  const legacy=await f.open(null,cap,lead),owned=await f.open();
+  const id=randomUUID(),begin=await f.call('begin',owned.conv,id,{message:'Account One private fact',expectedVersion:0});
+  await f.call('finish',owned.conv,id,{lease:begin.lease,reply:'Preliminary analysis',mode:'ai'});
+  const brief=await f.call('report',owned.conv);
+  const name=fs.readdirSync(migrations).find(n=>n.endsWith('_vera_registered_accounts.sql'));assert.ok(name);await f.db.exec('RESET ROLE');await f.db.exec(fs.readFileSync(path.join(migrations,name),'utf8'));await f.db.exec('SET ROLE service_role');
+  for(const action of ['read','open','begin','finish','report','report_read'])await assert.rejects(f.call(action,legacy.conv,randomUUID(),{},null,cap),e=>e.code==='42501');
+  assert.equal(Number((await f.db.query('SELECT count(*) AS n FROM vancore_private.vera_conversations')).rows[0].n),2);
+  const empty=await f.call('read',null,null,{},other);assert.equal(empty.conversation,null);assert.deepEqual(empty.conversations,[]);assert.deepEqual(empty.requests,[]);
+  await assert.rejects(f.call('read',owned.conv,null,{},other),e=>e.code==='P0002');
+  const second=await f.open(other);assert.equal(second.data.requests.length,0);
+  await assert.rejects(f.call('report_read',null,brief.reportId,{},other),e=>e.code==='P0002');
+  assert.equal((await f.call('read',owned.conv)).requests[0].message,'Account One private fact');
+  for(const role of ['anon','authenticated']){await f.db.exec('RESET ROLE;SET ROLE '+role);await assert.rejects(f.call('read'),e=>e.code==='42501');await assert.rejects(f.db.query("SELECT vancore_private.vera_ledger_v1('read',$1)",[client]),e=>e.code==='42501');}
+ }finally{await f.db.close();}
+});
+
 test('canonical stored context resumes after reload, ignores caller history and charges each completed request once',async()=>{
  const f=await fixture();try{
   const {conv}=await f.open(),id=randomUUID();

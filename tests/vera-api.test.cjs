@@ -4,7 +4,7 @@ const conversation='00000000-0000-4000-8000-000000000010',requestId='00000000-00
 const request=body=>new Request('https://fixture.example/api/ai-analyst',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 const message=()=>({action:'message',conversationId:conversation,requestId,message:'Known business problem',expectedVersion:0});
 function fixture(){
- let user={id:userId},authStatus=401,state='generate',finishError=false,providerCalls=0,calls=[],history;
+ let user={id:userId,email:'one@example.invalid',email_confirmed_at:'2026-11-14T00:00:00Z'},authStatus=401,state='generate',finishError=false,providerCalls=0,calls=[],history;
  const rpc=async(name,input)=>{
   calls.push(input);
   if(input.p_action==='begin')return{data:{state,history:[{role:'user',content:'Canonical stored context'}],message:input.p_input.message,lease:'synthetic-private-generation-lease',conversation:{id:conversation,version:0},conversations:[],requests:[]},error:null};
@@ -34,12 +34,17 @@ test('Auth verification failure cannot silently fall back to an anonymous visito
  const f=fixture();f.set({user:null,authStatus:503});assert.equal((await f.api.POST(request(message()))).status,503);assert.equal(f.calls.length,0);
  f.set({authStatus:401});const invalid=new Request('https://fixture.example/api/ai-analyst',{method:'GET',headers:{Authorization:'Bearer invalid'}});assert.equal((await f.api.GET(invalid)).status,401);assert.equal(f.calls.length,0);
 });
-test('anonymous session is established in an HttpOnly cookie and only its digest reaches storage',async()=>{
- const f=fixture();f.set({user:null});const response=await f.api.GET(new Request('https://fixture.example/api/ai-analyst'));assert.equal(response.status,200);
- const cookie=response.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/SameSite=Strict/);assert.match(cookie,/Path=\/api/);assert.match(f.calls[0].p_cap,/^[a-f0-9]{64}$/);assert.equal(f.calls[0].p_user,null);
- assert.ok(!(await response.text()).includes(f.calls[0].p_cap));
- assert.equal((await f.api.POST(request({action:'open',conversationId:conversation,lead:{}}))).status,401);
- const cookies=loadVera('src/lib/vera-cookie.ts');const cleared=cookies.setVeraCookie(Response.json({ok:true}));assert.match(cleared.headers.get('set-cookie'),/Max-Age=0/);
+test('all Vera reads/writes require a verified registered account, even with a legacy visitor cookie',async()=>{
+ const f=fixture();f.set({user:null});
+ for(const suffix of ['', '?conversationId='+conversation,'?reportId='+requestId+'&download=1']){
+  const response=await f.api.GET(new Request('https://fixture.example/api/ai-analyst'+suffix,{headers:{Cookie:'vancore_vera='+'a'.repeat(43)}}));
+  assert.equal(response.status,401);assert.match(response.headers.get('set-cookie'),/Max-Age=0/);
+ }
+ for(const body of [{action:'open',conversationId:conversation},message(),{action:'report',conversationId:conversation}])assert.equal((await f.api.POST(request(body))).status,401);
+ for(const user of [{id:userId,is_anonymous:true},{id:userId,email:'pending@example.invalid'}]){
+  f.set({user});assert.equal((await f.api.GET(new Request('https://fixture.example/api/ai-analyst'))).status,403);
+ }
+ assert.equal(f.calls.length,0);assert.equal(f.providerCalls,0);
 });
 test('limited BG/EN answers use confirmed plans and never pretend to generate a completed analysis',async()=>{
  const api=loadVera('src/lib/vera-answers.ts',{'./vera-provider':{createVeraProvider:()=>async()=>null}});

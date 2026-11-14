@@ -4,7 +4,7 @@ const http=require('node:http'),path=require('node:path'),fs=require('node:fs');
 const {PGlite}=require(path.join(process.env.VANCORE_QA_RUNTIME||path.resolve(__dirname,'../../ops/qa-runtime'),'node_modules/@electric-sql/pglite'));
 const {loadVera}=require('../helpers/vera-module.cjs');
 const ids={one:'00000000-0000-4000-8000-000000000002',two:'00000000-0000-4000-8000-000000000003'};
-const profiles={one:{id:ids.one,name:'Synthetic One',email:'one@example.invalid',role:'client',plan:'starter',credits:5},two:{id:ids.two,name:'Synthetic Two',email:'two@example.invalid',role:'client',plan:'starter',credits:5}};
+const profiles={one:{id:ids.one,name:'Synthetic One',email:'one@example.invalid',email_confirmed_at:'2026-11-14T00:00:00Z',role:'client',plan:'starter',credits:5},two:{id:ids.two,name:'Synthetic Two',email:'two@example.invalid',email_confirmed_at:'2026-11-14T00:00:00Z',role:'client',plan:'starter',credits:5}};
 let mode='ai',nextAccount='one',loginToken=null,failRead=false,failFinish=false,providerCalls=0,release=null;
 const db=new PGlite();
 const ready=(async()=>{
@@ -13,7 +13,7 @@ const ready=(async()=>{
  CREATE TABLE public.users(id uuid PRIMARY KEY,email text,name text,company text,phone text,vat_id text,role text,plan text,credits integer,subscription_status text,subscription_end text,updated_at timestamptz);
  GRANT ALL ON public.users TO service_role;INSERT INTO public.users(id,email,name,role,plan,credits,subscription_status) VALUES('${ids.one}','one@example.invalid','Synthetic One','client','starter',5,'free'),('${ids.two}','two@example.invalid','Synthetic Two','client','starter',5,'free'),('00000000-0000-4000-8000-000000000001','admin@example.invalid','Synthetic Admin','admin','business',5,'active');`);
  const directory=path.resolve(__dirname,'../../supabase/migrations');
- for(const suffix of ['account_change_audit.sql','vera_conversations.sql']){const names=fs.readdirSync(directory).filter(n=>n.endsWith('_'+suffix));if(names.length!==1)throw Error('Ambiguous fixture migration');await db.exec(fs.readFileSync(path.join(directory,names[0]),'utf8'));}
+ for(const suffix of ['account_change_audit.sql','vera_conversations.sql','vera_registered_accounts.sql']){const names=fs.readdirSync(directory).filter(n=>n.endsWith('_'+suffix));if(names.length!==1)throw Error('Ambiguous fixture migration');await db.exec(fs.readFileSync(path.join(directory,names[0]),'utf8'));}
  await db.exec('SET ROLE service_role');
 })();
 const profile=request=>{const token=request.headers.get('authorization');return token==='Bearer fixture-one'?profiles.one:token==='Bearer fixture-two'?profiles.two:null;};

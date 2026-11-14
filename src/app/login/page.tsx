@@ -80,7 +80,9 @@ function LoginForm() {
       // Also set a cookie for 30 days
       document.cookie = 'vancore_remember=1; max-age=' + (30 * 24 * 60 * 60) + '; path=/';
 
-      if (data.redirectTo) {
+      if (searchParams.get('next') === '/ai-analyst') {
+        window.location.href = '/ai-analyst';
+      } else if (data.redirectTo) {
         window.location.href = data.redirectTo;
       } else if (data.user?.role === 'admin') {
         window.location.href = '/admin-v2';
