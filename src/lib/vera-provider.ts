@@ -23,7 +23,18 @@ export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetch
         headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://www.vancoresys.com', 'X-Title': 'VANCORE AI Analyst' },
         body: JSON.stringify({ model: VERA_MODEL, tags: ['user=vancore-web'], messages: [{ role: 'system', content: system }, ...history, { role: 'user', content: message }], max_tokens: Number.isFinite(maxTokens) ? Math.max(512, Math.min(12000, Math.trunc(maxTokens))) : 4096, temperature: 0.35, ...(jsonMode ? { response_format: { type: 'json_object' } } : {}), ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}) }),
       });
-      if (!response.ok) { console.error('Vera provider request failed', { status: response.status }); return null; }
+      if (!response.ok) {
+        let category = 'upstream_error';
+        if (response.status === 429) {
+          const problem = await response.json().catch(() => null);
+          const message = String(problem?.error?.message || problem?.message || '').slice(0, 2000).toLowerCase();
+          category = /quota|credits|balance|daily|per.day/.test(message) ? 'quota' : /overload|capacity|temporarily unavailable/.test(message) ? 'capacity' : /max_tokens|token.*limit|output.*limit/.test(message) ? 'token_limit' : 'rate_limit';
+        }
+        const retry = response.headers.get('retry-after');
+        const seconds = retry ? (/^\d+$/.test(retry) ? Number(retry) : (Date.parse(retry) - Date.now()) / 1000) : NaN;
+        console.error('Vera provider request failed', { status: response.status, category, retryAfterSeconds: Number.isFinite(seconds) ? Math.max(0, Math.min(86400, Math.ceil(seconds))) : null });
+        return null;
+      }
       const data = await response.json();
       // Never substitute private reasoning fields for an absent final answer.
       const content = data?.choices?.[0]?.message?.content;
