@@ -3,8 +3,11 @@
 const http=require('node:http'),path=require('node:path'),fs=require('node:fs');
 const {PGlite}=require(path.join(process.env.VANCORE_QA_RUNTIME||path.resolve(__dirname,'../../ops/qa-runtime'),'node_modules/@electric-sql/pglite'));
 const {loadVera}=require('../helpers/vera-module.cjs');
-const ids={one:'00000000-0000-4000-8000-000000000002',two:'00000000-0000-4000-8000-000000000003'};
+const ids={one:'00000000-0000-4000-8000-000000000002',two:'00000000-0000-4000-8000-000000000003',admin:'00000000-0000-4000-8000-000000000001',consultant:'00000000-0000-4000-8000-000000000004'};
 const profiles={one:{id:ids.one,name:'Synthetic One',email:'one@example.invalid',email_confirmed_at:'2026-11-14T00:00:00Z',role:'client',plan:'starter',credits:5},two:{id:ids.two,name:'Synthetic Two',email:'two@example.invalid',email_confirmed_at:'2026-11-14T00:00:00Z',role:'client',plan:'starter',credits:5}};
+for(const account of ['admin','consultant'])profiles[account]={id:ids[account],name:'Synthetic '+account,email:account+'@example.invalid',email_confirmed_at:'2026-11-14T00:00:00Z',role:account,plan:'business',credits:5};
+for(const account of Object.keys(profiles))profiles[account].vancoreRole=profiles[account].role;
+const tokens={one:'fixture-one',two:'fixture-two',admin:'fixture-administrator-session-2026',consultant:'fixture-consultant-session-2026'};
 let mode='ai',nextAccount='one',loginToken=null,failRead=false,failFinish=false,providerCalls=0,release=null;
 const db=new PGlite();
 const ready=(async()=>{
@@ -13,24 +16,28 @@ const ready=(async()=>{
  CREATE TABLE public.users(id uuid PRIMARY KEY,email text,name text,company text,phone text,vat_id text,role text,plan text,credits integer,subscription_status text,subscription_end text,updated_at timestamptz);
  GRANT ALL ON public.users TO service_role;INSERT INTO public.users(id,email,name,role,plan,credits,subscription_status) VALUES('${ids.one}','one@example.invalid','Synthetic One','client','starter',5,'free'),('${ids.two}','two@example.invalid','Synthetic Two','client','starter',5,'free'),('00000000-0000-4000-8000-000000000001','admin@example.invalid','Synthetic Admin','admin','business',5,'active');`);
  const directory=path.resolve(__dirname,'../../supabase/migrations');
- for(const suffix of ['account_change_audit.sql','vera_conversations.sql','vera_registered_accounts.sql']){const names=fs.readdirSync(directory).filter(n=>n.endsWith('_'+suffix));if(names.length!==1)throw Error('Ambiguous fixture migration');await db.exec(fs.readFileSync(path.join(directory,names[0]),'utf8'));}
+ await db.exec(`INSERT INTO public.users(id,email,name,role,plan,credits,subscription_status) VALUES('${ids.consultant}','consultant@example.invalid','Synthetic Consultant','consultant','starter',5,'free');`);
+ for(const suffix of ['account_change_audit.sql','vera_conversations.sql','vera_registered_accounts.sql','vera_casework.sql']){const names=fs.readdirSync(directory).filter(n=>n.endsWith('_'+suffix));if(names.length!==1)throw Error('Ambiguous fixture migration');await db.exec(fs.readFileSync(path.join(directory,names[0]),'utf8'));}
  await db.exec('SET ROLE service_role');
 })();
-const profile=request=>{const token=request.headers.get('authorization');return token==='Bearer fixture-one'?profiles.one:token==='Bearer fixture-two'?profiles.two:null;};
+const profile=request=>{const token=request.headers.get('authorization');const account=Object.keys(tokens).find(account=>token==='Bearer '+tokens[account]);return account?profiles[account]:null;};
+const rpc=async(name,p)=>{
+ if(!['vancore_vera','vancore_vera_handoffs'].includes(name))throw Error('Unexpected fixture RPC');
+ if((failRead&&['read','list','analysis_read','analysis_list'].includes(p.p_action))||(failFinish&&p.p_action==='finish'))return{error:{code:'PGRST000'}};
+ try{const query=name==='vancore_vera'?'SELECT public.vancore_vera($1,$2,$3,$4,$5,$6::jsonb) AS result':'SELECT public.vancore_vera_handoffs($1,$2,$3,$4::jsonb,$5) AS result';const args=name==='vancore_vera'?[p.p_action,p.p_user,p.p_cap,p.p_conversation,p.p_request,JSON.stringify(p.p_input)]:[p.p_actor,p.p_action,p.p_id,JSON.stringify(p.p_input),p.p_expected_version];return{data:(await db.query(query,args)).rows[0].result,error:null};}catch(error){return{error:{code:error.code}};}
+};
+const formatting=loadVera('src/lib/vera-analysis.ts',{'./vera-provider':{createVeraProvider:()=>async()=>null},'./vera-answers':{limitedReply:()=> 'Synthetic unavailable'}});
 const api=loadVera('src/lib/vera-api.ts',{
  './request-auth':{requestUser:async request=>profile(request),authFailure:()=>Response.json({error:'Synthetic sign-in required'},{status:401})},
- './supabase':{supabaseAdmin:{rpc:async(name,p)=>{
-  if(name!=='vancore_vera')throw Error('Unexpected fixture RPC');
-  if((failRead&&p.p_action==='read')||(failFinish&&p.p_action==='finish'))return{error:{code:'PGRST000'}};
-  try{return{data:(await db.query('SELECT public.vancore_vera($1,$2,$3,$4,$5,$6::jsonb) AS result',[p.p_action,p.p_user,p.p_cap,p.p_conversation,p.p_request,JSON.stringify(p.p_input)])).rows[0].result,error:null};}
-  catch(error){return{error:{code:error.code}};}
- }}},
+ './supabase':{supabaseAdmin:{rpc}},
+ './vera-analysis':{analysisText:formatting.analysisText,analyseVera:async(history,message,evidence)=>{providerCalls++;if(mode==='limited'||!evidence.sources.length)return{mode:'limited',reply:'Synthetic report unavailable',model:null};const source=evidence.sources[0];const analysis={title:'Synthetic structured assessment',summary:'Preliminary synthetic case assessment.',facts:[{quote:source.statement,sourceRequestId:source.requestId}],unknowns:['Baseline waiting time'],hypotheses:['A handoff may be the bottleneck.'],risks:['The backlog may grow.'],actions:[{priority:'P1',action:'Measure handoff waiting time.',ownerRole:'Operations lead',metric:'Median waiting time; baseline unknown',timeframe:'Proposed first week'}],questions:['Which handoff waits longest?']};return{reply:formatting.analysisText(analysis),mode:'ai',model:'synthetic-model',analysis};}},
  './vera-answers':{answerVera:async(history,message)=>{
   providerCalls++;const selected=mode;
   if(selected==='hold')await new Promise(resolve=>{release=resolve;});
   return selected==='limited'?{reply:'Synthetic limited reply. No question used.',mode:'limited'}:{reply:'Synthetic preliminary answer. '+(history.length?'Stored context retained. ':'')+'Which handoff causes the delay? <b>literal text</b>',mode:'ai'};
  }}
 });
+const staffApi=loadVera('src/app/api/vera-handoffs/route.ts',{'@/lib/request-auth':{requestUser:async request=>profile(request),authFailure:()=>Response.json({error:'Synthetic sign-in required'},{status:401})},'@/lib/supabase':{supabaseAdmin:{rpc}},'@/lib/session-cookie':{sameOrigin:()=>true}});
 const cookie=loadVera('src/lib/vera-cookie.ts');
 const server=http.createServer(async(req,res)=>{
  try{
@@ -57,10 +64,11 @@ const server=http.createServer(async(req,res)=>{
     if(mode==='drop-after-save'&&req.method==='POST'&&result.status===200&&raw.includes('"action":"message"')){mode='ai';req.socket.destroy();return;}
     return send(result);
    }
+   if(url.pathname==='/api/vera-handoffs')return send(await(req.method==='GET'?staffApi.GET(request):staffApi.POST(request)));
    if(url.pathname==='/api/content')return json({sections:{},order:[]});
    if(url.pathname==='/api/auth'){
     const body=JSON.parse(raw);if(body.action!=='login')return json({error:'Only synthetic login supported'},400);
-    loginToken='fixture-'+nextAccount;return send(cookie.setVeraCookie(Response.json({token:loginToken,user:profiles[nextAccount],redirectTo:'/client-portal'})));
+    loginToken=tokens[nextAccount];return send(cookie.setVeraCookie(Response.json({token:loginToken,user:profiles[nextAccount],redirectTo:'/client-portal'})));
    }
    if(url.pathname==='/api/auth/session'){
     if(req.method==='DELETE'){loginToken=null;return send(cookie.setVeraCookie(Response.json({success:true})));}

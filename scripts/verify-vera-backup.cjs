@@ -19,14 +19,17 @@ let db,phase='read-private-snapshots';
   const names=(await fs.readdir(directory)).filter(n=>n.endsWith('_'+suffix));if(names.length!==1)throw Error('Ambiguous migration');
   await db.exec(await fs.readFile(path.join(directory,names[0]),'utf8'));
  }
+ for(const suffix of ['vera_registered_accounts.sql','vera_casework.sql']){const names=(await fs.readdir(directory)).filter(n=>n.endsWith('_'+suffix));if(names.length>1)throw Error('Ambiguous migration');if(names.length)await db.exec(await fs.readFile(path.join(directory,names[0]),'utf8'));}
  phase='restore-ledger-data';
  const tables={actors:'vera_actors',conversations:'vera_conversations',requests:'vera_requests',reports:'vera_reports',audit:'account_change_audit'};
+ for(const table of ['vera_case_memory','vera_analyses','vera_handoffs','vera_handoff_events','vera_consultant_reviews'])if(Array.isArray(data[table]))tables[table]=table;
  for(const [key,table]of Object.entries(tables))await insert('vancore_private.'+quote(table),data[key]);
  phase='verify-restored-values';
  const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
  for(const [key,table]of Object.entries(tables)){
   const rows=(await db.query('SELECT to_jsonb(t) AS value FROM vancore_private.'+quote(table)+' t')).rows.map(r=>r.value);
-  if(JSON.stringify(rows.map(canonical).sort())!==JSON.stringify(data[key].map(canonical).sort()))throw Error('Restored values differ');
+  const keys=data[key][0]?Object.keys(data[key][0]):[];
+  if(JSON.stringify(rows.map(row=>Object.fromEntries(keys.map(k=>[k,row[k]]))).map(canonical).sort())!==JSON.stringify(data[key].map(canonical).sort()))throw Error('Restored values differ');
  }
  const restored=(await db.query("SELECT md5(coalesce(jsonb_agg(to_jsonb(u) ORDER BY id)::text,'')) AS fingerprint FROM public.users u")).rows[0].fingerprint;
  if(restored!==data.profile_fingerprint)throw Error('Profile fingerprint differs');

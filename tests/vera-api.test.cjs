@@ -11,7 +11,7 @@ function fixture(){
   if(input.p_action==='finish')return finishError?{error:{code:'PGRST000'}}:{data:{state:'complete',conversation:{id:conversation,version:2},conversations:[],requests:[],quota:{remaining:4}},error:null};
   return{data:{state:'ready',conversation:null,conversations:[],requests:[],reports:[]},error:null};
  };
- const api=loadVera('src/lib/vera-api.ts',{'./request-auth':{requestUser:async()=>user,authFailure:()=>Response.json({error:'Synthetic verification failure'},{status:authStatus})},'./supabase':{supabaseAdmin:{rpc}},'./vera-answers':{answerVera:async(turns)=>{providerCalls++;history=turns;return{reply:'Synthetic answer',mode:'ai'};}}});
+ const api=loadVera('src/lib/vera-api.ts',{'./request-auth':{requestUser:async()=>user,authFailure:()=>Response.json({error:'Synthetic verification failure'},{status:authStatus})},'./supabase':{supabaseAdmin:{rpc}},'./vera-answers':{answerVera:async(turns)=>{providerCalls++;history=turns;return{reply:'Synthetic answer',mode:'ai'};}},'./vera-analysis':{analyseVera:async()=>({reply:'Synthetic report',mode:'limited'}),analysisText:()=>''}});
  return{api,calls,set:value=>{({user=user,authStatus=authStatus,state=state,finishError=finishError}=value);},get providerCalls(){return providerCalls;},get history(){return history;}};
 }
 test('Vera route rejects browser history/identity fields, hostile origins and malformed messages before inference',async()=>{
@@ -36,11 +36,11 @@ test('Auth verification failure cannot silently fall back to an anonymous visito
 });
 test('all Vera reads/writes require a verified registered account, even with a legacy visitor cookie',async()=>{
  const f=fixture();f.set({user:null});
- for(const suffix of ['', '?conversationId='+conversation,'?reportId='+requestId+'&download=1']){
+ for(const suffix of ['', '?conversationId='+conversation,'?reportId='+requestId+'&download=1','?analysisId='+requestId+'&download=1','?analyses=1']){
   const response=await f.api.GET(new Request('https://fixture.example/api/ai-analyst'+suffix,{headers:{Cookie:'vancore_vera='+'a'.repeat(43)}}));
   assert.equal(response.status,401);assert.match(response.headers.get('set-cookie'),/Max-Age=0/);
  }
- for(const body of [{action:'open',conversationId:conversation},message(),{action:'report',conversationId:conversation}])assert.equal((await f.api.POST(request(body))).status,401);
+ for(const body of [{action:'open',conversationId:conversation},message(),{action:'report',conversationId:conversation},{action:'analysis',conversationId:conversation,requestId,expectedVersion:0},{action:'memory',conversationId:conversation,notes:'Case notes',expectedVersion:0},{action:'handoff',conversationId:conversation,analysisId:requestId,message:'',shareWithTeam:true}])assert.equal((await f.api.POST(request(body))).status,401);
  for(const user of [{id:userId,is_anonymous:true},{id:userId,email:'pending@example.invalid'}]){
   f.set({user});assert.equal((await f.api.GET(new Request('https://fixture.example/api/ai-analyst'))).status,403);
  }

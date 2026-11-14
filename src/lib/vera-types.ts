@@ -5,4 +5,7 @@ export interface VeraConversation { id: string; title: string; version: number; 
 export interface VeraState {
   state: string; owner: 'account' | 'visitor'; quota?: VeraQuota; conversation: VeraConversation | null;
   conversations: VeraConversation[]; requests: VeraRequest[]; reports: VeraReport[]; hasOlderRequests?: boolean; reportId?: string; requestId?: string;
+  caseNotes?: string;
+  analyses?: { id: string; title: string; source_version: number; created_at: string }[];
+  handoffs?: { id: string; analysis_id: string; status: string; version: number; created_at: string }[];
 }

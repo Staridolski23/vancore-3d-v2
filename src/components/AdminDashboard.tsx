@@ -1,6 +1,7 @@
 'use client';
 import { authenticatedFetch } from '@/lib/authenticated-fetch';
 import AdminInbox from '@/components/AdminInbox';
+import VeraHandoffs from '@/components/VeraHandoffs';
 import AdminClientEditor from '@/components/AdminClientEditor';
 import type { AdminClient as Client } from '@/lib/account-types';
 
@@ -37,7 +38,7 @@ interface Booking {
 }
 
 export default function AdminDashboard({ token: propToken }: { token?: string }) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'analytics' | 'settings' | 'reviews' | 'inbox'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'clients' | 'bookings' | 'content' | 'media' | 'analytics' | 'settings' | 'reviews' | 'inbox' | 'vera'>('dashboard');
   const [clients, setClients] = useState<Client[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalClients: 0, activeSubscriptions: 0, verifiedEmails: 0 });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -344,6 +345,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
           { key: 'dashboard', label: 'Dashboard', icon: <LayoutGrid key="dashboard-icon" className="w-4 h-4" /> },
           { key: 'clients', label: 'Clients', icon: <Users key="clients-icon" className="w-4 h-4" /> },
           { key: 'inbox', label: 'Enquiries', icon: <FileText key="inbox-icon" className="w-4 h-4" /> },
+          { key: 'vera', label: 'Vera reviews', icon: <FileText key="vera-icon" className="w-4 h-4" /> },
           { key: 'bookings', label: 'Bookings', icon: <Calendar key="bookings-icon" className="w-4 h-4" />, badge: newBookingCount },
           { key: 'content', label: 'Site Content', icon: <FileText key="content-icon" className="w-4 h-4" /> },
           { key: 'media', label: 'Media', icon: <ImageIcon key="media-icon" className="w-4 h-4" /> },
@@ -374,6 +376,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       </div>
 
       {activeTab === 'inbox' && <AdminInbox token={propToken} />}
+      {activeTab === 'vera' && <VeraHandoffs />}
       {(metricsError || clientsError) && <div role="alert" className="text-sm text-red-300"><p>{metricsError}</p><p>{clientsError}</p><button onClick={fetchData} className="underline">Retry administrator data</button></div>}
 
       {/* Dashboard Tab */}

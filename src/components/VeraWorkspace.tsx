@@ -4,15 +4,17 @@ import { authenticatedFetch } from '@/lib/authenticated-fetch';
 import { downloadVeraBrief } from '@/lib/vera-download';
 import type { VeraState } from '@/lib/vera-types';
 import VeraAvatar from './VeraAvatar';
+import VeraCaseTools from './VeraCaseTools';
 const field = 'w-full rounded border border-white/20 bg-[#1a1a1a] px-3 py-2 text-sm text-white';
 const button = 'rounded bg-[#991930] px-4 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed';
 export default function VeraWorkspace() {
   const [data, setData] = useState<VeraState | null>(null), [input, setInput] = useState('');
   const [signInRequired, setSignInRequired] = useState(false);
+  const [caseDirty, setCaseDirty] = useState(false);
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [unavailable, setUnavailable] = useState(false);
   const [error, setError] = useState(''), [notice, setNotice] = useState('');
   const running = useRef(false), generation = useRef(0), startId = useRef<string | null>(null);
-  const pending = useRef<{ id: string; conversation: string; message: string } | null>(null);
+  const pending = useRef<{ id: string; conversation: string; message: string; kind?: 'analysis' } | null>(null);
   const apply = useCallback((next: VeraState) => {
     if (next.owner !== 'account' || !Array.isArray(next.conversations) || !Array.isArray(next.requests)) throw new Error('Invalid conversation response');
     const saved = next.requests.find(item => item.id === pending.current?.id && item.status === 'complete');
@@ -42,7 +44,7 @@ export default function VeraWorkspace() {
   }, [apply]);
   useEffect(() => {
     void refresh();
-    const changed = () => { generation.current++; pending.current = null; startId.current = null; setData(null); setInput(''); void refresh(null); };
+    const changed = () => { generation.current++; pending.current = null; startId.current = null; setData(null); setInput(''); setCaseDirty(false); void refresh(null); };
     const storage = (event: StorageEvent) => { if (event.key === 'vancore_client_token') changed(); };
     window.addEventListener('vancore:auth-changed', changed); window.addEventListener('storage', storage);
     return () => { generation.current++; window.removeEventListener('vancore:auth-changed', changed); window.removeEventListener('storage', storage); };
@@ -54,12 +56,15 @@ export default function VeraWorkspace() {
       const response = await authenticatedFetch('/api/ai-analyst', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const next = await response.json(); if (ticket !== generation.current) return;
       if (response.status === 401 || response.status === 403) { setData(null); setInput(''); pending.current = null; startId.current = null; setSignInRequired(true); setUnavailable(false); return; }
-      if ((!response.ok && next.state !== 'quota') || typeof next.state !== 'string' || !['complete', 'ready', 'pending', 'quota', 'report_saved'].includes(next.state)) throw new Error(next.error || (response.status === 429 ? 'Please wait a minute before trying again.' : 'The result could not be confirmed.'));
+      if ((!response.ok && next.state !== 'quota') || typeof next.state !== 'string' || !['complete', 'ready', 'pending', 'quota', 'report_saved', 'memory_saved', 'handoff_saved', 'handoff_cancelled'].includes(next.state)) throw new Error(next.error || (response.status === 429 ? 'Please wait a minute before trying again.' : 'The result could not be confirmed.'));
       apply(next);
       if (next.state === 'pending') setNotice('An answer is still being prepared. Refresh before retrying; the same request will not use a second question.');
       if (next.state === 'quota') setNotice('Your plan has no available questions or its validity has ended. Your draft and saved conversation are retained.');
       if (next.state === 'report_saved') setNotice('Preliminary brief saved from this conversation version. ' + (next.owner === 'account' ? 'It is available below and in your account portal.' : 'It is available below in this visitor session.'));
       if (next.state === 'ready') startId.current = null;
+      if (next.state === 'memory_saved') setNotice('Case notes saved. Vera will use them in your next question.');
+      if (next.state === 'handoff_saved') setNotice('Your review request is saved. Its current status is shown below. Email delivery and a response time are not confirmed.');
+      if (next.state === 'handoff_cancelled') setNotice('Review request withdrawn. Assigned consultants can no longer open this request.');
     } catch (cause) { if (ticket === generation.current) { setError((cause instanceof TypeError ? 'The connection was interrupted; the result could not be confirmed.' : cause instanceof Error ? cause.message : 'Connection interrupted.') + ' Reload the conversation before retrying. Your draft is retained.'); setUnavailable(true); } }
     finally { running.current = false; setBusy(false); }
   };
@@ -68,9 +73,15 @@ export default function VeraWorkspace() {
     return action({ action: 'open', conversationId: startId.current });
   };
   const send = () => {
-    if (!data?.conversation || !input.trim() || busy || unavailable || data.conversation.pending || data.quota?.allowed === false) return;
+    if (!data?.conversation || !input.trim() || busy || unavailable || caseDirty || pending.current?.kind === 'analysis' || data.conversation.pending || data.quota?.allowed === false) return;
     pending.current ||= { id: crypto.randomUUID(), conversation: data.conversation.id, message: input.trim() };
     return action({ action: 'message', conversationId: pending.current.conversation, requestId: pending.current.id, message: pending.current.message, expectedVersion: data.conversation.version });
+  };
+  const generate = () => {
+    if (!data?.conversation || busy || unavailable || loading || caseDirty || input || data.conversation.pending || data.quota?.allowed === false) return;
+    pending.current ||= { id: crypto.randomUUID(), conversation: data.conversation.id, message: '', kind: 'analysis' };
+    if (pending.current.kind !== 'analysis') return;
+    void action({ action: 'analysis', conversationId: pending.current.conversation, requestId: pending.current.id, expectedVersion: data.conversation.version });
   };
   const download = async (id: string) => { try { setError(''); await downloadVeraBrief(id); } catch { setError('The saved brief could not be downloaded. Please retry.'); } };
   const blocked = busy || loading || unavailable;
@@ -84,11 +95,11 @@ export default function VeraWorkspace() {
       {unavailable && <button className={button} disabled={busy || loading} onClick={() => void refresh(null)}>Load recent conversations</button>}</div>}
     {data?.quota && <p className="text-sm">Plan: <strong>{data.quota.plan}</strong> · {data.quota.unlimited ? 'Unlimited conversations' : `${data.quota.remaining ?? 0} questions remaining`}
       {data.quota.validUntil && Number.isFinite(Date.parse(data.quota.validUntil)) && <> · Access valid until {new Date(data.quota.validUntil).toLocaleString()} (your local time)</>}</p>}
-    {!!data?.conversations.length && <div className="space-y-2"><label htmlFor="vera-conversation" className="text-sm">Recent conversations (up to 50)</label><select id="vera-conversation" className={field} value={data.conversation?.id || ''} disabled={blocked || !!input || !!data.conversation?.pending} onChange={event => void refresh(event.target.value)}>
+    {!!data?.conversations.length && <div className="space-y-2"><label htmlFor="vera-conversation" className="text-sm">Recent conversations (up to 50)</label><select id="vera-conversation" className={field} value={data.conversation?.id || ''} disabled={blocked || !!input || caseDirty || !!pending.current || !!data.conversation?.pending} onChange={event => void refresh(event.target.value)}>
       {data.conversations.map(item => <option value={item.id} key={item.id}>{item.title}</option>)}</select></div>}
     {data && !data.conversation && !loading && <button className={button} disabled={blocked} onClick={() => void open()}>Start conversation</button>}
     {data?.conversation && <>
-      <div className="flex gap-3 flex-wrap"><button className={button} disabled={blocked || !!input || !!data.conversation.pending} onClick={() => void open()}>New conversation</button><button className={button} disabled={blocked || !!data.conversation.pending || !data.requests.some(item => item.status === 'complete')} onClick={() => void action({ action: 'report', conversationId: data.conversation?.id })}>Save preliminary brief</button></div>
+      <div className="flex gap-3 flex-wrap"><button className={button} disabled={blocked || !!input || caseDirty || !!pending.current || !!data.conversation.pending} onClick={() => void open()}>New conversation</button><button className={button} disabled={blocked || caseDirty || !!pending.current || !!data.conversation.pending || !data.requests.some(item => item.status === 'complete')} onClick={() => void action({ action: 'report', conversationId: data.conversation?.id })}>Save preliminary brief</button></div>
       {data.hasOlderRequests && <p className="text-sm text-[#b5b5b5]">Showing the most recent 100 requests. Earlier requests remain stored.</p>}
       <div aria-label="Saved conversation" className="space-y-4 max-h-[32rem] overflow-y-auto">
         {!data.requests.length && <p>What specific business problem would you like to explore?</p>}
@@ -96,8 +107,9 @@ export default function VeraWorkspace() {
           {item.status === 'complete' ? <><p className="text-xs text-[#b5b5b5]">Vera · {item.mode === 'limited' ? 'Limited response · No question used' : 'Preliminary AI response'}</p><p className="whitespace-pre-wrap break-words text-sm">{item.reply}</p></> : <p className="text-sm text-amber-200">{item.status === 'generating' ? 'Answer pending. Reload to check the saved result.' : 'No completed answer. This request has not used a question.'}</p>}</article>)}
       </div>
       <form className="space-y-2" onSubmit={event => { event.preventDefault(); void send(); }}><label htmlFor="vera-chat-input" className="block text-sm">Your message</label><textarea id="vera-chat-input" className={field} maxLength={6000} rows={3} value={input} readOnly={!!pending.current || busy} disabled={loading} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
-        <div className="flex gap-3 flex-wrap"><button className={button} type="submit" disabled={blocked || !input.trim() || !!data.conversation.pending || data.quota?.allowed === false}>{busy ? 'Saving…' : pending.current ? 'Retry same message' : 'Send'}</button>
+        <div className="flex gap-3 flex-wrap"><button className={button} type="submit" disabled={blocked || caseDirty || pending.current?.kind === 'analysis' || !input.trim() || !!data.conversation.pending || data.quota?.allowed === false}>{busy ? 'Saving…' : pending.current ? 'Retry same message' : 'Send'}</button>
           {!!input && !busy && <button className="text-sm underline" type="button" onClick={() => { setInput(''); pending.current = null; }}>Discard draft (saved requests remain)</button>}</div></form>
+      <VeraCaseTools key={data.conversation.id} data={data} blocked={blocked} draftBlocked={!!input || (!!pending.current && pending.current.kind !== 'analysis')} analysisPending={pending.current?.kind === 'analysis'} act={action} generate={generate} discardAnalysis={() => { pending.current = null; setNotice('Report retry discarded. Saved requests remain.'); }} onDirty={setCaseDirty} />
     </>}
     {data?.quota?.allowed === false && <div className="text-sm space-y-2"><p>Enquire about a plan; the team activates it after agreement.</p><div className="flex gap-4 flex-wrap"><a className="underline" href="/contact?plan=payg">PAYG €25 · 500 questions / 3 months</a><a className="underline" href="/contact?plan=professional">Professional €49/month</a><a className="underline" href="/contact?plan=business">Business €99/month</a></div></div>}
     {!!data?.reports.length && <div className="space-y-2"><h3 className="font-semibold">Recent saved briefs (up to 50)</h3><p className="text-xs text-[#b5b5b5]">Conversation snapshots, not independently verified or human-reviewed reports.</p>{data.reports.map(report => <div className="flex justify-between gap-3 border-t border-white/10 pt-2 text-sm" key={report.id}><span>{report.title} · version {report.version}</span><button className="underline" disabled={busy} onClick={() => void download(report.id)}>Download brief</button></div>)}</div>}

@@ -286,6 +286,7 @@ function ClientPortalBody() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {user?.role === 'consultant' && <a className="inline-block text-sm text-white underline" href="/consultant-cases">Open assigned Vera review requests</a>}
       {Object.entries(dataErrors).map(([key, message]) => <p key={key} role="alert" className="text-sm text-red-400">{message}</p>)}
       {/* Tab Navigation */}
       <div className="flex gap-1 bg-[#111] p-1 rounded-lg overflow-x-auto">
