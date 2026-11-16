@@ -4,6 +4,14 @@ type Rpc = (action: string, input: object, actor?: string) => Promise<any>;
 type Document = { source: { id: string; url: string }; content: string; sha256: string; provisions: { article: string; text: string }[] };
 export function createKnowledgeStore(rpc: Rpc) {
   return {
+    async freshSource(sourceId: string, query: string) {
+      const articles = [...query.matchAll(/(?:чл\.|Article)\s*(\d+[а-яa-z]?)/gi)].slice(0,12).flatMap(m=>['Чл. '+m[1]+'.','Article '+m[1]]);
+      const data = await rpc('fresh',{sourceId,query:query.slice(-6000),articles});
+      if (data?.available !== true) return null;
+      const age = Date.now()-Date.parse(data.retrievedAt);
+      if (!/^[a-f0-9-]{36}$/.test(data.versionId) || !/^[a-f0-9]{64}$/.test(data.sha256) || !Number.isFinite(age) || age< -120000 || age>86400000 || !Array.isArray(data.chunks) || data.chunks.length>4 || !data.chunks.every((p:any)=>typeof p.article==='string'&&p.article.length<=160&&typeof p.text==='string'&&p.text.length>=35&&p.text.length<=6000)) throw Error('Invalid dated source selection');
+      return {versionId:data.versionId as string,sha256:data.sha256 as string,retrievedAt:data.retrievedAt as string,provisions:data.chunks as Document['provisions']};
+    },
     async businessMethod() {
       const data = await rpc('method', { sourceId: 'vancore-business-method' });
       if (!data || typeof data.content !== 'string' || !/^[a-f0-9-]{36}$/.test(data.versionId) || data.content.length < 100 || data.content.length > 6000) throw Error('Business knowledge unavailable');

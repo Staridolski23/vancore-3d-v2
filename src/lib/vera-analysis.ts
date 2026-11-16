@@ -8,7 +8,7 @@ import { veraKnowledge } from './vera-knowledge-server';
 export type CaseEvidence = { notes: string; sources: { requestId: string; statement: string; truncated?: boolean }[]; totalCompletedRequests: number; selectedSources: number; scope: string };
 export type AnalysisDraft = { title: string; summary: string; facts: { quote: string; sourceRequestId: string }[]; unknowns: string[]; hypotheses: string[]; risks: string[]; actions: { priority: string; action: string; ownerRole: string; metric: string; timeframe: string }[]; questions: string[]; legalResearch?: LegalResearch; calculations?: BusinessCalculation[] };
 const provider = createVeraProvider({ maxTokens: 8192, jsonMode: true, reasoningEffort: 'low' });
-const legalResearch = createLegalResearch({ archive: veraKnowledge.archiveAndSelect, unavailable: veraKnowledge.sourceUnavailable });
+const legalResearch = createLegalResearch({ archive: veraKnowledge.archiveAndSelect, unavailable: veraKnowledge.sourceUnavailable, fresh: veraKnowledge.freshSource });
 const text = (value: unknown, max: number): value is string => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
 const list = (value: unknown, max = 12): value is string[] => Array.isArray(value) && value.length <= max && value.every(item => text(item, 1200));
 export function validateAnalysis(value: unknown, evidence: CaseEvidence): AnalysisDraft | null {

@@ -6,7 +6,7 @@ import { createBusinessAnswer, needsBusinessCalculation } from './vera-business-
 import { DIALOGUE_STANDARD, followsPreviousLegalQuestion, isSocialTurn } from './vera-dialogue';
 import { veraKnowledge } from './vera-knowledge-server';
 const provider = createVeraProvider();
-const legalResearch = createLegalResearch({ archive: veraKnowledge.archiveAndSelect, unavailable: veraKnowledge.sourceUnavailable });
+const legalResearch = createLegalResearch({ archive: veraKnowledge.archiveAndSelect, unavailable: veraKnowledge.sourceUnavailable, fresh: veraKnowledge.freshSource });
 const businessAnswer = createBusinessAnswer();
 const instructions = `You are Vera, VANCORE's AI business analyst. Be transparent that you are AI, never a human consultant. VANCORE is a boutique business analysis and development consultancy in Sofia, Bulgaria. Services include business analysis, process redesign, change management and implementation support. Method: Discovery, Diagnosis, Design, Deployment. Contact: hello@vancoresys.com.
 Confirmed plans: Starter has 5 questions; Pay-As-You-Go costs €25 once for 500 questions valid for 3 months; Professional costs €49/month and Business €99/month with unlimited conversations. Choosing a plan creates an enquiry; the team activates it after agreement. Do not claim to collect payment or activate plans.

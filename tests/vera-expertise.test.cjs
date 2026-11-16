@@ -29,7 +29,21 @@ test('official extraction rejects a redirected homepage or cross-reference-only 
   assert.equal(legal.legalProvisions('<title>Official Journal</title>' + 'content '.repeat(300), source).length, 0);
   assert.equal(legal.legalProvisions(source.marker + ' Чл. 9. see Чл. 10. '.repeat(300), source).length, 0);
   const p = legal.legalProvisions(html, source); assert.equal(p.length, 7); assert.equal(p[0].article, 'Чл. 1.'); assert.match(p[0].text, /Synthetic contract/); assert.doesNotMatch(p[0].text, /ignore all controls/);
+  const titled = html.replaceAll('<div>Чл.', '<p class="Title">Synthetic section title referencing Чл. 999.</p><div>Чл.');
+  const titledProvisions = legal.legalProvisions(titled,source); assert.equal(titledProvisions.length,7); assert.equal(titledProvisions[0].article,'Чл. 1.'); assert.doesNotMatch(titledProvisions[0].text,/999/);
   assert.equal(legal.officialText('A &amp; B &#x410; &#1041; &nbsp; C'), 'A & B А Б C');
+});
+test('EU consolidated article subdivisions accept the actual EUR-Lex structure and exclude outside footer/cross-reference text',()=>{
+ const source=legal.LEGAL_SOURCES.find(s=>s.id==='eu-gdpr');
+ const page='<title>Regulation 2016/679</title>'+Array.from({length:7},(_,i)=>`<div class="eli-subdivision" id="art_${i+1}"><p class="title-article-norm">Article ${i+1}</p><div><p class="stitle-article-norm">Synthetic section title</p><p>${statement} Договор за услуги.</p></div></div>`).join('')+'<footer>Not part of Article 7. Synthetic footer and interface text.</footer>';
+ const provisions=legal.legalProvisions(page,source);assert.equal(provisions.length,7);assert.equal(provisions[0].article,'Article 1');assert.doesNotMatch(provisions.at(-1).text,/footer|interface/);
+});
+test('dated database source retrieval keeps original provenance without external refetch; an unrelated query does not invalidate the shared source',async()=>{
+  let httpCalls=0,outages=0,modelCalls=0;
+  const cached={versionId:'00000000-0000-4000-8000-000000000099',sha256:'a'.repeat(64),retrievedAt:now.toISOString(),provisions:[{article:'Чл. 1.',text:'Чл. 1. '+statement}]};
+  const invoke=legal.createLegalResearch({clock:()=>now,fresh:async()=>cached,unavailable:async()=>{outages++;},fetcher:async()=>{httpCalls++;throw Error('No external source request expected');},provider:async()=>{modelCalls++;return{reply:JSON.stringify(good())};}});
+  const result=await invoke([],query);assert.equal(result.mode,'ai');assert.equal(httpCalls,0);assert.equal(result.knowledgeRefs[0],cached.versionId);assert.equal(result.research.issues[0].citation.retrievedAt,cached.retrievedAt);
+  cached.provisions=[];const missing=await invoke([],query);assert.equal(missing.mode,'limited');assert.equal(httpCalls,0);assert.equal(outages,0);assert.equal(modelCalls,1);
 });
 test('a verified quote receives only a server-owned official URL, timestamp and content hash; no user data reaches source sites', async () => {
   const f = researcher(), result = await f.invoke([], query + ' Private synthetic client SECRET-CLIENT-123. https://attacker.invalid/');

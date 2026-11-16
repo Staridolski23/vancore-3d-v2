@@ -7,6 +7,12 @@ test('knowledge adapter archives all public provisions then validates exact data
  const selected=await store.archiveAndSelect(document,'Private case query; чл. 9.');assert.equal(selected.versionId,id);assert.equal(calls[0].action,'ingest');assert.doesNotMatch(JSON.stringify(calls[0].input),/Private case query/);assert.equal(calls[1].action,'select');assert.ok(calls[1].input.articles.includes('Чл. 9.'));
  foreign=true;await assert.rejects(store.archiveAndSelect(document,'contract'),/mismatch/);await assert.rejects(store.archiveAndSelect({...document,sha256:'0'.repeat(64)},'contract'),/digest/);
 });
+test('database source adapter enforces dated metadata, bounded excerpts and no silently stale source',async()=>{
+ const {createKnowledgeStore}=loadVera('src/lib/vera-knowledge.ts');let data={available:true,versionId:'00000000-0000-4000-8000-000000000099',sha256:'a'.repeat(64),retrievedAt:new Date().toISOString(),chunks:[]};
+ const store=createKnowledgeStore(async()=>data);assert.ok(await store.freshSource('bg-obligations','contract'));
+ data={...data,retrievedAt:new Date(Date.now()-25*3600000).toISOString()};await assert.rejects(store.freshSource('bg-obligations','contract'),/dated/);
+ data={available:false};assert.equal(await store.freshSource('bg-obligations','contract'),null);
+});
 test('greetings, vague openings, corrections and topic switches stay conversational instead of inheriting stale legal/numeric routing',async()=>{
  let systems=[],ordinary=0,legal=0,numeric=0;
  const base=loadVera('src/lib/vera-legal.ts');const answers=loadVera('src/lib/vera-answers.ts',{
