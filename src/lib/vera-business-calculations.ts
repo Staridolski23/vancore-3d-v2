@@ -32,6 +32,13 @@ export function validateBusinessCalculations(value: unknown, evidence: Evidence)
   }
   return result;
 }
-export function businessCalculationText(item: BusinessCalculation) {
-  return `${item.kind}: ${item.result} ${item.resultUnit}\n${item.inputs.map(i => `${i.name} = ${i.value} ${i.unit} (source ${i.sourceRequestId}: ${i.quote})`).join('\n')}`;
+export function businessCalculationLabel(kind: CalculationKind) {
+  return ({gross_margin_percent:'Брутен марж / Gross margin',markup_percent:'Надценка / Markup',conversion_percent:'Конверсия / Conversion',utilisation_percent:'Използван капацитет / Capacity utilisation',relative_change_percent:'Относителна промяна / Relative change',percentage_point_change:'Промяна в процентни пунктове / Percentage-point change'})[kind];
+}
+export function businessInputLabel(name: string) {
+  return ({revenue:'Приходи / Revenue',costOfSales:'Себестойност на продажбите / Cost of sales',sellingPrice:'Продажна цена / Selling price',cost:'Себестойност / Cost',conversions:'Реализации / Conversions',opportunities:'Възможности / Opportunities',usedCapacity:'Използван капацитет / Used capacity',availableCapacity:'Наличен капацитет / Available capacity',before:'Начална стойност / Before',after:'Нова стойност / After'} as Record<string,string>)[name] || name;
+}
+export function businessCalculationText(item: BusinessCalculation, includeSourceIds = true) {
+  const unit = item.resultUnit === '%' ? '%' : 'процентни пункта / percentage points';
+  return `${businessCalculationLabel(item.kind)}: ${item.result} ${unit}\n${item.inputs.map(i => `${businessInputLabel(i.name)} = ${i.value} ${i.unit}\n${includeSourceIds ? 'Source '+i.sourceRequestId+': ' : ''}„${i.quote}“`).join('\n')}`;
 }

@@ -30,7 +30,7 @@ export function analysisText(data: AnalysisDraft, notes = '') {
   lines.push('', 'PROPOSED ACTION PLAN / ПРЕДЛОЖЕН ПЛАН', ...data.actions.map(a => `${a.priority}: ${a.action}\nSuggested owner: ${a.ownerRole}; indicator: ${a.metric}; proposed timing: ${a.timeframe}`), '', 'FOLLOW-UP QUESTIONS / СЛЕДВАЩИ ВЪПРОСИ', ...data.questions.map(item => '- ' + item));
   if (notes) lines.push('', 'CLIENT CASE NOTES / БЕЛЕЖКИ НА КЛИЕНТА (unverified)', notes);
   if (data.legalResearch) lines.push('', legalResearchText(data.legalResearch, /[а-я]/i.test(data.summary)));
-  if (data.calculations?.length) lines.push('', 'CHECKED ARITHMETIC / ПРОВЕРЕНИ ИЗЧИСЛЕНИЯ (input meaning still requires review)', ...data.calculations.map(businessCalculationText));
+  if (data.calculations?.length) lines.push('', 'CHECKED ARITHMETIC / ПРОВЕРЕНИ ИЗЧИСЛЕНИЯ (input meaning still requires review)', ...data.calculations.map(item => businessCalculationText(item)));
   return lines.join('\n');
 }
 export async function analyseVera(_history: VeraTurn[], message: string, evidence: CaseEvidence) {

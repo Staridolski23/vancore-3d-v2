@@ -5,7 +5,7 @@ After each substantive answer, connect it to the case, briefly summarise what it
 Use short paragraphs; use a compact list only when it makes several steps clearer. Avoid generic consulting slogans, repeated sales pitches and invented actions. Acknowledge thanks without restarting intake. When moving to a report or human handoff, explain the actual available step and keep the client's explicit choice; do not claim anything has been submitted automatically.`;
 export function isSocialTurn(message: string) {
   const text = message.trim().toLowerCase().replace(/[!.,?🙂😊👋]/gu, ' ').replace(/\s+/g, ' ').trim();
-  return /^(?:здравей(?:те)?(?:\s+вера)?|здрасти(?:\s+вера)?|добър ден|добро утро|добър вечер|благодаря(?:\s+ти)?|мерси|супер|hello(?:\s+vera)?|hi(?:\s+vera)?|hey(?:\s+vera)?|good morning|good evening|thank you|thanks)$/.test(text);
+  return /^(?:здравей(?:те)?(?:\s+вера)?|здрасти(?:\s+вера)?|хей(?:\s+вера)?|привет(?:\s+вера)?|добър ден|добро утро|добър вечер|благодаря(?:\s+ти)?|мерси|супер|hello(?:\s+vera)?|hi(?:\s+vera)?|hey(?:\s+vera)?|good morning|good evening|thank you|thanks)$/.test(text);
 }
 export function followsPreviousLegalQuestion(message: string, previousUser: string, previousAssistant: string) {
   if (isSocialTurn(message) || /нова тема|друг въпрос|сменям.{0,12}тем|new topic|unrelated|switch topic/i.test(message)) return false;

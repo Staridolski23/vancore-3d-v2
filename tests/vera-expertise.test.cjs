@@ -65,14 +65,14 @@ test('numeric chat returns only checked numerical results and refuses contradict
   assert.equal(needsBusinessCalculation(question), true); assert.equal(needsBusinessCalculation('How should we improve the customer experience?'), false);
   const body = { explanation: 'Gross margin differs from markup. Cost classification and the measurement period still require confirmation.', calculations: [{ kind: 'gross_margin_percent', inputs: [{ name: 'revenue', value: 120, unit: 'EUR', sourceRequestId: 'current_message', quote: question }, { name: 'costOfSales', value: 90, unit: 'EUR', sourceRequestId: 'current_message', quote: question }], result: 25, resultUnit: '%' }] };
   const invoke = data => createBusinessAnswer({ provider: async () => ({ reply: JSON.stringify(data) }) })([], question);
-  const accepted = await invoke(body); assert.equal(accepted.mode, 'ai'); assert.match(accepted.reply, /gross_margin_percent: 25 %/);
+  const accepted = await invoke(body); assert.equal(accepted.mode, 'ai'); assert.match(accepted.reply, /Gross margin: 25 %/);
   for (const data of [{ ...body, explanation: 'Your margin is 33 percent.' }, { ...body, calculations: [] }, { ...body, calculations: [{ ...body.calculations[0], result: 33.33 }] }]) { const result = await invoke(data); assert.equal(result.mode, 'limited'); assert.match(result.reply, /No question was used/); }
 });
 test('business assessments preserve checked arithmetic in export and reject an incorrect margin before becoming a saved success', () => {
   const api = loadVera('src/lib/vera-analysis.ts', { './vera-provider': { createVeraProvider: () => async () => null }, './vera-answers': { limitedReply: () => 'Synthetic limited reply' } });
   const evidence = { sources: [{ requestId: 'owned', statement: 'Revenue 120 EUR; cost of sales 90 EUR.' }] };
   const draft = { title: 'Synthetic business report', summary: 'Conditional analysis', facts: [{ quote: evidence.sources[0].statement, sourceRequestId: 'owned' }], unknowns: ['Cashflow timing'], hypotheses: ['Validate demand'], risks: ['Demand uncertainty'], actions: [{ priority: 'P1', action: 'Validate actual costs', ownerRole: 'Finance', metric: 'Cost of sales', timeframe: 'Proposed week' }], questions: [], calculations: [{ kind: 'gross_margin_percent', inputs: [{ name: 'revenue', value: 120, unit: 'EUR', sourceRequestId: 'owned', quote: evidence.sources[0].statement }, { name: 'costOfSales', value: 90, unit: 'EUR', sourceRequestId: 'owned', quote: evidence.sources[0].statement }], result: 25, resultUnit: '%' }] };
-  const accepted = api.validateAnalysis(draft, evidence); assert.ok(accepted); assert.match(api.analysisText(accepted), /gross_margin_percent: 25 %/);
+  const accepted = api.validateAnalysis(draft, evidence); assert.ok(accepted); assert.match(api.analysisText(accepted), /Gross margin: 25 %/);
   draft.calculations[0].result = 33.33; assert.equal(api.validateAnalysis(draft, evidence), null);
 });
 test('business formulas distinguish margin, markup, relative percent and percentage points with cited inputs', () => {

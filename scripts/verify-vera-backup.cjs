@@ -11,7 +11,7 @@ let db,phase='read-private-snapshots';
  const columns=[...baseline.columns].sort((a,b)=>a.position-b.position);
  await db.exec('CREATE TABLE public.users('+columns.map(c=>quote(c.name)+' '+c.type+(c.not_null?' NOT NULL':'')).join(',')+')');
  for(const c of baseline.constraints||[])await db.exec('ALTER TABLE public.users ADD CONSTRAINT '+quote(c.name)+' '+c.definition);
- async function insert(table,rows){for(const row of rows){const keys=Object.keys(row).filter(k=>!['content_md5','search_vector'].includes(k));await db.query('INSERT INTO '+table+'('+keys.map(quote).join(',')+') VALUES('+keys.map((_,i)=>'$'+(i+1)).join(',')+')',keys.map(k=>row[k]!==null&&typeof row[k]==='object'&&!Array.isArray(row[k])?JSON.stringify(row[k]):Array.isArray(row[k])&&k!=='knowledge_refs'?JSON.stringify(row[k]):row[k]));}}
+ async function insert(table,rows){for(const row of rows){const keys=Object.keys(row).filter(k=>!['content_md5','search_vector'].includes(k));await db.query('INSERT INTO '+table+'('+keys.map(quote).join(',')+') VALUES('+keys.map((_,i)=>'$'+(i+1)).join(',')+')',keys.map(k=>k==='knowledge_refs'&&Array.isArray(row[k])?'{'+row[k].join(',')+'}':row[k]!==null&&typeof row[k]==='object'?JSON.stringify(row[k]):row[k]));}}
  phase='restore-profiles';await insert('public.users',data.profiles);
  phase='restore-ledger-schema';
  const directory=path.resolve(__dirname,'../supabase/migrations');
@@ -25,6 +25,7 @@ let db,phase='read-private-snapshots';
  for(const table of ['vera_case_memory','vera_analyses','vera_handoffs','vera_handoff_events','vera_consultant_reviews'])if(Array.isArray(data[table]))tables[table]=table;
  const corpus=['vera_knowledge_sources','vera_knowledge_versions','vera_knowledge_chunks','vera_knowledge_checks','vera_request_knowledge','vera_evaluation_scenarios','vera_evaluation_runs','vera_evaluation_leases'];
  if(Array.isArray(data.vera_knowledge_sources)){await db.exec('TRUNCATE '+corpus.map(t=>'vancore_private.'+quote(t)).join(',')+' CASCADE');for(const table of corpus){if(!Array.isArray(data[table]))throw Error('Incomplete knowledge archive');tables[table]=table;}}
+ for(const version of data.vera_knowledge_versions||[])if(crypto.createHash('sha256').update(version.content).digest('hex')!==version.sha256)throw Error('Knowledge content digest differs');
  for(const [key,table]of Object.entries(tables))await insert('vancore_private.'+quote(table),data[key]);
  phase='verify-restored-values';
  const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);

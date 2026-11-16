@@ -3,6 +3,7 @@ import { requestUser, authFailure } from '@/lib/request-auth';
 import { sameOrigin } from '@/lib/session-cookie';
 import { veraKnowledge } from '@/lib/vera-knowledge-server';
 import { answerVera } from '@/lib/vera-answers';
+import type { BusinessCalculation } from '@/lib/vera-business-calculations';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'private, no-store' } });
@@ -23,7 +24,8 @@ export async function POST(request: NextRequest) {
     if (!body || Object.keys(body).length !== 1 || typeof body.scenarioId !== 'string' || !/^[a-z-]+-v1$/.test(body.scenarioId)) return json({ error: 'Choose a fixed evaluation scenario.' }, 400);
     const scenario = await veraKnowledge.scenario(body.scenarioId, user.id);
     const result = await answerVera(scenario.scenario.history, scenario.scenario.message);
-    const checks = { aiAvailable: result.mode === 'ai', cyrillicPresent: /[а-я]/i.test(result.reply), questionMarks: (result.reply.match(/\?/g) || []).length, chars: result.reply.length, ...(body.scenarioId === 'business-margin-v1' ? { expectedMarginPresent: /gross_margin_percent:\s*25\s*%/.test(result.reply) } : {}), qualification: 'Mechanical observations only; professional quality requires human review.' };
+    const calculations = (result as { calculations?: BusinessCalculation[] }).calculations;
+    const checks = { aiAvailable: result.mode === 'ai', cyrillicPresent: /[а-я]/i.test(result.reply), questionMarks: (result.reply.match(/\?/g) || []).length, chars: result.reply.length, ...(body.scenarioId === 'business-margin-v1' ? { expectedMarginPresent: calculations?.some(item => item.kind === 'gross_margin_percent' && item.result === 25) === true } : {}), qualification: 'Mechanical observations only; professional quality requires human review.' };
     const saved = await veraKnowledge.saveEvaluation(body.scenarioId, user.id, scenario.lease, result, checks);
     if (saved?.saved !== true) return json({ error: 'Evaluation result could not be archived.' }, 503);
     return json({ ...saved, mode: result.mode, output: result.reply, checks, suiteVersion: scenario.suite_version });

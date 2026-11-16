@@ -18,8 +18,8 @@ export function createBusinessAnswer({ provider = createVeraProvider({ maxTokens
       if (typeof data.explanation !== 'string' || !data.explanation.trim() || data.explanation.length > 2000 || /\d|https?:\/\/|<\/?[a-z]/i.test(data.explanation)) return limited();
       const calculations = validateBusinessCalculations(data.calculations, evidence);
       if (!calculations?.length) return limited();
-      const reply = [bg ? 'Предварителен бизнес анализ — проверена аритметика, непроверени клиентски данни.' : 'Preliminary business analysis — checked arithmetic, unverified client inputs.', data.explanation, ...calculations.map(businessCalculationText)].join('\n\n');
-      return reply.length <= 16000 ? { reply, mode: 'ai' as const, model: VERA_MODEL, knowledgeRefs: method ? [method.versionId] : [] } : limited();
+      const reply = [bg ? 'Предварителен бизнес анализ — проверена аритметика, непроверени клиентски данни.' : 'Preliminary business analysis — checked arithmetic, unverified client inputs.', data.explanation, ...calculations.map(item => businessCalculationText(item, false))].join('\n\n');
+      return reply.length <= 16000 ? { reply, mode: 'ai' as const, model: VERA_MODEL, calculations, knowledgeRefs: method ? [method.versionId] : [] } : limited();
     } catch { return limited(); }
   };
 }

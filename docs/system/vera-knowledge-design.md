@@ -2,6 +2,8 @@
 
 Candidate date: 16 November 2026. Apply the tested additive knowledge migration before publishing code that uses its RPC. Hosted application release remains separately gated.
 
+Hosted status: migration `20261116210647_vera_knowledge_base.sql` is applied. Candidate application 05bec7a passed exact-head GitHub CI and Vercel preview `ErtAkwRo3FUVXMtqEPcnTEGQsoR8` is Ready. Main production still runs c014ce6. Later documentation/recovery and readable-calculation-label commits are tracked in the same draft PR #9.
+
 ## Data ownership
 
 ```mermaid
@@ -47,6 +49,8 @@ An authenticated protected-role administrator can run one of six fixed synthetic
 
 Initial shared corpus: VANCORE internal business methodology plus a registry for three Bulgarian acts, GDPR and Consumer Rights Directive. The registry alone is not ingested legal content; an accepted source must actually be fetched, stored and selected. Metadata unreviewed is never promoted to lawyer-approved by a generic consultant review. Worldwide coverage, all amendments, case law reconciliation, historical versions and reviewer qualification verification remain separate requirements.
 
+The Obligations and Contracts Act was actually retrieved from the fixed Ministry URL on 16 November using the operating system's TLS-verifying HTTP client. Full HTML and 287 parsed provisions were ingested; SHA-256 `b4257078662e0fbc84e41e6b4668603aed9affa8402c406be292952ecc842fd8`. Together with the internal method this gives two stored versions and 288 chunks. The legal source remains **unreviewed**; the other four legal registry entries have no ingested versions yet. Node runtime source transport and legal force/currentness are not inferred from successful one-off ingestion.
+
 Dialogue rules progress from greeting and a clear initial question through facts, corrections, a useful recommendation and optional report/handoff. Greetings and new topics do not inherit stale legal/numerical routing. The model remains the existing free provider; no automatic paid fallback or background messages are added.
 
 ## Verification and recovery
@@ -54,5 +58,7 @@ Dialogue rules progress from greeting and a clear initial question through facts
 `ops/supabase/vera-knowledge.test.cjs` applies the actual migration and checks immutable source ingestion, exact-version retrieval, private grants, atomic charge/provenance, evaluation permissions/leases and both rollback scripts. `verify-vera-knowledge-rollback.sql` runs the hosted acceptance entirely under BEGIN/ROLLBACK; no fake public law, client turn or evaluation is retained.
 
 `scripts/verify-vera-backup.cjs` restores all corpus tables along with existing cases/profiles when the export contains the knowledge keys. It removes migration seed rows only in the isolated restore database, restores original IDs/values, regenerates search/digest columns and reruns casework/knowledge ROLLBACK acceptance. This remains targeted application recovery; it does not restore managed Auth/session/Storage/OS/DNS infrastructure.
+
+Hosted knowledge ROLLBACK PASS: eleven profiles retain fingerprint `62126c1b4909072b566f0ac37bd0077d`; no synthetic case, source or evaluation remains. Post-change private snapshot SHA `40cb9d92ca46d10c72f39716212a5331504b26cb64288f02ca8f1f485eed3bf4` restores all customer rows and new corpus/evaluation tables with exact values and matching source SHA-256 values; both ROLLBACK acceptance scripts pass on the restored database. The snapshot precedes real model evaluations and contains zero runs. Keep later actual evaluation runs in subsequent exports.
 
 Recovery must preserve all new versions, case links and evaluation history. Do not overwrite newer data from the pre-change snapshot. The previous c014ce6 frontend remains compatible with the additive schema, but must not be used as a permanent substitute for source-grounded research after a knowledge release is accepted.
