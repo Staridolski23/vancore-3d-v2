@@ -46,8 +46,8 @@ export function legalProvisions(html: string, source: Source): Provision[] {
     const containers = [...html.matchAll(/<div\b[^>]*class=["']Article["'][^>]*>/g)];
     if (containers.length < 5) return [];
     const seen = new Set<string>();
-    return containers.flatMap((item, index) => {
-      const section = html.slice(item.index!, containers[index + 1]?.index ?? html.length).replace(/<p\b[^>]*class=["']Title["'][^>]*>[\s\S]*?<\/p>/gi, ' ');
+    return containers.flatMap(item => {
+      const section = divContent(html,item.index!,item[0].length).replace(/<p\b[^>]*class=["']Title["'][^>]*>[\s\S]*?<\/p>/gi, ' ');
       const body = officialText(section).slice(0, 6000);
       const article = body.match(/^Чл\.\s*\d+[а-я]?\./)?.[0];
       if (!article || body.length < 70 || seen.has(normalise(article))) return [];

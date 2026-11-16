@@ -31,6 +31,8 @@ test('official extraction rejects a redirected homepage or cross-reference-only 
   const p = legal.legalProvisions(html, source); assert.equal(p.length, 7); assert.equal(p[0].article, 'Чл. 1.'); assert.match(p[0].text, /Synthetic contract/); assert.doesNotMatch(p[0].text, /ignore all controls/);
   const titled = html.replaceAll('<div>Чл.', '<p class="Title">Synthetic section title referencing Чл. 999.</p><div>Чл.');
   const titledProvisions = legal.legalProvisions(titled,source); assert.equal(titledProvisions.length,7); assert.equal(titledProvisions[0].article,'Чл. 1.'); assert.doesNotMatch(titledProvisions[0].text,/999/);
+  const bounded = legal.legalProvisions(titled + '<div><p>ИЗМЕНЕНИЯ НА ДРУГИ ЗАКОНИ</p><p>Чл. 999. Synthetic unrelated appendix.</p></div>',source);
+  assert.equal(bounded.length,7); assert.doesNotMatch(bounded.at(-1).text,/999|ИЗМЕНЕНИЯ|appendix/);
   assert.equal(legal.officialText('A &amp; B &#x410; &#1041; &nbsp; C'), 'A & B А Б C');
 });
 test('EU consolidated article subdivisions accept the actual EUR-Lex structure and exclude outside footer/cross-reference text',()=>{
