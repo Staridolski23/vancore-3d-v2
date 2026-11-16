@@ -2,6 +2,7 @@
 import { authenticatedFetch } from '@/lib/authenticated-fetch';
 import AdminInbox from '@/components/AdminInbox';
 import VeraHandoffs from '@/components/VeraHandoffs';
+import VeraEvaluations from '@/components/VeraEvaluations';
 import AdminClientEditor from '@/components/AdminClientEditor';
 import type { AdminClient as Client } from '@/lib/account-types';
 
@@ -376,7 +377,7 @@ export default function AdminDashboard({ token: propToken }: { token?: string })
       </div>
 
       {activeTab === 'inbox' && <AdminInbox token={propToken} />}
-      {activeTab === 'vera' && <VeraHandoffs />}
+      {activeTab === 'vera' && <><VeraHandoffs /><VeraEvaluations /></>}
       {(metricsError || clientsError) && <div role="alert" className="text-sm text-red-300"><p>{metricsError}</p><p>{clientsError}</p><button onClick={fetchData} className="underline">Retry administrator data</button></div>}
 
       {/* Dashboard Tab */}
