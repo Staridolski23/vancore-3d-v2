@@ -12,6 +12,14 @@ test('missing final text or provider failure cannot be represented as an AI succ
  assert.equal(await api.createVeraProvider({key:'test',fetcher:async()=>Response.json({choices:[{message:{reasoning_details:[{text:'hidden'}]}}]})})('System',[],'Question'),null);
  assert.equal(await api.createVeraProvider({key:'test',fetcher:async()=>Response.json({error:'private provider diagnostic'},{status:400})})('System',[],'Question'),null);
 });
+test('rate-limit diagnostics retain bounded retry guidance without upstream secrets or blaming input data',async()=>{
+ const api=provider();let issue;
+ const invoke=api.createVeraProvider({key:'synthetic-key',onUnavailable:value=>{issue=value;},fetcher:async()=>Response.json({error:{message:'private provider diagnostic and synthetic-secret'}},{status:429,headers:{'Retry-After':'389'}})});
+ assert.equal(await invoke('System',[],'Приходите са 120000 EUR'),null);
+ assert.equal(issue.kind,'rate_limit');assert.equal(issue.retryAfterSeconds,389);
+ const reply=api.providerUnavailableReply('Изчисли маржа',issue);assert.match(reply,/389/);assert.match(reply,/не означава грешка/);assert.match(reply,/Не е използван въпрос/);assert.doesNotMatch(reply,/synthetic|private|secret/);
+ assert.doesNotMatch(api.providerUnavailableReply('Question',{kind:'rate_limit',retryAfterSeconds:NaN}),/NaN/);
+});
 test('structured assessment requests use supported JSON/reasoning controls and reject truncated final output',async()=>{
  const api=provider();let body;
  const invoke=api.createVeraProvider({key:'synthetic-key',maxTokens:8192,jsonMode:true,reasoningEffort:'low',fetcher:async(url,init)=>{body=JSON.parse(init.body);return Response.json({choices:[{finish_reason:'stop',message:{content:'{"title":"Synthetic report"}'}}]});}});

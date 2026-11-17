@@ -306,3 +306,9 @@
 ## 2026-11-17 — preserved corpus retrieval
 
 Applied additive service-only fresh-retrieval migration 20261116221329, matching hosted SQL. Corrected GDPR canonical source and provision parsing; five immutable corpus versions / 1,742 chunks are stored. Legal content remains unreviewed; consumer directive unavailable. Added 24-hour maximum retrieval age without silent stale fallback. Profiles fingerprint unchanged, no client credit use or synthetic persisted cases. Hosted ROLLBACK PASS; 64 app + 24 Postgres tests, build/typecheck/audit PASS. Full private corpus export restores exactly with three rollback checks; SHA dbaf10524759aa714b8682f2b2f42416ec972ba98562672ca3144feed8c6a407. Candidate only; actual model scenarios and qualified review remain outstanding.
+
+## 2026-11-18 — actual model evaluation and provider diagnostics
+
+The existing administrator signed into preview 8931758; fixed synthetic scenarios now archive actual outputs without client credits. Greeting is concise and transparent. Vague intake is too verbose and bundles questions; corrected figures are followed but delay location was overinterpreted as cause. Prepared prompt refinements explicitly address these observed issues; their model behavior is not yet accepted.
+
+The provider returned real HTTP 429 responses with Retry-After 105, 274 and 389 seconds; pauses are respected. Runtime quality acceptance remains incomplete. New request-scoped failure callbacks retain only safe bounded retry metadata. Chat, calculations, legal research and reports can explain provider unavailability without blaming evidence, fabricating output or charging a limited answer. No automatic retries, paid fallback, new credentials, plan or role changes. Source backup precedes edits. 66 isolated application tests pass, including the observed cooldown path across all four answer routes. Final frozen-head CI/build and model re-evaluation remain separate gates.

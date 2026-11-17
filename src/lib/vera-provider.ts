@@ -1,6 +1,14 @@
 import 'server-only';
 
 export type VeraTurn = { role: 'user' | 'assistant'; content: string };
+export type VeraProviderIssue = { kind: 'rate_limit' | 'unavailable'; retryAfterSeconds?: number };
+export function providerUnavailableReply(message: string, issue: VeraProviderIssue) {
+  const bg = /[а-я]/i.test(message), seconds = issue.retryAfterSeconds;
+  const delay = typeof seconds === 'number' && Number.isFinite(seconds) && seconds > 0 ? Math.max(1,Math.min(86400,Math.ceil(seconds))) : null;
+  return bg
+    ? (issue.kind === 'rate_limit' ? 'AI услугата временно ограничава заявките.' : 'AI услугата е временно недостъпна.') + (delay ? ` Опитай отново най-рано след ${delay} секунди.` : ' Опитай отново по-късно.') + ' Това не означава грешка в предоставените данни. Не е използван въпрос.'
+    : (issue.kind === 'rate_limit' ? 'The AI service is temporarily limiting requests.' : 'The AI service is temporarily unavailable.') + (delay ? ` Try again no sooner than ${delay} seconds from now.` : ' Please try again later.') + ' This does not indicate an error in your input data. No question was used.';
+}
 export const VERA_MODEL = 'stepfun/step-3.7-flash:free';
 export function validateVeraHistory(input: unknown): VeraTurn[] | null {
   if (input === undefined) return [];
@@ -14,9 +22,9 @@ export function validateVeraHistory(input: unknown): VeraTurn[] | null {
   }
   return result;
 }
-export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetcher = fetch, maxTokens = 4096, jsonMode = false, reasoningEffort }: { key?: string; fetcher?: typeof fetch; maxTokens?: number; jsonMode?: boolean; reasoningEffort?: 'low' | 'medium' | 'high' } = {}) {
+export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetcher = fetch, maxTokens = 4096, jsonMode = false, reasoningEffort, onUnavailable }: { key?: string; fetcher?: typeof fetch; maxTokens?: number; jsonMode?: boolean; reasoningEffort?: 'low' | 'medium' | 'high'; onUnavailable?: (issue: VeraProviderIssue) => void } = {}) {
   return async (system: string, history: VeraTurn[], message: string) => {
-    if (!key) return null;
+    if (!key) { onUnavailable?.({kind:'unavailable'}); return null; }
     try {
       const response = await fetcher('https://inference-api.nousresearch.com/v1/chat/completions', {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(45000),
@@ -32,6 +40,7 @@ export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetch
         }
         const retry = response.headers.get('retry-after');
         const seconds = retry ? (/^\d+$/.test(retry) ? Number(retry) : (Date.parse(retry) - Date.now()) / 1000) : NaN;
+        onUnavailable?.({kind:response.status===429?'rate_limit':'unavailable',...(Number.isFinite(seconds)&&seconds>0?{retryAfterSeconds:Math.max(1,Math.min(86400,Math.ceil(seconds)))}:{})});
         console.error('Vera provider request failed', { status: response.status, category, retryAfterSeconds: Number.isFinite(seconds) ? Math.max(0, Math.min(86400, Math.ceil(seconds))) : null });
         return null;
       }
@@ -39,9 +48,9 @@ export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetch
       // Never substitute private reasoning fields for an absent final answer.
       const content = data?.choices?.[0]?.message?.content;
       const finishReason = ['stop', 'length', 'tool_calls', 'content_filter'].includes(data?.choices?.[0]?.finish_reason) ? data.choices[0].finish_reason : 'unknown';
-      if (typeof content !== 'string' || !content.trim() || finishReason === 'length') { console.error('Vera provider returned no complete final answer', { finishReason, completionTokens: Number.isFinite(data?.usage?.completion_tokens) ? data.usage.completion_tokens : null, reasoningTokens: Number.isFinite(data?.usage?.completion_tokens_details?.reasoning_tokens) ? data.usage.completion_tokens_details.reasoning_tokens : null }); return null; }
+      if (typeof content !== 'string' || !content.trim() || finishReason === 'length') { onUnavailable?.({kind:'unavailable'}); console.error('Vera provider returned no complete final answer', { finishReason, completionTokens: Number.isFinite(data?.usage?.completion_tokens) ? data.usage.completion_tokens : null, reasoningTokens: Number.isFinite(data?.usage?.completion_tokens_details?.reasoning_tokens) ? data.usage.completion_tokens_details.reasoning_tokens : null }); return null; }
       const reply = content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*$/gi, '').trim();
       return reply ? { reply } : null;
-    } catch (error) { console.error('Vera provider temporarily unavailable', { timedOut: error instanceof Error && error.name === 'TimeoutError' }); return null; }
+    } catch (error) { onUnavailable?.({kind:'unavailable'}); console.error('Vera provider temporarily unavailable', { timedOut: error instanceof Error && error.name === 'TimeoutError' }); return null; }
   };
 }
