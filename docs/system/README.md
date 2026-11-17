@@ -8,6 +8,8 @@ This is the versioned build and recovery record. User direction on 31 October 20
 - `function-matrix.md`: function inventory, evidence and remaining verification.
 - `change-log.md`: dated work, decisions, tests and rollout status.
 - `recovery.md`: backups, reconstruction and database-preserving rollback.
+- `vera-knowledge-design.md`: private knowledge corpus, exact-version retrieval, case provenance and archived model evaluations.
+- `vera-expertise-acceptance.md`: business/legal/dialogue quality benchmark, actual evidence and remaining professional review gates.
 - `../../ops/backend/`: reviewed server modules and isolated-data tests.
 - `../../supabase/migrations/`: database changes in chronological order.
 - `../../MAINTENANCE.md`: release dependencies and verified rollout state.

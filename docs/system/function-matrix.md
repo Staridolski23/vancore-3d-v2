@@ -1,6 +1,23 @@
 # Function and acceptance matrix
 
-Updated: 7 November 2026; older baseline evidence is retained where checks remain outstanding. Repeat changed checks before rollout. No status here means all possible edge cases are covered.
+Updated: 14 November 2026; the current Vera addendum below supersedes historical Vera rows. Older baseline evidence is retained where checks remain outstanding. No status here means all possible edge cases are covered.
+
+## Current Vera acceptance
+
+| Function | Evidence | Limits / remaining acceptance |
+|---|---|---|
+| Registered access only | Production: 11 anonymous operations return 401/no-store, including legacy visitor cookie; registered client retained session | Complete fresh signup/email/expiry acceptance remains in the broader audit |
+| Private history and reports | API and actual-migration owner/foreign-ID tests; isolated two-client browser; production own conversation and assessment load/download | New accounts do not inherit or claim another user's history |
+| Long-case context | Saved editable notes, version checks, older-fact regression beyond recent history | Bounded retrieval; no guarantee every old detail enters every prompt |
+| Structured AI drafts | Actual Bulgarian model report on synthetic case, saved/reloaded/downloaded in production; exact source quotes | AI assertions still require consultant judgment; provider may throttle |
+| Question accounting | Actual report charged exactly once (4 to 3); two failed/limited attempts uncharged; retry/concurrency tests | Test record deliberately retained and labelled synthetic |
+| Explicit consultant submission | Full local browser workflow; hosted transaction with ROLLBACK including assignment/review/withdrawal | No real staff submission or authored review manufactured in production; email delivery not enabled |
+| Staff privacy/audit | Protected roles, assigned-only consultant reads, revoked sharing denial, stale retry protection and atomic review/audit tests | Real operator browser acceptance remains outstanding |
+| Recovery | Targeted pre/post exports restored with exact values and owned assessment read; both backend SQLite restores PASS | Managed Auth/Storage/OS/DNS recovery is not established by these targeted checks |
+
+Release source c014ce6: 44 application/API tests and 19 actual-migration Postgres tests passed, along with build/typecheck/dependency audit. Hosted migration and ROLLBACK acceptance passed. Desktop UI checked; attempted viewport override did not apply, so mobile acceptance is not claimed.
+
+## Historical broader inventory
 
 | Function | Baseline evidence | Remaining acceptance |
 |---|---|---|
