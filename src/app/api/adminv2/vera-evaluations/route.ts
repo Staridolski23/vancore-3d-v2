@@ -26,9 +26,10 @@ export async function POST(request: NextRequest) {
     const result = await answerVera(scenario.scenario.history, scenario.scenario.message,undefined,{sourceAuthorization:request.headers.get('authorization')});
     const calculations = (result as { calculations?: BusinessCalculation[] }).calculations;
     const numericalIssue = (result as { validationIssue?: string }).validationIssue;
+    const legalIssue = (result as {legalValidationIssue?:string}).legalValidationIssue;
     const checks = { aiAvailable: result.mode === 'ai', cyrillicPresent: /[а-я]/i.test(result.reply), questionMarks: (result.reply.match(/\?/g) || []).length, chars: result.reply.length, ...(body.scenarioId === 'business-margin-v1' ? { expectedMarginPresent: calculations?.some(item => item.kind === 'gross_margin_percent' && item.result === 25) === true } : {}), qualification: 'Mechanical observations only; professional quality requires human review.' };
     const engine = (result as {engine?:string}).engine;
-    const diagnosticChecks = {...checks,...(numericalIssue ? {numericalValidationIssue:numericalIssue} : {}),...(engine==='verified_arithmetic'?{calculationEngine:engine,verifiedCalculationAvailable:!!calculations?.length}:{} )};
+    const diagnosticChecks = {...checks,...(numericalIssue ? {numericalValidationIssue:numericalIssue} : {}),...(legalIssue?{legalValidationIssue:legalIssue}:{}),...(engine==='verified_arithmetic'?{calculationEngine:engine,verifiedCalculationAvailable:!!calculations?.length}:{} )};
     const saved = await veraKnowledge.saveEvaluation(body.scenarioId, user.id, scenario.lease, result, diagnosticChecks);
     if (saved?.saved !== true) return json({ error: 'Evaluation result could not be archived.' }, 503);
     return json({ ...saved, mode: result.mode, output: result.reply, checks:diagnosticChecks, suiteVersion: scenario.suite_version });

@@ -78,6 +78,14 @@ test('fabricated quotes, article numbers, source IDs and arbitrary URLs cannot b
     const body = good(); Object.assign(body.issues[0], changed); const f = researcher({ body }), result = await f.invoke([], query); assert.equal(f.calls, 1); assert.equal(result.mode, 'limited', JSON.stringify(changed)); assert.equal(result.research, undefined);
   }
 });
+
+test('legal rejection diagnostics contain only fixed categories and whitespace changes never permit altered quotations', async () => {
+  const wrapped=good();wrapped.issues[0].quote=statement.replace('contract requires','contract\n requires');
+  const accepted=await researcher({body:wrapped}).invoke([],query);assert.equal(accepted.mode,'ai');assert.equal(accepted.research.issues[0].citation.quote,statement);
+  for(const [change,expected]of [[{quote:'Invented private synthetic legal quote that is absent from source.'},'quote_mismatch'],[{article:'Чл. 999.'},'article_reference'],[{sourceId:'private-invalid-source'},'source_reference'],[{application:'Under Article 999 this is allowed.'},'prose_format']]){
+    const body=good();Object.assign(body.issues[0],change);const rejected=await researcher({body}).invoke([],query);assert.equal(rejected.mode,'limited');assert.equal(rejected.legalValidationIssue,expected);assert.doesNotMatch(JSON.stringify(rejected),/private-invalid|Article 999|Invented private/);
+  }
+});
 test('legal report retains server-verified references through saved draft and TXT export; unavailable research creates no assessment', async () => {
   const research = (await researcher().invoke([], query)).research;
   const evidence = { notes: '', sources: [{ requestId: 'owned', statement: query }], selectedSources: 1, totalCompletedRequests: 1, scope: 'Selected user evidence' };

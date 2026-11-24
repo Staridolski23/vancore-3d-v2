@@ -84,7 +84,17 @@ Historical 8 November Vera baseline: production 9cPqvbLo29A9wDaHU1KhUdgjEQBj, so
 
 ## 14 November registered-only casework baseline
 
+24 November security baseline supersedes the frontend revision below: main `3e8131bc667c32c39c3cea9af5fe19322ceeecd2`, production `dpl_B8f8unM8TqKSh7jzaQPrKq712TYh`, Next.js 15.5.29. Preserve the registered-only/canonical-role/quota boundaries during forward fixes.
+
 Production `9S1fptrK4HVHAenBqaCw4Ve7sKYa`, source `c014ce63ba5062780f7b9aa2e128575ff71af65d`; migrations through `20261114204845`. Recover by forward fix while preserving registered-only access, canonical roles, the closed legacy endpoints, Starter lifetime usage, immutable AI drafts, separate consultant reviews and explicit sharing/withdrawal state. Do not drop casework tables, reopen visitor RPCs, overwrite newer data from a pre-change export, or promote an older application that permits anonymous generation.
+
+### 24 November official-source relay
+
+The reviewed installer `ops/backend/deploy-legal-source-proxy.py` stages under `/var/backups/vancore/codex-20261124-legal-source-proxy`. It pins the original server/canonical verifier, candidate manifest and public Sectigo intermediate; verifies that intermediate against existing OS roots; creates a Ministry-only curl trust bundle; then requires all four real downloads to succeed before installing. The module mounts only its fixed read-only prefix using `apiSecurity.principal`, before the global route middleware. No credentials or browser grants are created.
+
+Installed server SHA is `ce4be3d09ae1987bf13c51b01205683aa67f98f8cf50ca9c72b796ad0889ea40`; source module SHA is `1c1ba6a1eec6e31621de10e47f661358e127f8e5c13fe9cca80a6b4c29aed684`. The pre-install server and online active/legacy SQLite copies are in the root-private `installation-rollback` subfolder. A relay-only rollback restores that server code and restarts the existing PM2 application, preserving strict auth, canonical roles and disabled contact mail. Do not restore database copies over newer customer activity. A rollback leaves the unreferenced module/bundle inert; remove only after verifying the route is unmounted. Prefer a reviewed forward fix once the frontend depends on the relay.
+
+The pre-install application/config archive `20261124T175025.106449Z` has SHA `a543fafde567c30b978a23618b1dba1b6da66cee88db9835fdfd93a8de2dc6c4`; its off-host copy is under the existing owner-only `backups/20261116-vera-knowledge`. Archive path checks, active SQLite isolated restore, legacy SQLite integrity and unchanged live row fingerprints all pass. The scoped CA bundle never disables hostname, certificate-chain or expiry verification. Certificate renewal or a corrected Ministry chain requires a reviewed transport update rather than insecure TLS flags.
 
 Private backups are outside Git under `backups/20261114-vera-registered`, with owner-only local ACL. Before/after exports are `vera-before.json` and `vera-after-casework.json`. Their SHA-256 values are respectively `1302b0113ecb0a243b9cf1c92030f59fa480c5d4a1781981fc487bba80fbd8da` and `69c9a888f366ba0d29f34f6550d0c0c781daac318b318c5a2dc9e4016adfd93c`. The after export includes all new private casework tables (empty staff tables are intentional). `source-before.bundle` and `source-after.bundle` preserve source history; the separately archived manifest records their hashes.
 
