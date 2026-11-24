@@ -2,6 +2,9 @@ import 'server-only';
 
 export type VeraTurn = { role: 'user' | 'assistant'; content: string };
 export type VeraProviderIssue = { kind: 'rate_limit' | 'unavailable'; retryAfterSeconds?: number };
+export type VeraProviderCooldown = { until: number };
+// Best-effort backpressure within this server instance; no customer data is cached.
+const instanceCooldown: VeraProviderCooldown = {until:0};
 export function providerUnavailableReply(message: string, issue: VeraProviderIssue) {
   const bg = /[а-я]/i.test(message), seconds = issue.retryAfterSeconds;
   const delay = typeof seconds === 'number' && Number.isFinite(seconds) && seconds > 0 ? Math.max(1,Math.min(86400,Math.ceil(seconds))) : null;
@@ -22,9 +25,11 @@ export function validateVeraHistory(input: unknown): VeraTurn[] | null {
   }
   return result;
 }
-export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetcher = fetch, maxTokens = 4096, jsonMode = false, reasoningEffort, onUnavailable }: { key?: string; fetcher?: typeof fetch; maxTokens?: number; jsonMode?: boolean; reasoningEffort?: 'low' | 'medium' | 'high'; onUnavailable?: (issue: VeraProviderIssue) => void } = {}) {
+export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetcher = fetch, maxTokens = 4096, jsonMode = false, reasoningEffort, onUnavailable, cooldown = instanceCooldown, clock = Date.now }: { key?: string; fetcher?: typeof fetch; maxTokens?: number; jsonMode?: boolean; reasoningEffort?: 'low' | 'medium' | 'high'; onUnavailable?: (issue: VeraProviderIssue) => void; cooldown?:VeraProviderCooldown; clock?:()=>number } = {}) {
   return async (system: string, history: VeraTurn[], message: string) => {
     if (!key) { onUnavailable?.({kind:'unavailable'}); return null; }
+    const remaining = Math.ceil((cooldown.until-clock())/1000);
+    if (remaining>0) {onUnavailable?.({kind:'rate_limit',retryAfterSeconds:Math.min(86400,remaining)});return null;}
     try {
       const response = await fetcher('https://inference-api.nousresearch.com/v1/chat/completions', {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(45000),
@@ -39,9 +44,11 @@ export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetch
           category = /quota|credits|balance|daily|per.day/.test(message) ? 'quota' : /overload|capacity|temporarily unavailable/.test(message) ? 'capacity' : /max_tokens|token.*limit|output.*limit/.test(message) ? 'token_limit' : 'rate_limit';
         }
         const retry = response.headers.get('retry-after');
-        const seconds = retry ? (/^\d+$/.test(retry) ? Number(retry) : (Date.parse(retry) - Date.now()) / 1000) : NaN;
-        onUnavailable?.({kind:response.status===429?'rate_limit':'unavailable',...(Number.isFinite(seconds)&&seconds>0?{retryAfterSeconds:Math.max(1,Math.min(86400,Math.ceil(seconds)))}:{})});
-        console.error('Vera provider request failed', { status: response.status, category, retryAfterSeconds: Number.isFinite(seconds) ? Math.max(0, Math.min(86400, Math.ceil(seconds))) : null });
+        const seconds = retry ? (/^\d+$/.test(retry) ? Number(retry) : (Date.parse(retry) - clock()) / 1000) : NaN;
+        const retrySeconds = Number.isFinite(seconds)&&seconds>0 ? Math.max(1,Math.min(86400,Math.ceil(seconds))) : response.status===429 ? 30 : null;
+        if(response.status===429)cooldown.until=Math.max(cooldown.until,clock()+retrySeconds!*1000);
+        onUnavailable?.({kind:response.status===429?'rate_limit':'unavailable',...(retrySeconds?{retryAfterSeconds:retrySeconds}:{})});
+        console.error('Vera provider request failed', { status: response.status, category, retryAfterSeconds: retrySeconds });
         return null;
       }
       const data = await response.json();

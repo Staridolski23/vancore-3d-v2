@@ -20,6 +20,13 @@ test('rate-limit diagnostics retain bounded retry guidance without upstream secr
  const reply=api.providerUnavailableReply('Изчисли маржа',issue);assert.match(reply,/389/);assert.match(reply,/не означава грешка/);assert.match(reply,/Не е използван въпрос/);assert.doesNotMatch(reply,/synthetic|private|secret/);
  assert.doesNotMatch(api.providerUnavailableReply('Question',{kind:'rate_limit',retryAfterSeconds:NaN}),/NaN/);
 });
+test('server-instance cooldown respects Retry-After across requests without extending it or caching customer replies',async()=>{
+ const api=provider(),cooldown={until:0};let now=1000000,calls=0,issue,lastMessage;
+ const factory=()=>api.createVeraProvider({key:'test',cooldown,clock:()=>now,onUnavailable:x=>{issue=x;},fetcher:async(_url,init)=>{calls++;lastMessage=JSON.parse(init.body).messages.at(-1).content;return calls===1?Response.json({error:{message:'rate limited'}},{status:429,headers:{'Retry-After':'105'}}):Response.json({choices:[{finish_reason:'stop',message:{content:'Ready'}}]});}});
+ assert.equal(await factory()('System',[],'Case A'),null);const deadline=cooldown.until;
+ now+=20000;assert.equal(await factory()('System',[],'Case B'),null);assert.equal(calls,1);assert.equal(issue.retryAfterSeconds,85);assert.equal(cooldown.until,deadline);
+ now=deadline+1;assert.equal((await factory()('System',[],'Case B')).reply,'Ready');assert.equal(calls,2);assert.equal(lastMessage,'Case B');
+});
 test('structured assessment requests use supported JSON/reasoning controls and reject truncated final output',async()=>{
  const api=provider();let body;
  const invoke=api.createVeraProvider({key:'synthetic-key',maxTokens:8192,jsonMode:true,reasoningEffort:'low',fetcher:async(url,init)=>{body=JSON.parse(init.body);return Response.json({choices:[{finish_reason:'stop',message:{content:'{"title":"Synthetic report"}'}}]});}});

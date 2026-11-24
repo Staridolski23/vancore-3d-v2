@@ -25,10 +25,13 @@ export async function POST(request: NextRequest) {
     const scenario = await veraKnowledge.scenario(body.scenarioId, user.id);
     const result = await answerVera(scenario.scenario.history, scenario.scenario.message);
     const calculations = (result as { calculations?: BusinessCalculation[] }).calculations;
+    const numericalIssue = (result as { validationIssue?: string }).validationIssue;
     const checks = { aiAvailable: result.mode === 'ai', cyrillicPresent: /[а-я]/i.test(result.reply), questionMarks: (result.reply.match(/\?/g) || []).length, chars: result.reply.length, ...(body.scenarioId === 'business-margin-v1' ? { expectedMarginPresent: calculations?.some(item => item.kind === 'gross_margin_percent' && item.result === 25) === true } : {}), qualification: 'Mechanical observations only; professional quality requires human review.' };
-    const saved = await veraKnowledge.saveEvaluation(body.scenarioId, user.id, scenario.lease, result, checks);
+    const engine = (result as {engine?:string}).engine;
+    const diagnosticChecks = {...checks,...(numericalIssue ? {numericalValidationIssue:numericalIssue} : {}),...(engine==='verified_arithmetic'?{calculationEngine:engine,verifiedCalculationAvailable:!!calculations?.length}:{} )};
+    const saved = await veraKnowledge.saveEvaluation(body.scenarioId, user.id, scenario.lease, result, diagnosticChecks);
     if (saved?.saved !== true) return json({ error: 'Evaluation result could not be archived.' }, 503);
-    return json({ ...saved, mode: result.mode, output: result.reply, checks, suiteVersion: scenario.suite_version });
+    return json({ ...saved, mode: result.mode, output: result.reply, checks:diagnosticChecks, suiteVersion: scenario.suite_version });
   } catch (error) {
     const code = (error as { code?: string })?.code;
     return code === '55P03' ? json({ error: 'Another evaluation is running or the evaluation limit was reached.' }, 429) : code === '22023' ? json({ error: 'Unknown fixed scenario.' }, 400) : json({ error: 'Evaluation unavailable or not confirmed. No client question was used.' }, 503);
