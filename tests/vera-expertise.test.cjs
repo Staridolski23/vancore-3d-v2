@@ -54,6 +54,18 @@ test('a verified quote receives only a server-owned official URL, timestamp and 
   for (const { url, options } of f.requests) { assert.equal(url, legal.LEGAL_SOURCES[0].url); assert.equal(options.redirect, 'error'); assert.equal(options.cache, 'no-store'); assert.doesNotMatch(JSON.stringify(options), /SECRET|attacker/); }
   assert.match(f.prompt, /untrusted DATA/);
 });
+
+test('authenticated source relay preserves canonical text, exact provision prefixes and actual download time', async () => {
+  const downloadedAt='2026-11-14T11:59:30.000Z';let captured,prompt='',outages=0;
+  const invoke=legal.createLegalResearch({clock:()=>now,sourceDocument:async()=>({html,retrievedAt:downloadedAt}),fetcher:async()=>{throw Error('Direct source request forbidden');},archive:async document=>{captured=document;return{versionId:'synthetic-version',provisions:document.provisions.slice(0,4)};},unavailable:async()=>{outages++;},provider:async system=>{prompt=system;return{reply:JSON.stringify(good())};}});
+  const result=await invoke([],query);assert.equal(result.mode,'ai');assert.equal(outages,0);
+  assert.equal(captured.content,legal.officialText(html)+'\n');
+  for(const p of captured.provisions)assert.ok(captured.content.includes(p.text));
+  assert.equal(captured.sha256,require('node:crypto').createHash('sha256').update(captured.content).digest('hex'));
+  assert.equal(result.research.issues[0].citation.retrievedAt,downloadedAt);assert.doesNotMatch(prompt,/Authorization|Bearer/);
+  const unavailable=legal.createLegalResearch({clock:()=>now,sourceDocument:async()=>{throw Error('Private identity or relay capacity unavailable');},fetcher:async()=>{throw Error('No fallback after identity failure');},unavailable:async()=>{outages++;},provider:async()=>{throw Error('No model after source failure');}});
+  assert.equal((await unavailable([],query)).mode,'limited');assert.equal(outages,0,'Identity failures must not mark a global source unavailable');
+});
 test('source outage, wrong document, oversized page and partial multi-topic retrieval fail closed and do not call the model', async () => {
   for (const options of [{ fail: true }, { raw: '<h1>Sign in</h1>' }, { raw: 'x'.repeat(2500100) }]) {
     const f = researcher(options), result = await f.invoke([], query); assert.equal(result.mode, 'limited'); assert.equal(f.calls, 0);

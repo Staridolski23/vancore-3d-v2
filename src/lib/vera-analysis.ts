@@ -5,9 +5,9 @@ import { BUSINESS_STANDARD } from './vera-expertise';
 import { createLegalResearch, legalCaseText, legalResearchText, needsLegalResearch, type LegalResearch } from './vera-legal';
 import { validateBusinessCalculations, businessCalculationText, type BusinessCalculation } from './vera-business-calculations';
 import { veraKnowledge } from './vera-knowledge-server';
+import { createSourceProxy } from './vera-source-proxy';
 export type CaseEvidence = { notes: string; sources: { requestId: string; statement: string; truncated?: boolean }[]; totalCompletedRequests: number; selectedSources: number; scope: string };
 export type AnalysisDraft = { title: string; summary: string; facts: { quote: string; sourceRequestId: string }[]; unknowns: string[]; hypotheses: string[]; risks: string[]; actions: { priority: string; action: string; ownerRole: string; metric: string; timeframe: string }[]; questions: string[]; legalResearch?: LegalResearch; calculations?: BusinessCalculation[] };
-const legalResearch = createLegalResearch({ archive: veraKnowledge.archiveAndSelect, unavailable: veraKnowledge.sourceUnavailable, fresh: veraKnowledge.freshSource });
 const text = (value: unknown, max: number): value is string => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
 const list = (value: unknown, max = 12): value is string[] => Array.isArray(value) && value.length <= max && value.every(item => text(item, 1200));
 export function validateAnalysis(value: unknown, evidence: CaseEvidence): AnalysisDraft | null {
@@ -32,10 +32,10 @@ export function analysisText(data: AnalysisDraft, notes = '') {
   if (data.calculations?.length) lines.push('', 'CHECKED ARITHMETIC / ПРОВЕРЕНИ ИЗЧИСЛЕНИЯ (input meaning still requires review)', ...data.calculations.map(item => businessCalculationText(item)));
   return lines.join('\n');
 }
-export async function analyseVera(_history: VeraTurn[], message: string, evidence: CaseEvidence) {
+export async function analyseVera(_history: VeraTurn[], message: string, evidence: CaseEvidence,transport:{sourceAuthorization?:string|null}={}) {
   if (needsLegalResearch(legalCaseText([], '', evidence))) {
     const languageSample = evidence.sources.at(-1)?.statement || evidence.notes;
-    const result = await legalResearch([], languageSample, evidence);
+    const result = await createLegalResearch({archive:veraKnowledge.archiveAndSelect,unavailable:veraKnowledge.sourceUnavailable,fresh:veraKnowledge.freshSource,sourceDocument:createSourceProxy(transport.sourceAuthorization)})([], languageSample, evidence);
     if (result.mode !== 'ai' || !evidence.sources.length) return { reply: result.reply, mode: 'limited' as const, model: null };
     const research = result.research;
     const bg = /[а-я]/i.test(languageSample);

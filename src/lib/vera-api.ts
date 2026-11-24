@@ -75,7 +75,8 @@ export async function POST(request: NextRequest) {
     const message = body.action === 'analysis' ? 'Prepare the structured AI draft assessment for this case using its stored evidence and case notes.' : body.message.trim();
     const started = await rpc(identity, 'begin', body.conversationId, body.requestId, { message, expectedVersion: body.expectedVersion, kind: body.action === 'analysis' ? 'analysis' : 'conversation' });
     if (started.state !== 'generate') return publicResult(started, identity);
-    const answer = body.action === 'analysis' ? await analyseVera(started.history, started.message, started.caseMemory as CaseEvidence) : await answerVera(started.history, started.message, started.caseMemory);
+    const transport={sourceAuthorization:request.headers.get('authorization')};
+    const answer = body.action === 'analysis' ? await analyseVera(started.history, started.message, started.caseMemory as CaseEvidence,transport) : await answerVera(started.history, started.message, started.caseMemory,transport);
     const completed = await rpc(identity, 'finish', body.conversationId, body.requestId, { lease: started.lease, ...answer });
     return publicResult(completed, identity);
   } catch (error) { return failure(error); }

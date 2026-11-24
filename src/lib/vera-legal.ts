@@ -75,23 +75,33 @@ function selectedProvisions(provisions: Provision[], query: string) {
 type Retrieved = { source: Source; provisions: Provision[]; retrievedAt: string; sha256: string; versionId?: string };
 type Archive = (document: { source: Source; content: string; sha256: string; provisions: Provision[] }, query: string) => Promise<{ versionId: string; provisions: Provision[] }>;
 type Fresh = (sourceId:string,query:string)=>Promise<{versionId:string;sha256:string;retrievedAt:string;provisions:Provision[]}|null>;
-async function retrieve(source: Source, query: string, fetcher: typeof fetch, now: Date, archive?: Archive, fresh?:Fresh, unavailable?:(sourceId:string)=>Promise<void>): Promise<Retrieved | null> {
+type SourceDocument = (source:Source)=>Promise<{html:string;retrievedAt:string}|null>;
+async function retrieve(source: Source, query: string, fetcher: typeof fetch, now: Date, archive?: Archive, fresh?:Fresh, unavailable?:(sourceId:string)=>Promise<void>,sourceDocument?:SourceDocument): Promise<Retrieved | null> {
   if(fresh){try{const saved=await fresh(source.id,query);if(saved)return{source,...saved};}catch{return null;}}
+  let relayed:{html:string;retrievedAt:string}|null=null;
+  // Identity/relay capacity failures must not poison shared official-source availability.
+  if(sourceDocument){try{relayed=await sourceDocument(source);}catch{return null;}}
   let documentAccepted=false;
   const failed=async()=>{if(unavailable){try{await unavailable(source.id);}catch{/* Storage failure does not manufacture source availability. */}}return null;};
   try {
+    let html='',retrievedAt=now.toISOString();
+    if(relayed){html=relayed.html;retrievedAt=relayed.retrievedAt;}else{
     const response = await fetcher(source.url, { redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(6500), headers: { Accept: 'text/html', 'User-Agent': 'VANCORE-Legal-Research/1.0' } });
     if (!response.ok || !/text\/html/i.test(response.headers.get('content-type') || '') || Number(response.headers.get('content-length') || 0) > 2500000 || !response.body) return failed();
-    const reader = response.body.getReader(); const decoder = new TextDecoder(); let html = '', bytes = 0;
+    const reader = response.body.getReader(); const decoder = new TextDecoder(); let bytes = 0;
     try { while (true) { const part = await reader.read(); if (part.done) break; bytes += part.value.byteLength; if (bytes > 2500000) { await reader.cancel(); return failed(); } html += decoder.decode(part.value, { stream: true }); } } finally { reader.releaseLock(); }
     html += decoder.decode();
-    const all = legalProvisions(html, source), sha256 = createHash('sha256').update(html).digest('hex');
+    }
+    const content=officialText(html)+'\n';
+    // Match the operator ingestion's canonical text and exact provision prefixes.
+    const all = legalProvisions(html, source).map(p=>{let low=0,high=p.text.length;while(low<high){const mid=Math.ceil((low+high)/2);if(content.includes(p.text.slice(0,mid)))low=mid;else high=mid-1;}if(low<35)throw Error('Provision outside preserved source');return{article:p.article,text:p.text.slice(0,low)};});
+    const sha256 = createHash('sha256').update(content).digest('hex');
     if (!all.length) return failed();
     documentAccepted=true;
-    const saved = archive ? await archive({ source, content: html, sha256, provisions: all }, query) : null;
+    const saved = archive ? await archive({ source, content, sha256, provisions: all }, query) : null;
     const provisions = saved ? saved.provisions : selectedProvisions(all, query);
     if (!provisions.length) return null;
-    return { source, provisions, retrievedAt: now.toISOString(), sha256, ...(saved ? { versionId: saved.versionId } : {}) };
+    return { source, provisions, retrievedAt, sha256, ...(saved ? { versionId: saved.versionId } : {}) };
   } catch { return documentAccepted ? null : failed(); }
 }
 const isText = (v: unknown, max: number): v is string => typeof v === 'string' && v.trim().length > 0 && v.length <= max && !/https?:\/\/|www\.|<\/?[a-z]/i.test(v);
@@ -115,7 +125,7 @@ export function legalResearchText(data: LegalResearch, bg = true) {
     bg ? '\nЛипсващи данни' : '\nMissing information', ...data.missing.map(x => '- ' + x), bg ? '\nПредложени следващи стъпки' : '\nProposed next steps', ...data.nextSteps.map(x => '- ' + x),
     bg ? '\nИзвличането на официален текст не доказва, че са проверени всички изменения, изключения и съдебна практика. Приложимостта и правните срокове изискват проверка от квалифициран юрист. Бизнес консултантски преглед не е юридическо одобрение.' : '\nRetrieving an official text does not establish that all amendments, exceptions and case law have been checked. Applicability and legal deadlines require qualified lawyer verification. A business consultant review is not legal approval.'].join('\n');
 }
-export function createLegalResearch({ fetcher = fetch, provider, clock = () => new Date(), archive, unavailable, fresh }: { fetcher?: typeof fetch; provider?: ReturnType<typeof createVeraProvider>; clock?: () => Date; archive?: Archive; unavailable?: (sourceId: string) => Promise<void>;fresh?:Fresh } = {}) {
+export function createLegalResearch({ fetcher = fetch, provider, clock = () => new Date(), archive, unavailable, fresh, sourceDocument }: { fetcher?: typeof fetch; provider?: ReturnType<typeof createVeraProvider>; clock?: () => Date; archive?: Archive; unavailable?: (sourceId: string) => Promise<void>;fresh?:Fresh;sourceDocument?:SourceDocument } = {}) {
   return async (history: VeraTurn[], message: string, evidence?: Evidence) => {
     const query = legalCaseText(history, message, evidence), bg = /[а-я]/i.test(message || query), now = clock();
     const limited = (reply: string) => ({ reply: reply + (bg ? '\nТова уточнение/ограничение не използва въпрос.' : '\nThis clarification/limitation does not use a question.'), mode: 'limited' as const, model: null });
@@ -128,7 +138,7 @@ export function createLegalResearch({ fetcher = fetch, provider, clock = () => n
     if (past || !/към днес|днешна дата|към момента|действащ|текущ|днес|as of today|current|today/i.test(query)) return limited(bg ? 'Към коя дата са събитията и за коя дата трябва да проверим правото? Автоматичното проучване засега извлича текущо публикувани текстове; историческа редакция изисква отделна проверка.' : 'What are the event date and the date for the applicable law? Automatic research retrieves currently published texts; historical versions require separate verification.');
     const candidates = LEGAL_SOURCES.filter(s => (s.jurisdiction === 'EU' || bulgaria) && patterns[s.topic].test(query)).slice(0, 3);
     if (!candidates.length) return limited(bg ? 'Темата е извън наличните източници за договори, търговски/трудови отношения, лични данни и потребителски права. Нужни са допълнителни официални източници и квалифициран юридически преглед; няма да извеждам правен отговор по памет.' : 'This topic needs additional official sources and qualified legal review. I will not infer legal rules from model memory.');
-    const retrieved = await Promise.all(candidates.map(s => retrieve(s, query, fetcher, now, archive, fresh, unavailable)));
+    const retrieved = await Promise.all(candidates.map(s => retrieve(s, query, fetcher, now, archive, fresh, unavailable, sourceDocument)));
     // No silent partial-source success: a missing requested topic may change the conclusion.
     if (retrieved.some(s => !s||!s.provisions.length)) return limited(bg ? 'Не открих достатъчно проверени и относими официални текстове за тази тема. Няма да посочвам непроверени членове, срокове или категоричен правен извод. Можем да уточним фактите или да предадем казуса за квалифициран юридически преглед.' : 'I could not find sufficient verified and relevant official text. I will not invent provisions, deadlines or a definitive legal conclusion. We can clarify the facts or request qualified legal review.');
     const sources = retrieved as Retrieved[], jurisdiction = bulgaria ? 'Bulgaria / EU applicability to verify' : 'EU / national implementation to verify';
