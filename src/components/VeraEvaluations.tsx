@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { authenticatedFetch } from '@/lib/authenticated-fetch';
-const scenarios = [['dialogue-greeting-v1','Поздрав'],['dialogue-vague-v1','Неясен първи казус'],['dialogue-correction-v1','Поправка на данни'],['dialogue-topic-switch-v1','Смяна на тема'],['business-margin-v1','Бизнес изчисление'],['legal-jurisdiction-v1','Правно уточнение']] as const;
+const scenarios = [['dialogue-greeting-v1','Поздрав'],['dialogue-vague-v1','Неясен първи казус'],['dialogue-correction-v1','Поправка на данни'],['dialogue-topic-switch-v1','Смяна на тема'],['business-margin-v1','Бизнес изчисление'],['legal-jurisdiction-v1','Правно уточнение'],['legal-bg-contract-v1','Официален БГ източник'],['legal-eu-gdpr-v1','Официален GDPR източник']] as const;
 type Run = { id: string; scenario_id: string; result_mode: string; output: string; human_review_status: string; created_at: string; automated_checks?: {calculationEngine?:string} };
 export default function VeraEvaluations() {
   const [selected,setSelected]=useState<string>(scenarios[0][0]),[items,setItems]=useState<Run[]>([]),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
