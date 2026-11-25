@@ -2,7 +2,17 @@
 
 ## Current status and activation boundary
 
-The implementation is a disabled candidate. Account sign-in is not an inference
+Update, 25 November evening: Cloudflare-only synthetic administrator routing is
+enabled in the maintenance preview. Workers Free was verified in the dashboard;
+the restricted Workers AI token is a Vercel Secret on this branch only. Hosted
+budget migration 20261125175329 and its ROLLBACK acceptance passed. Four actual
+dialogue scenarios returned `cloudflare:@cf/openai/gpt-oss-120b`; the business
+margin check returned verified 25% without AI. The official BG source scenario
+was rejected with `prose_format`, so legal quality is not accepted. Groq remains
+disabled. Customer and production routing have not been switched. The following
+describes the implementation defaults and the gates for any broader activation.
+
+The implementation defaults to disabled. Account sign-in is not an inference
 connection. Existing production and customer routing remain on the accepted
 legacy path. No credentials are stored in source or copied into the browser.
 

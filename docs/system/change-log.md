@@ -383,3 +383,32 @@ Owner explicitly approved Groq Console's read-only GitHub profile/email/org
 permissions. GitHub authorization succeeded, but Groq sign-up returned errors on
 two normal attempts. Prepared the already authorized company email for a manual
 email login instead; no account success or API connectivity is claimed.
+
+### 25 November — Cloudflare-only maintenance preview connection
+
+Owner stopped the failing Groq login route and approved a Workers AI token for
+the single Momchil account, stored as a server-only Vercel Secret scoped to
+maintenance/2026-10-24 Preview. Dashboard confirms Workers Free; no paid upgrade
+or billing method added. Groq stays disabled, customer flag stays false. Only
+synthetic administrator evaluations use the new provider.
+
+Applied additive hosted budget migration 20261125175329; service-role ROLLBACK
+test passed for concurrency, cooldown, owned leases and restricted grants.
+Existing private application snapshot restored exactly before activation. Current
+profile fingerprint remains 62126c1b4909072b566f0ac37bd0077d, 11 profiles and four
+customer requests. No customer question was used.
+
+Preview dpl_9sGTQRmt9jX2ht6kAENb6RfUMMK3 (c0c7f9d) READY. Actual greeting,
+correction, vague-intake and topic-switch tests return Cloudflare gpt-oss-120b.
+Gross margin is verified 25% without inference. Official BG legal output was
+rejected by prose_format validation; legal quality is still not accepted. Do not
+describe the six-run suite as fully passing. First readback: 5 provider attempts,
+1852 conservatively reserved units, no active lease; not actual billed usage.
+
+Targeted post-test application snapshot, all 22 historical evaluations and budget
+row restore exactly; SHA 5adbc1b6f288fcd04428832c60a54d1a251e5c0a88d381b70c0963ebe85e0df1.
+All three existing ROLLBACK acceptances pass. Unchanged 3470 knowledge sections
+were verified against hosted content by order-independent PostgreSQL JSONB hash
+f68e4913a6951dcd874613704d1f5fff; all other application tables freshly exported.
+Detailed non-secret activation record is in outputs/VANCORE-cloudflare-activation-20261125.md
+outside the repository. Preserve customer isolation, quotas and immutable drafts.
