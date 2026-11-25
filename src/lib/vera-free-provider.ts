@@ -46,10 +46,12 @@ export function createFreeProvider({fetcher=fetch,maxTokens=4096,jsonMode=false,
         const reader=response.body.getReader(),decoder=new TextDecoder();let raw='',size=0;
         try{while(true){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>262144){await reader.cancel();throw Error('Oversized inference');}raw+=decoder.decode(part.value,{stream:true});}}finally{reader.releaseLock();}
         raw+=decoder.decode();const data=JSON.parse(raw),choice=data?.choices?.[0];
+        const modelNames=config.id==='groq'?[FREE_MODELS.groq]:[FREE_MODELS.cloudflare,'openai/gpt-oss-120b','gpt-oss-120b'];
+        if(typeof data.model!=='string'||!modelNames.includes(data.model))continue;
         if(choice?.finish_reason!=='stop'||typeof choice?.message?.content!=='string')continue;
         const reply=choice.message.content.replace(/<think>[\s\S]*?<\/think>/gi,'').replace(/<think>[\s\S]*$/gi,'').trim();
         if(!reply||reply.length>30000)continue;
-        return{reply,model:config.id+':'+FREE_MODELS[config.id]};
+        return{reply,model:config.id+':'+data.model};
       }catch{/* Failed attempts retain their reserved budget; no hidden retry on the same provider. */}
       finally{try{await admission('release',config.id,{lease:grant.lease,retryAfterSeconds:cooldown});}catch{/* Lease expiry bounds a storage outage; no further unsafe admission. */}}
     }
