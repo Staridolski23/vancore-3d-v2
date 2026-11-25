@@ -352,3 +352,34 @@ After the required pause, real GDPR retrieval succeeded through preview/backend/
 Functional head 37451209b2ef8c53d77b461e7e60e2f76e446403 passes exact-head CI (75 app tests, existing 24 Postgres tests, build/typecheck/audit), with preview dpl_82p1oKZP723w9AjEmUP6Y7ReSh3u Ready. The repeated BG source test at 18:09:13 UTC returned provider Retry-After 1572 seconds (no request before 18:35:25 UTC). This does not verify the revised legal output contract. Reliable free-provider capacity and an accepted real source-grounded legal answer remain release blockers; the complete maintenance branch remains draft/unpromoted.
 
 Final targeted snapshot SHA 72d01352a641f554090e02a8c0f939f5c0ca5c77bcdafa83b10e9fe55d2f761c preserves 16 evaluation attempts, 9 immutable knowledge versions / 3470 sections, 11 unchanged profiles and the original four client requests. Exact offline restore and the three ROLLBACK checks pass. Earlier 11-run and 15-run checkpoint exports remain preserved. No client credits, passwords, plans, roles or real consultant assignments were changed. Actual UI evidence and bounded deployment/backup/test records are retained in the task outputs; the signed-in stable admin tab remains available for continuation.
+
+## 2026-11-25 — disabled free-provider pilot candidate
+
+Owner requested a free primary/reserve approach with a limited initial audience.
+Prepared fixed Groq/Cloudflare GPT-OSS 120B adapters with actual model provenance
+through conversation, calculations, legal research and report paths. Feature
+switches default to legacy/customer-disabled; explicit administrator evaluation
+audience is server-owned. No new provider inference, key creation, paid account,
+environment change or customer-data forwarding occurred in this phase.
+
+The additive inference-budget migration is prepared locally, not applied to the
+hosted database yet. It provides service-only global reservations, one provider
+lease, UTC daily/minute limits and durable Retry-After. Missing storage refuses an
+inference call. Conservative full-input bounds avoid silently dropping evidence;
+failed requests retain reserved budget. These controls do not prove a provider
+account is free or guarantee capacity. Free-plan confirmation flags stay false.
+
+Local application tests (81), four new admission/ROLLBACK tests, the prior full
+27-test Postgres run, typecheck and production build pass. The updated targeted
+restore helper also restores the historical 16-run snapshot exactly with the new
+schema present, retaining all three original ROLLBACK acceptances. Details and
+activation/data-processing gates are in vera-free-pilot.md. Real-provider quality
+acceptance and activation remain pending.
+
+Cloudflare account access and verified email are observed; its owner used the
+personal GitHub-related email rather than the initially proposed company email.
+The account's billing/free-plan status and scoped API credential are unverified.
+Owner explicitly approved Groq Console's read-only GitHub profile/email/org
+permissions. GitHub authorization succeeded, but Groq sign-up returned errors on
+two normal attempts. Prepared the already authorized company email for a manual
+email login instead; no account success or API connectivity is claimed.

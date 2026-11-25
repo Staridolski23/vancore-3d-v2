@@ -16,12 +16,12 @@ test('database source adapter enforces dated metadata, bounded excerpts and no s
 test('greetings, vague openings, corrections and topic switches stay conversational instead of inheriting stale legal/numeric routing',async()=>{
  let systems=[],ordinary=0,legal=0,numeric=0;
  const base=loadVera('src/lib/vera-legal.ts');const answers=loadVera('src/lib/vera-answers.ts',{
- './vera-provider':{VERA_MODEL:'synthetic',createVeraProvider:()=>async system=>{ordinary++;systems.push(system);return{reply:'Synthetic conversational reply'};}},
+ './vera-provider':{VERA_MODEL:'synthetic',createVeraProvider:()=>async system=>{ordinary++;systems.push(system);return{reply:'Synthetic conversational reply',model:'actual-selected-provider:model'};}},
  './vera-legal':{...base,createLegalResearch:()=>async()=>{legal++;return{reply:'Synthetic legal clarification',mode:'limited',model:null};}},
  './vera-business-answer':{...loadVera('src/lib/vera-business-answer.ts'),createBusinessAnswer:()=>async()=>{numeric++;return{reply:'Synthetic numeric answer',mode:'ai',model:'synthetic'};}}
  });
  const history=[{role:'user',content:'Правен договор в България; марж 20%.'},{role:'assistant',content:'За коя държава и към коя дата е казусът?'}];
- for(const message of ['Здравей, Вера!','Благодаря ти!','Нова тема: как да измерим забавянето между отделите?'])await answers.answerVera(history,message);
+ for(const message of ['Здравей, Вера!','Благодаря ти!','Нова тема: как да измерим забавянето между отделите?'])assert.equal((await answers.answerVera(history,message)).model,'actual-selected-provider:model');
  assert.equal(ordinary,3);assert.equal(legal,0);assert.equal(numeric,0);
  assert.match(systems[0],/greet naturally/);assert.match(systems[0],/one concrete/);assert.match(systems[0],/Reconcile corrections/);assert.match(systems[0],/do not force a previous legal or numerical intake/i);
  await answers.answerVera(history,'България, към днешна дата.');assert.equal(legal,1);

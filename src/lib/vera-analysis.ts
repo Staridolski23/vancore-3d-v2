@@ -32,10 +32,10 @@ export function analysisText(data: AnalysisDraft, notes = '') {
   if (data.calculations?.length) lines.push('', 'CHECKED ARITHMETIC / ПРОВЕРЕНИ ИЗЧИСЛЕНИЯ (input meaning still requires review)', ...data.calculations.map(item => businessCalculationText(item)));
   return lines.join('\n');
 }
-export async function analyseVera(_history: VeraTurn[], message: string, evidence: CaseEvidence,transport:{sourceAuthorization?:string|null}={}) {
+export async function analyseVera(_history: VeraTurn[], message: string, evidence: CaseEvidence,transport:{sourceAuthorization?:string|null;audience?:'client'|'evaluation'}={}) {
   if (needsLegalResearch(legalCaseText([], '', evidence))) {
     const languageSample = evidence.sources.at(-1)?.statement || evidence.notes;
-    const result = await createLegalResearch({archive:veraKnowledge.archiveAndSelect,unavailable:veraKnowledge.sourceUnavailable,fresh:veraKnowledge.freshSource,sourceDocument:createSourceProxy(transport.sourceAuthorization)})([], languageSample, evidence);
+    const result = await createLegalResearch({archive:veraKnowledge.archiveAndSelect,unavailable:veraKnowledge.sourceUnavailable,fresh:veraKnowledge.freshSource,sourceDocument:createSourceProxy(transport.sourceAuthorization),audience:transport.audience})([], languageSample, evidence);
     if (result.mode !== 'ai' || !evidence.sources.length) return { reply: result.reply, mode: 'limited' as const, model: null };
     const research = result.research;
     const bg = /[а-я]/i.test(languageSample);
@@ -47,7 +47,7 @@ export async function analyseVera(_history: VeraTurn[], message: string, evidenc
       questions: research.missing.slice(0, 5), legalResearch: research,
     };
     const reply = analysisText(draft);
-    return JSON.stringify(draft).length <= 15000 && reply.length <= 16000 ? { reply, mode: 'ai' as const, model: VERA_MODEL, analysis: draft, knowledgeRefs: result.knowledgeRefs } : { reply: limitedReply(languageSample), mode: 'limited' as const, model: null };
+    return JSON.stringify(draft).length <= 15000 && reply.length <= 16000 ? { reply, mode: 'ai' as const, model: result.model||VERA_MODEL, analysis: draft, knowledgeRefs: result.knowledgeRefs } : { reply: limitedReply(languageSample), mode: 'limited' as const, model: null };
   }
   const caseLanguage = /[а-я]/i.test(evidence.sources.at(-1)?.statement || evidence.notes) ? 'Bulgarian' : 'English';
   let method: { content: string; versionId: string };
@@ -56,12 +56,12 @@ export async function analyseVera(_history: VeraTurn[], message: string, evidenc
   // Regenerate the assessment from user evidence, not earlier AI conclusions.
   const calculationInstructions = `Include calculations: an array (empty if no calculation is needed) of {kind,inputs:[{name,value,unit,sourceRequestId,quote}],result,resultUnit}. Supported kinds/input names: gross_margin_percent(revenue,costOfSales), markup_percent(sellingPrice,cost), conversion_percent(conversions,opportunities), utilisation_percent(usedCapacity,availableCapacity), relative_change_percent(before,after), percentage_point_change(before,after). Use exactly two inputs with matching units/periods and exact client quotes containing the unambiguous numeric input. Percent kinds have resultUnit "%"; percentage_point_change uses inputs in "%" and resultUnit "percentage points". Never invent an input; do not calculate if units, baseline, cost classification or attribution are uncertain. Calculations will be checked by code, but economic interpretation still needs review. Do not put numerical conclusions from these operations in prose without the corresponding calculations entry. No unsupported ROI/payback/market benchmark should be manufactured.`;
   let providerIssue: VeraProviderIssue | undefined;
-  const provider = createVeraProvider({maxTokens:8192,jsonMode:true,reasoningEffort:'low',onUnavailable:issue=>{providerIssue=issue;}});
+  const provider = createVeraProvider({audience:transport.audience,maxTokens:8192,jsonMode:true,reasoningEffort:'low',onUnavailable:issue=>{providerIssue=issue;}});
   const result = evidence.sources.length ? await provider(instructions + '\n' + BUSINESS_STANDARD + '\nVERSIONED BUSINESS REFERENCE:\n' + method.content + '\n' + calculationInstructions + '\nWrite the report in ' + caseLanguage + '.', [], message) : null;
   if (!result && providerIssue) return {reply:providerUnavailableReply(evidence.sources.at(-1)?.statement||message,providerIssue),mode:'limited' as const,model:null};
   let parsed: AnalysisDraft | null = null;
   try { if (result) { parsed = validateAnalysis(JSON.parse(result.reply.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')), evidence); if (!parsed) console.warn('Vera assessment rejected', { reason: 'invalid_schema_or_evidence' }); } } catch { console.warn('Vera assessment rejected', { reason: 'invalid_json' }); }
   if (!parsed) return { reply: limitedReply(evidence.sources.at(-1)?.statement || message), mode: 'limited' as const, model: null };
   const reply = analysisText(parsed);
-  return reply.length <= 16000 ? { reply, mode: 'ai' as const, model: VERA_MODEL, analysis: parsed, knowledgeRefs: [method.versionId] } : { reply: limitedReply(message), mode: 'limited' as const, model: null };
+  return reply.length <= 16000 ? { reply, mode: 'ai' as const, model: result?.model||VERA_MODEL, analysis: parsed, knowledgeRefs: [method.versionId] } : { reply: limitedReply(message), mode: 'limited' as const, model: null };
 }

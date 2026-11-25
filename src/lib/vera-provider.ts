@@ -1,4 +1,5 @@
 import 'server-only';
+import { createFreeProvider } from './vera-free-provider';
 
 export type VeraTurn = { role: 'user' | 'assistant'; content: string };
 export type VeraProviderIssue = { kind: 'rate_limit' | 'unavailable'; retryAfterSeconds?: number };
@@ -25,7 +26,14 @@ export function validateVeraHistory(input: unknown): VeraTurn[] | null {
   }
   return result;
 }
-export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetcher = fetch, maxTokens = 4096, jsonMode = false, reasoningEffort, onUnavailable, cooldown = instanceCooldown, clock = Date.now }: { key?: string; fetcher?: typeof fetch; maxTokens?: number; jsonMode?: boolean; reasoningEffort?: 'low' | 'medium' | 'high'; onUnavailable?: (issue: VeraProviderIssue) => void; cooldown?:VeraProviderCooldown; clock?:()=>number } = {}) {
+export type VeraProviderOptions={key?:string;fetcher?:typeof fetch;maxTokens?:number;jsonMode?:boolean;reasoningEffort?:'low'|'medium'|'high';onUnavailable?:(issue:VeraProviderIssue)=>void;cooldown?:VeraProviderCooldown;clock?:()=>number;audience?:'client'|'evaluation'};
+export function createVeraProvider(options:VeraProviderOptions={}){
+  // New destinations first receive fixed synthetic admin cases only. No environment change alone
+  // redirects customer evidence until the separate reviewed customer switch is enabled.
+  if(process.env.VERA_AI_MODE==='free-pilot'&&(options.audience==='evaluation'||process.env.VERA_AI_CUSTOMER_ENABLED==='true'))return createFreeProvider(options);
+  return createNousProvider(options);
+}
+function createNousProvider({ key = process.env.NOUS_API_KEY || '', fetcher = fetch, maxTokens = 4096, jsonMode = false, reasoningEffort, onUnavailable, cooldown = instanceCooldown, clock = Date.now }:VeraProviderOptions={}) {
   return async (system: string, history: VeraTurn[], message: string) => {
     if (!key) { onUnavailable?.({kind:'unavailable'}); return null; }
     const remaining = Math.ceil((cooldown.until-clock())/1000);
@@ -57,7 +65,7 @@ export function createVeraProvider({ key = process.env.NOUS_API_KEY || '', fetch
       const finishReason = ['stop', 'length', 'tool_calls', 'content_filter'].includes(data?.choices?.[0]?.finish_reason) ? data.choices[0].finish_reason : 'unknown';
       if (typeof content !== 'string' || !content.trim() || finishReason === 'length') { onUnavailable?.({kind:'unavailable'}); console.error('Vera provider returned no complete final answer', { finishReason, completionTokens: Number.isFinite(data?.usage?.completion_tokens) ? data.usage.completion_tokens : null, reasoningTokens: Number.isFinite(data?.usage?.completion_tokens_details?.reasoning_tokens) ? data.usage.completion_tokens_details.reasoning_tokens : null }); return null; }
       const reply = content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*$/gi, '').trim();
-      return reply ? { reply } : null;
+      return reply ? { reply,model:VERA_MODEL } : null;
     } catch (error) { onUnavailable?.({kind:'unavailable'}); console.error('Vera provider temporarily unavailable', { timedOut: error instanceof Error && error.name === 'TimeoutError' }); return null; }
   };
 }

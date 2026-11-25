@@ -1,5 +1,14 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
-function provider(){const file=path.join(__dirname,'../src/lib/vera-provider.ts'),source=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext('(function(require,module,exports){'+source+'\n})',{process:{env:{}},AbortSignal,console:{error(){}},fetch:()=>{throw Error('No external QA calls');}})(id=>{if(id==='server-only')return{};throw Error(id);},module,module.exports);return module.exports;}
+function provider(env={},freeFactory=()=>{throw Error('Free mode must remain inactive in legacy tests');}){const file=path.join(__dirname,'../src/lib/vera-provider.ts'),source=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const module={exports:{}};vm.runInNewContext('(function(require,module,exports){'+source+'\n})',{process:{env},AbortSignal,console:{error(){}},fetch:()=>{throw Error('No external QA calls');}})(id=>{if(id==='server-only')return{};if(id==='./vera-free-provider')return{createFreeProvider:freeFactory};throw Error(id);},module,module.exports);return module.exports;}
+
+test('free pilot sends only explicit synthetic evaluations to new destinations until customer routing is separately enabled',async()=>{
+ let free=0,legacy=0;const factory=()=>{free++;return async()=>({reply:'Synthetic free answer',model:'groq:synthetic'});};
+ const api=provider({VERA_AI_MODE:'free-pilot'},factory);
+ const fetcher=async()=>{legacy++;return Response.json({choices:[{finish_reason:'stop',message:{content:'Legacy customer answer'}}]});};
+ assert.equal((await api.createVeraProvider({key:'test',fetcher})('System',[],'Customer case')).model,api.VERA_MODEL);assert.equal(free,0);assert.equal(legacy,1);
+ assert.equal((await api.createVeraProvider({audience:'evaluation'})('System',[],'Synthetic case')).model,'groq:synthetic');assert.equal(free,1);
+ const enabled=provider({VERA_AI_MODE:'free-pilot',VERA_AI_CUSTOMER_ENABLED:'true'},factory);assert.equal((await enabled.createVeraProvider()('System',[],'Case')).model,'groq:synthetic');
+});
 test('Vera request includes required tags and bounded history, preserves the complete final answer and hides reasoning',async()=>{
  const api=provider();let captured;
  const invoke=api.createVeraProvider({key:'synthetic-key',fetcher:async(url,init)=>{captured={url,body:JSON.parse(init.body)};return Response.json({choices:[{message:{content:'<think>private synthetic thought</think>First paragraph.\n\nSecond paragraph.',reasoning_details:[{text:'must never be returned'}]}}]});}});

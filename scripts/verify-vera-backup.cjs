@@ -19,10 +19,10 @@ let db,phase='read-private-snapshots';
   const names=(await fs.readdir(directory)).filter(n=>n.endsWith('_'+suffix));if(names.length!==1)throw Error('Ambiguous migration');
   await db.exec(await fs.readFile(path.join(directory,names[0]),'utf8'));
  }
- for(const suffix of ['vera_registered_accounts.sql','vera_casework.sql','vera_knowledge_base.sql','vera_knowledge_fresh_retrieval.sql']){const names=(await fs.readdir(directory)).filter(n=>n.endsWith('_'+suffix));if(names.length>1)throw Error('Ambiguous migration');if(names.length)await db.exec(await fs.readFile(path.join(directory,names[0]),'utf8'));}
+ for(const suffix of ['vera_registered_accounts.sql','vera_casework.sql','vera_knowledge_base.sql','vera_knowledge_fresh_retrieval.sql','vera_inference_budget.sql']){const names=(await fs.readdir(directory)).filter(n=>n.endsWith('_'+suffix));if(names.length>1)throw Error('Ambiguous migration');if(names.length)await db.exec(await fs.readFile(path.join(directory,names[0]),'utf8'));}
  phase='restore-ledger-data';
  const tables={actors:'vera_actors',conversations:'vera_conversations',requests:'vera_requests',reports:'vera_reports',audit:'account_change_audit'};
- for(const table of ['vera_case_memory','vera_analyses','vera_handoffs','vera_handoff_events','vera_consultant_reviews'])if(Array.isArray(data[table]))tables[table]=table;
+ for(const table of ['vera_case_memory','vera_analyses','vera_handoffs','vera_handoff_events','vera_consultant_reviews','vera_inference_budget'])if(Array.isArray(data[table]))tables[table]=table;
  const corpus=['vera_knowledge_sources','vera_knowledge_versions','vera_knowledge_chunks','vera_knowledge_checks','vera_request_knowledge','vera_evaluation_scenarios','vera_evaluation_runs','vera_evaluation_leases'];
  if(Array.isArray(data.vera_knowledge_sources)){await db.exec('TRUNCATE '+corpus.map(t=>'vancore_private.'+quote(t)).join(',')+' CASCADE');for(const table of corpus){if(!Array.isArray(data[table]))throw Error('Incomplete knowledge archive');tables[table]=table;}}
  for(const version of data.vera_knowledge_versions||[])if(crypto.createHash('sha256').update(version.content).digest('hex')!==version.sha256)throw Error('Knowledge content digest differs');

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     let body; try { body = JSON.parse(raw); } catch { return json({ error: 'Invalid request.' }, 400); }
     if (!body || Object.keys(body).length !== 1 || typeof body.scenarioId !== 'string' || !/^[a-z-]+-v1$/.test(body.scenarioId)) return json({ error: 'Choose a fixed evaluation scenario.' }, 400);
     const scenario = await veraKnowledge.scenario(body.scenarioId, user.id);
-    const result = await answerVera(scenario.scenario.history, scenario.scenario.message,undefined,{sourceAuthorization:request.headers.get('authorization')});
+    const result = await answerVera(scenario.scenario.history, scenario.scenario.message,undefined,{sourceAuthorization:request.headers.get('authorization'),audience:'evaluation'});
     const calculations = (result as { calculations?: BusinessCalculation[] }).calculations;
     const numericalIssue = (result as { validationIssue?: string }).validationIssue;
     const legalIssue = (result as {legalValidationIssue?:string}).legalValidationIssue;
