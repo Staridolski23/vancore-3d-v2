@@ -15,7 +15,8 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Pricing</h1>
-            <p className="text-lg text-[#9a9a9a] max-w-2xl mx-auto">Simple, transparent pricing. Paid plans are activated by our team after agreement. <span className="text-white font-medium">Start with 5 free Starter questions.</span></p>
+            <p role="status" className="text-lg text-[#dedede] max-w-2xl mx-auto">Automated Vera analysis is temporarily paused. The plan details below describe analysis packages; they are not currently available for automatic use. Existing allowances are retained. Our team will confirm availability and scope before any activation.</p>
+            <a href="/ai-analyst" className="inline-block text-white underline mt-4">Send an enquiry with Vera — no account needed</a>
             <p className="text-sm text-[#9a9a9a] mt-4">Request a plan below. Our team will confirm the details and activate it after agreement.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

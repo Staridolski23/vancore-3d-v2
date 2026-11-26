@@ -11,7 +11,7 @@ function loadVera(relative,mocks={}){
   if(id.startsWith('./'))return loadVera(path.relative(root,path.resolve(path.dirname(filename),id+'.ts')),mocks);
   throw Error('Unexpected API dependency '+id);
  };
- vm.runInNewContext('(function(require,module,exports){'+output+'\n})',{process,Request,Response,Headers,URL,console,AbortSignal})(requireFixture,module,module.exports);
+ vm.runInNewContext('(function(require,module,exports){'+output+'\n})',{process,Request,Response,Headers,URL,console,AbortSignal,TextDecoder})(requireFixture,module,module.exports);
  return module.exports;
 }
 module.exports={loadVera};

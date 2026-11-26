@@ -5,6 +5,7 @@ import { downloadVeraBrief } from '@/lib/vera-download';
 import type { VeraState } from '@/lib/vera-types';
 import VeraAvatar from './VeraAvatar';
 import VeraCaseTools from './VeraCaseTools';
+import { VERA_ANALYSIS_PAUSED } from '@/lib/vera-availability';
 const field = 'w-full rounded border border-white/20 bg-[#1a1a1a] px-3 py-2 text-sm text-white';
 const button = 'rounded bg-[#991930] px-4 py-2 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed';
 export default function VeraWorkspace() {
@@ -21,7 +22,7 @@ export default function VeraWorkspace() {
     if (saved || (next.state === 'complete' && next.requestId === pending.current?.id)) { pending.current = null; setInput(''); }
     if (!next.conversation) pending.current = null;
     if (next.conversation?.id === startId.current) startId.current = null;
-    if (window.location.pathname === '/ai-analyst') {
+    if (window.location.pathname === '/vera-history') {
       const location = new URL(window.location.href);
       if (next.conversation) location.searchParams.set('conversation', next.conversation.id); else location.searchParams.delete('conversation');
       window.history.replaceState(null, '', location.pathname + location.search);
@@ -86,9 +87,9 @@ export default function VeraWorkspace() {
   const download = async (id: string) => { try { setError(''); await downloadVeraBrief(id); } catch { setError('The saved brief could not be downloaded. Please retry.'); } };
   const blocked = busy || loading || unavailable;
   return <section aria-label="Vera conversations" className="rounded border border-white/10 bg-[#0a0a0a] p-4 sm:p-6 text-white space-y-5">
-    <div className="flex items-center gap-3"><VeraAvatar className="w-9 h-9" /><div><h2 className="font-semibold">Vera AI</h2><p className="text-xs text-[#b5b5b5]">Business analyst · Preliminary guidance</p></div></div>
+    <div className="flex items-center gap-3"><VeraAvatar className="w-9 h-9" /><div><h2 className="font-semibold">Vera AI</h2><p className="text-xs text-[#b5b5b5]">Saved private conversations · New automated analysis paused</p></div></div>
     {loading && <p role="status">Loading saved conversations…</p>}
-    {signInRequired && <div className="space-y-3"><h3 className="font-semibold">Create your account to use Vera</h3><p className="text-sm text-[#dedede]">Register and verify your email, then sign in. Your conversations and saved reports belong to your account and are not shared with other clients.</p><div className="flex flex-wrap gap-4"><a className={button} href="/login?tab=register&next=%2Fai-analyst">Create account</a><a className="underline text-sm py-2" href="/login?next=%2Fai-analyst">Sign in</a></div></div>}
+    {signInRequired && <div className="space-y-3"><h3 className="font-semibold">Sign in to view your saved history</h3><p className="text-sm text-[#dedede]">Your saved conversations and reports belong to your account. Public enquiries do not require registration.</p><div className="flex flex-wrap gap-4"><a className={button} href="/login?tab=register&next=%2Fvera-history">Create account</a><a className="underline text-sm py-2" href="/login?next=%2Fvera-history">Sign in</a></div></div>}
     {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
     {notice && <p role="status" className="text-sm text-[#dedede]">{notice}</p>}
     {!signInRequired && <div className="flex gap-3 flex-wrap"><button className={button} disabled={busy || loading} onClick={() => void refresh(data?.conversation?.id || null)}>Reload conversation</button>
@@ -97,21 +98,21 @@ export default function VeraWorkspace() {
       {data.quota.validUntil && Number.isFinite(Date.parse(data.quota.validUntil)) && <> · Access valid until {new Date(data.quota.validUntil).toLocaleString()} (your local time)</>}</p>}
     {!!data?.conversations.length && <div className="space-y-2"><label htmlFor="vera-conversation" className="text-sm">Recent conversations (up to 50)</label><select id="vera-conversation" className={field} value={data.conversation?.id || ''} disabled={blocked || !!input || caseDirty || !!pending.current || !!data.conversation?.pending} onChange={event => void refresh(event.target.value)}>
       {data.conversations.map(item => <option value={item.id} key={item.id}>{item.title}</option>)}</select></div>}
-    {data && !data.conversation && !loading && <button className={button} disabled={blocked} onClick={() => void open()}>Start conversation</button>}
+    {!VERA_ANALYSIS_PAUSED && data && !data.conversation && !loading && <button className={button} disabled={blocked} onClick={() => void open()}>Start conversation</button>}
     {data?.conversation && <>
-      <div className="flex gap-3 flex-wrap"><button className={button} disabled={blocked || !!input || caseDirty || !!pending.current || !!data.conversation.pending} onClick={() => void open()}>New conversation</button><button className={button} disabled={blocked || caseDirty || !!pending.current || !!data.conversation.pending || !data.requests.some(item => item.status === 'complete')} onClick={() => void action({ action: 'report', conversationId: data.conversation?.id })}>Save preliminary brief</button></div>
+      <div className="flex gap-3 flex-wrap"><button className={button} disabled={VERA_ANALYSIS_PAUSED || blocked || !!input || caseDirty || !!pending.current || !!data.conversation.pending} onClick={() => void open()}>New conversation</button><button className={button} disabled={blocked || caseDirty || !!pending.current || !!data.conversation.pending || !data.requests.some(item => item.status === 'complete')} onClick={() => void action({ action: 'report', conversationId: data.conversation?.id })}>Save preliminary brief</button></div>
       {data.hasOlderRequests && <p className="text-sm text-[#b5b5b5]">Showing the most recent 100 requests. Earlier requests remain stored.</p>}
       <div aria-label="Saved conversation" className="space-y-4 max-h-[32rem] overflow-y-auto">
         {!data.requests.length && <p>What specific business problem would you like to explore?</p>}
         {data.requests.map(item => <article key={item.id} className="space-y-2 border-b border-white/10 pb-4"><p className="text-xs text-[#b5b5b5]">You · {new Date(item.created_at).toLocaleString()}</p><p className="whitespace-pre-wrap break-words text-sm">{item.message}</p>
           {item.status === 'complete' ? <><p className="text-xs text-[#b5b5b5]">Vera · {item.mode === 'limited' ? 'Limited response · No question used' : 'Preliminary AI response'}</p><p className="whitespace-pre-wrap break-words text-sm">{item.reply}</p></> : <p className="text-sm text-amber-200">{item.status === 'generating' ? 'Answer pending. Reload to check the saved result.' : 'No completed answer. This request has not used a question.'}</p>}</article>)}
       </div>
-      <form className="space-y-2" onSubmit={event => { event.preventDefault(); void send(); }}><label htmlFor="vera-chat-input" className="block text-sm">Your message</label><textarea id="vera-chat-input" className={field} maxLength={6000} rows={3} value={input} readOnly={!!pending.current || busy} disabled={loading} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
+      {!VERA_ANALYSIS_PAUSED && <form className="space-y-2" onSubmit={event => { event.preventDefault(); void send(); }}><label htmlFor="vera-chat-input" className="block text-sm">Your message</label><textarea id="vera-chat-input" className={field} maxLength={6000} rows={3} value={input} readOnly={!!pending.current || busy} disabled={loading} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
         <div className="flex gap-3 flex-wrap"><button className={button} type="submit" disabled={blocked || caseDirty || pending.current?.kind === 'analysis' || !input.trim() || !!data.conversation.pending || data.quota?.allowed === false}>{busy ? 'Saving…' : pending.current ? 'Retry same message' : 'Send'}</button>
-          {!!input && !busy && <button className="text-sm underline" type="button" onClick={() => { setInput(''); pending.current = null; }}>Discard draft (saved requests remain)</button>}</div></form>
+          {!!input && !busy && <button className="text-sm underline" type="button" onClick={() => { setInput(''); pending.current = null; }}>Discard draft (saved requests remain)</button>}</div></form>}
       <VeraCaseTools key={data.conversation.id} data={data} blocked={blocked} draftBlocked={!!input || (!!pending.current && pending.current.kind !== 'analysis')} analysisPending={pending.current?.kind === 'analysis'} act={action} generate={generate} discardAnalysis={() => { pending.current = null; setNotice('Report retry discarded. Saved requests remain.'); }} onDirty={setCaseDirty} />
     </>}
-    {data?.quota?.allowed === false && <div className="text-sm space-y-2"><p>Enquire about a plan; the team activates it after agreement.</p><div className="flex gap-4 flex-wrap"><a className="underline" href="/contact?plan=payg">PAYG €25 · 500 questions / 3 months</a><a className="underline" href="/contact?plan=professional">Professional €49/month</a><a className="underline" href="/contact?plan=business">Business €99/month</a></div></div>}
+    {!VERA_ANALYSIS_PAUSED && data?.quota?.allowed === false && <div className="text-sm space-y-2"><p>Enquire about a plan; the team activates it after agreement.</p><div className="flex gap-4 flex-wrap"><a className="underline" href="/contact?plan=payg">PAYG €25 · 500 questions / 3 months</a><a className="underline" href="/contact?plan=professional">Professional €49/month</a><a className="underline" href="/contact?plan=business">Business €99/month</a></div></div>}
     {!!data?.reports.length && <div className="space-y-2"><h3 className="font-semibold">Recent saved briefs (up to 50)</h3><p className="text-xs text-[#b5b5b5]">Conversation snapshots, not independently verified or human-reviewed reports.</p>{data.reports.map(report => <div className="flex justify-between gap-3 border-t border-white/10 pt-2 text-sm" key={report.id}><span>{report.title} · version {report.version}</span><button className="underline" disabled={busy} onClick={() => void download(report.id)}>Download brief</button></div>)}</div>}
   </section>;
 }
