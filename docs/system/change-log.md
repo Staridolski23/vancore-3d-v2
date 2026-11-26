@@ -412,3 +412,16 @@ were verified against hosted content by order-independent PostgreSQL JSONB hash
 f68e4913a6951dcd874613704d1f5fff; all other application tables freshly exported.
 Detailed non-secret activation record is in outputs/VANCORE-cloudflare-activation-20261125.md
 outside the repository. Preserve customer isolation, quotas and immutable drafts.
+
+### 26 November — Vera secretary and public enquiries
+
+Owner approved a temporary secretary-only product: public enquiry preparation
+without registration, with existing account history retained behind sign-in.
+Implemented a six-step BG/EN reviewed intake and strict same-origin bounded
+public route to the existing DigitalOcean administrator Enquiries inbox. No AI
+provider is used. New client conversation/analysis generation is paused before
+storage/quota calls; archived conversation/report access remains authenticated.
+See vera-secretary.md for data handling, mail-off status, backup and recovery.
+New meaningful API tests verify public submission, explicit sharing, hostile
+requests, failed/uncertain confirmation and paused generation with retained reads.
+Publication and real browser acceptance are recorded after verification.

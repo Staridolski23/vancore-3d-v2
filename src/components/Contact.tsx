@@ -58,7 +58,7 @@ export default function Contact() {
               <ul className="mt-3 space-y-1 text-xs text-[#9a9a9a]">
                 <li>• Booking &amp; client pipeline, fully managed</li>
                 <li>• Document automation with audit trail</li>
-                <li>• AI analyst for operational decision-making</li>
+                <li>• Vera — enquiry preparation without registration</li>
                 <li>• Client portal with role-based access</li>
               </ul>
               <p className="mt-3 text-[10px] text-[#6b6b6b]">No long-term lock-in. No opaque credits. You own your data.</p>
