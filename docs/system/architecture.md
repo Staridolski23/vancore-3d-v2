@@ -1,5 +1,17 @@
 # Architecture and data map
 
+## Current Vera baseline — 14 November 2026
+
+Production source `c014ce63ba5062780f7b9aa2e128575ff71af65d`, deployment `9S1fptrK4HVHAenBqaCw4Ve7sKYa`, is Ready on www.vancoresys.com. The dated entries below preserve earlier architecture and rollout evidence; their incomplete-Vera statements are historical.
+
+Vera now requires a verified, email-confirmed registered identity for every operation. Next verifies the identity and passes its UUID to service-only database RPCs; browsers cannot call the private ledger directly. The database enforces case ownership independently. Registration does not claim historical visitor rows by email. Protected roles govern staff access.
+
+Supabase migrations `20261114200840_vera_registered_accounts.sql` and `20261114204845_vera_casework.sql` add the registration boundary and casework. Private case notes supplement six recent conversation pairs and up to twelve relevant older user statements (1500 characters each; notes up to 6000). This is bounded retrieval, not unlimited memory. AI assessments use user evidence and notes, validate exact evidence quotations, and retain immutable source versions/model/notes snapshots. Prior AI statements are not promoted to source facts.
+
+Explicit client consent shares one selected assessment and its evidence/notes snapshot/message into the staff queue. Admins assign; consultants can read only assigned active submissions. Withdrawal blocks subsequent staff reads. Human review and audit events are stored separately from the immutable AI draft. No unrelated conversation is shared. Email notifications are not enabled by this workflow. TXT export is implemented; PDF is not.
+
+The provider remains the existing Nous free Step-3.7-Flash model. Structured generation uses JSON-object mode, low reasoning effort and an 8192 completion budget; ordinary chat remains 4096. Invalid/limited/throttled generation does not create an assessment or consume a question. Availability remains subject to the provider's limits; no paid fallback was added.
+
 ## Runtime
 
 1. Public site: `https://www.vancoresys.com`, Vercel, Next.js App Router, React 18, Tailwind 3. Current accepted production source: `e4f8d6cd2aec7119034685fa7797f367f1fddd24`, deployment `GjyfH1eo7PYe8EvoWb3YcovHC1R4` (7 November). The first canonical identity recovery baseline is 1c52bde; later rollbacks must preserve that boundary.

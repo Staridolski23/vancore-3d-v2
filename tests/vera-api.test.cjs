@@ -3,7 +3,7 @@ const {loadVera}=require('./helpers/vera-module.cjs');
 const conversation='00000000-0000-4000-8000-000000000010',requestId='00000000-0000-4000-8000-000000000011',userId='00000000-0000-4000-8000-000000000002';
 const request=body=>new Request('https://fixture.example/api/ai-analyst',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 const message=()=>({action:'message',conversationId:conversation,requestId,message:'Known business problem',expectedVersion:0});
-function fixture(){
+function fixture(paused=false){
  let user={id:userId,email:'one@example.invalid',email_confirmed_at:'2026-11-14T00:00:00Z'},authStatus=401,state='generate',finishError=false,providerCalls=0,calls=[],history;
  const rpc=async(name,input)=>{
   calls.push(input);
@@ -11,7 +11,7 @@ function fixture(){
   if(input.p_action==='finish')return finishError?{error:{code:'PGRST000'}}:{data:{state:'complete',conversation:{id:conversation,version:2},conversations:[],requests:[],quota:{remaining:4}},error:null};
   return{data:{state:'ready',conversation:null,conversations:[],requests:[],reports:[]},error:null};
  };
- const api=loadVera('src/lib/vera-api.ts',{'./request-auth':{requestUser:async()=>user,authFailure:()=>Response.json({error:'Synthetic verification failure'},{status:authStatus})},'./supabase':{supabaseAdmin:{rpc}},'./vera-answers':{answerVera:async(turns)=>{providerCalls++;history=turns;return{reply:'Synthetic answer',mode:'ai'};}},'./vera-analysis':{analyseVera:async()=>({reply:'Synthetic report',mode:'limited'}),analysisText:()=>''}});
+ const api=loadVera('src/lib/vera-api.ts',{'./vera-availability':{VERA_ANALYSIS_PAUSED:paused},'./request-auth':{requestUser:async()=>user,authFailure:()=>Response.json({error:'Synthetic verification failure'},{status:authStatus})},'./supabase':{supabaseAdmin:{rpc}},'./vera-answers':{answerVera:async(turns)=>{providerCalls++;history=turns;return{reply:'Synthetic answer',mode:'ai'};}},'./vera-analysis':{analyseVera:async()=>({reply:'Synthetic report',mode:'limited'}),analysisText:()=>''}});
  return{api,calls,set:value=>{({user=user,authStatus=authStatus,state=state,finishError=finishError}=value);},get providerCalls(){return providerCalls;},get history(){return history;}};
 }
 test('Vera route rejects browser history/identity fields, hostile origins and malformed messages before inference',async()=>{
@@ -51,3 +51,5 @@ test('limited BG/EN answers use confirmed plans and never pretend to generate a 
  assert.match(api.limitedReply('Какви са цените?'),/500 въпроса/);assert.match(api.limitedReply('Какви са цените?'),/3 месеца/);assert.match(api.limitedReply('pricing'),/€25 once/);
  const result=await api.answerVera([],'Екипът закъснява');assert.equal(result.mode,'limited');assert.match(result.reply,/Не е отнет въпрос/);
 });
+
+test('secretary phase stops new client generation without touching storage, quota or history',async()=>{const f=fixture(true);for(const body of [{action:'open',conversationId:conversation},message(),{action:'analysis',conversationId:conversation,requestId,expectedVersion:0}]){const response=await f.api.POST(request(body));assert.equal(response.status,503);assert.equal((await response.json()).state,'paused');}assert.equal(f.calls.length,0);assert.equal(f.providerCalls,0);const response=await f.api.GET(new Request('https://fixture.example/api/ai-analyst?conversationId='+conversation));assert.equal(response.status,200);assert.equal(f.calls[0].p_user,userId);assert.equal(f.calls[0].p_action,'read');});

@@ -42,8 +42,8 @@ const faqs = [
     a: 'Both. We usually start remotely for interviews and data review, then spend time on-site where it matters most — in the operations themselves.',
   },
   {
-    q: 'How does the AI Analyst / Vera fit in?',
-    a: 'Vera is a diagnostic layer that helps surface problems faster. It does not replace judgment. Our role is to interpret the output, connect it to what your people are already saying, and turn it into action.',
+    q: 'How does Vera help?',
+    a: 'Vera is our virtual assistant for preparing enquiries. No account is needed: describe your needs, review the summary, and choose to send it to the team. Automated analysis is temporarily paused. Saved private conversations remain behind account sign-in.',
   },
   {
     q: 'What information do you need from us?',

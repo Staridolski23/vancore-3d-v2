@@ -277,3 +277,151 @@
 - Actual preview preserved the existing authenticated client and its four questions. Synthetic case notes saved without charge. The first real structured-report request returned a limited, uncharged response; no invalid report was saved. Vercel's authenticated runtime log confirms the provider returned no final answer. The connector still lacks team scope, so the existing authenticated dashboard was used for the read-only log check.
 - Provider correction keeps the same :free model and 45-second call/60-second route bound, with a separate assessment budget (8192), JSON-object mode and low reasoning effort. Chat keeps its existing 4096 budget. Supported controls were verified against the live public Nous model catalog and the vendor model card; no paid model fallback is introduced. Truncated outputs are rejected; diagnostics log bounded reason/token counts only, never reasoning or raw responses. Assessments use user evidence/notes rather than recycling earlier AI conclusions. Actual corrected-provider acceptance remains pending at this entry.
 - A second actual report attempt was refused immediately with provider HTTP 429, so it did not exercise the new completion budget. The ledger confirms two limited/uncharged report requests and the original one charged conversation answer; the account remains at four questions. Added redacted classification/Retry-After diagnostics without logging upstream messages, credentials, case content or reasoning. No automatic retry, alternate account or paid-model switch is used.
+
+### 14 November: real structured report, production and post-change recovery accepted
+
+- One controlled retry after waiting succeeded with a Bulgarian structured AI draft on the existing clearly labelled synthetic case. It includes exact user evidence, unknowns, hypotheses, risks and proposed actions/roles/timings/indicators. The original free model was retained. Exactly one additional question was consumed (4 to 3); the earlier two limited attempts remain uncharged. No real consultant submission, authored review, team message or email was created.
+- Source c014ce63ba5062780f7b9aa2e128575ff71af65d passed exact-head CI: 44 app/API tests, 19 migration tests, build/typecheck/audit. Main fast-forwarded without force. Vercel production 9S1fptrK4HVHAenBqaCw4Ve7sKYa is Ready, source c014ce6, assigned to www.vancoresys.com. Existing client session loads the saved case, notes and report with three remaining questions. Portal Reports lists the assessment; production download succeeds. Sharing remains unchecked and disabled until the owner explicitly chooses it.
+- Eleven unauthenticated Vera checks return 401/no-store. Public health/login/Vera return 200; three private backend proxies return 401. The two tested older generated domains still redirect to Vercel SSO. No deployment protection was reduced. Whole-system acceptance and mobile validation remain separate work.
+- Post-change private export SHA 69c9a888f366ba0d29f34f6550d0c0c781daac318b318c5a2dc9e4016adfd93c restores 11 profiles, one actor/conversation, four ledger requests, one previous brief, one notes record and one AI assessment; no handoffs/reviews/audit rows. Exact recorded values, profile fingerprint, owned assessment retrieval and casework ROLLBACK acceptance on the restored data pass. Profile delta is one question and timestamp on one profile only; protected roles/plans/contacts remain unchanged. Backup verifier now exercises saved assessments and the full casework ROLLBACK script as well.
+- Current evidence and user-facing Bulgarian report are archived in outputs/VANCORE-vera-registered-casework-20261114.md, with a synthetic example report and screenshots. This is targeted application recovery, not a claim of full managed Auth/Storage or infrastructure recovery.
+
+### 16 November: candidate dialogue, expertise and database knowledge layer
+
+- Owner requires expert business/legal work, natural structured dialogue and permanent knowledge storage. Candidate adds conversational intake/corrections/topic switching, exact-source legal quotations, code-checked business arithmetic, a private versioned corpus and fixed admin model evaluations. It does not claim qualified legal approval, worldwide completeness or automatic learning from private cases.
+- Actual tests caught greeting punctuation inheriting an old legal intake. The fix recognises the social turn and keeps new operational topics out of stale legal/numerical routing. Tests also verify missing-source refusal, fabricated quotation/article rejection, currency/period consistency, margin/markup/percentage-point distinctions, source archive matching and protected admin-only fixed prompts.
+- Fresh targeted private export restores 11 profiles and the existing one case/four requests/one AI assessment exactly; fingerprint 62126c1b4909072b566f0ac37bd0077d. SHA 767e828f9b557962ade9a4955b8c8aa25dc7238186b6f79d9c0a310f2fbf496c. Pre-change source bundle plus working-source archive retained outside Git with owner-only ACL.
+- Local validation: 61 application/API tests and 23 actual-migration Postgres tests PASS. Both casework and knowledge acceptance scripts are rollback-only. Existing client data and protected roles remain unchanged. The production domain still serves c014ce6, verified through the restored Vercel connector. Candidate hosted migration, frozen-source CI, provider-backed evaluation and browser acceptance are recorded separately when completed.
+- Browser control cannot reach service inventory. Local official-source Node requests expose certificate-chain/malformed-header issues; no TLS or HTTP-parser protection was disabled. Source unavailability is explicit and uncharged. No new real-provider answer, client question, notification or fake professional review is claimed by isolated fixtures.
+
+### 16 November: hosted knowledge storage and recovery accepted; model review pending
+
+- Source 05bec7ab76509dabedddfe9a67431b5115d6c343 passed exact-head GitHub frontend CI (job 133611339804) and Vercel preview ErtAkwRo3FUVXMtqEPcnTEGQsoR8 Ready. Draft PR #9 opened through the existing noninteractive Git credential after the GitHub connector rejected PR creation with 403; no new grant/credential was created or printed.
+- Hosted additive migration ledger version is 20261116210647; local filename synchronised without SQL changes. Knowledge ROLLBACK acceptance passes and preserves eleven profiles, fingerprint 62126c1b4909072b566f0ac37bd0077d. Browser RPC/table grants are closed; immutable content/evaluation rows remain append-only. Private no-policy INFO lints are intentional; the pre-existing leaked-password warning is unchanged.
+- First real official source was retrieved with TLS verification and ingested: Obligations and Contracts Act, 287 provisions, SHA b4257078662e0fbc84e41e6b4668603aed9affa8402c406be292952ecc842fd8. It remains unreviewed. The six registry entries comprise this source, four unpopulated legal sources and one internal methodology. No model-generated fact or private client statement was inserted into global knowledge.
+- Post-change targeted snapshot SHA 40cb9d92ca46d10c72f39716212a5331504b26cb64288f02ca8f1f485eed3bf4 restores eleven profiles, unchanged existing casework, six source entries, two versions, 288 chunks and the six evaluation scenarios exactly. Source content digests, owned existing report retrieval, casework ROLLBACK and knowledge ROLLBACK all PASS. No real evaluation run exists at this snapshot point.
+- Main production remains c014ce6. After migration, eleven anonymous Vera operations still return 401/no-store, public health/login/Vera 200 and private bookings/documents/admin 401; tested historical deployment protection remains active. No client question, role, plan, protected profile field, email delivery or backend module changed in this phase.
+- Real dialogue/provider and browser evaluation remain pending. Owner received the concrete preview/admin test instructions because browser control times out before inventory. Actual outputs will be read from the protected database, not inferred from synthetic fixtures. Professional review and broader/historical/international legal coverage remain open.
+
+## 2026-11-17 — preserved corpus retrieval
+
+Applied additive service-only fresh-retrieval migration 20261116221329, matching hosted SQL. Corrected GDPR canonical source and provision parsing; five immutable corpus versions / 1,742 chunks are stored. Legal content remains unreviewed; consumer directive unavailable. Added 24-hour maximum retrieval age without silent stale fallback. Profiles fingerprint unchanged, no client credit use or synthetic persisted cases. Hosted ROLLBACK PASS; 64 app + 24 Postgres tests, build/typecheck/audit PASS. Full private corpus export restores exactly with three rollback checks; SHA dbaf10524759aa714b8682f2b2f42416ec972ba98562672ca3144feed8c6a407. Candidate only; actual model scenarios and qualified review remain outstanding.
+
+## 2026-11-18 — actual model evaluation and provider diagnostics
+
+The existing administrator signed into preview 8931758; fixed synthetic scenarios now archive actual outputs without client credits. Greeting is concise and transparent. Vague intake is too verbose and bundles questions; corrected figures are followed but delay location was overinterpreted as cause. Prepared prompt refinements explicitly address these observed issues; their model behavior is not yet accepted.
+
+The provider returned real HTTP 429 responses with Retry-After 105, 274 and 389 seconds; pauses are respected. Runtime quality acceptance remains incomplete. New request-scoped failure callbacks retain only safe bounded retry metadata. Chat, calculations, legal research and reports can explain provider unavailability without blaming evidence, fabricating output or charging a limited answer. No automatic retries, paid fallback, new credentials, plan or role changes. Source backup precedes edits. 66 isolated application tests pass, including the observed cooldown path across all four answer routes. Final frozen-head CI/build and model re-evaluation remain separate gates.
+
+## 2026-11-24 — zero additional budget reliability work
+
+Owner confirmed no budget for additional AI services. No paid routing, purchases, account rotation or rate-limit bypass is authorized by this change. Next.js moves from 15.5.28 to the patched 15.5.29; current npm audit is clear. The older picomatch advisory was withdrawn upstream on 18 November (not an accepted local audit exception).
+
+Added a deliberately narrow, formula-checked gross-margin utility for explicitly labelled same-month revenue and cost of sales in one message with matching currencies. It is labelled as a calculation without AI, uses model=null and existing limited/no-charge completion, and never claims a generated professional assessment. Ambiguity, unsupported periods, mismatched currencies and zero revenue do not enter that path. Other numeric reasoning still requires the checked model path. The admin archive separately marks verified arithmetic rather than labelling it an AI model response.
+
+Provider Retry-After now suppresses repeated outbound requests within a server instance, without caching client data or extending the deadline on local rejection. This is best-effort per instance, not durable global admission or a guarantee of free-provider capacity. Added safe numeric rejection categories to the protected evaluation archive; no rejected raw model output or case data is logged by those diagnostics. Before changes, all 11 profiles retain fingerprint 62126c1b4909072b566f0ac37bd0077d and 4 client requests / 9 evaluations; source bundle is preserved. Runtime acceptance and final release are still pending.
+
+### Verified runtime and separate security release
+
+- Maintenance 48308bd passed exact-head CI (70 app / 24 Postgres checks). Actual administrator evaluations archived a correct 25% gross margin with `model=null`, `engine=verified_arithmetic`, and a concise genuine AI greeting with one clarification question for the vague intake. These are two scenario observations, not acceptance of all professional analysis.
+- Security-only PR #10 changed only Next.js/package lock and merged as main 3e8131bc667c32c39c3cea9af5fe19322ceeecd2. Production deployment dpl_B8f8unM8TqKSh7jzaQPrKq712TYh is Ready; nine production HTTP checks pass, including anonymous rejection on private APIs. The full Vera maintenance branch is not promoted.
+
+### Authenticated official-source transport
+
+- The Ministry of Justice sends an incorrect intermediate chain. The public Sectigo R36 intermediate (SHA-256 b40358316fd9e1caaaab92c382927d2c13ef51b481eec9371a82e16c86f2a687) was verified against the existing server roots. A host-scoped curl bundle repairs this transport without changing OS roots or disabling TLS verification. Reference: https://www.sectigo.com/knowledge-base/detail/Access-New-Sectigo-Certificate-Chain .
+- EUR-Lex's HTML endpoint returns a challenge. The Publications Office's public GDPR publication detail explicitly links an XHTML download (identifier 3e485e15-11bd-11e6-ba9a-01aa75ed71a1, English); this official download returns 200 and parses into 99 articles. Canonical EUR-Lex citation and actual transport URL remain separate. This is the published original instrument, not proof of consolidated amendments or current applicability. Reference: https://op.europa.eu/en/publication-detail/-/publication/3e485e15-11bd-11e6-ba9a-01aa75ed71a1/language-en .
+- Read-only `/api/legal-sources/:sourceId` uses the existing backend canonical JWT/profile verifier, fixed four destinations, bounded bodies/timeouts, no redirects, four requests per actor/minute and three concurrent source downloads. It shares only in-flight public downloads; no completed response is relabelled fresh. It receives a request-scoped existing bearer only from VANCORE, never forwards that bearer or case text to an official source or model, and creates no new credentials.
+- Backend installation passed all four real downloads and ten anonymous/invalid-token rejection checks. Server hash changed from f1428aaa6fd849032bb94c7bb706e29db5ade10e51774336b9ab4fc929211002 to ce4be3d09ae1987bf13c51b01205683aa67f98f8cf50ca9c72b796ad0889ea40. Existing protected-role verifier, public content, both SQLite databases, strict auth and disabled contact mail are preserved.
+- Pre-install archive SHA a543fafde567c30b978a23618b1dba1b6da66cee88db9835fdfd93a8de2dc6c4 was downloaded into the owner-only backup folder; archive paths and restored active/legacy SQLite integrity pass. The targeted Supabase snapshot before source UI tests (11 profiles, 4 requests, 11 evaluations, 8 corpus versions / 3371 chunks) restores exactly with all three ROLLBACK acceptances; SHA 0f367fb69d2f2e24cdb92372957fd51fe21a9d2d314d7ef1032358891f12cbc2. This does not represent a managed Auth/Storage or complete infrastructure restore.
+- Frontend source relay and canonical text/provision-prefix preservation pass 74 app tests, typecheck and production build locally. The relay path's real authenticated preview evaluation is the next release gate. Consumer-law source coverage, qualified legal review, full report quality and reliable free-model capacity remain open.
+
+### Second verification pass
+
+Functional head 1c45edfbf8a88516fcd95cb80dea6ab91109d9b4 passed exact-head frontend CI and Vercel preview dpl_2etq1vyRcqJAG9jGfsEv8WUYEVzK. Two append-only synthetic legal scenarios were added; existing scenarios were preserved. The actual correction response uses 30 weekly orders / 3 late and asks which warehouse stage causes the delay, without repeating the old volume question. This is an intake observation, not expert acceptance.
+
+The real BG source evaluation refreshed the preserved source through the authenticated relay at 17:58:06 UTC (existing immutable version 4466ce45-ffca-4707-be8b-78aac45bed85). The following model call returned rate limiting with Retry-After 353 seconds. The archived limited answer explains the pause and spends no client question; it is not accepted source-grounded analysis. Do not retry inference before 18:04 UTC or claim the provider-capacity issue is solved.
+
+All three hosted casework/knowledge/freshness ROLLBACK checks pass: 11 profiles retain fingerprint 62126c1b4909072b566f0ac37bd0077d, one conversation / four requests / one assessment remain unchanged. Six canonical backend auth regression tests pass with isolated fixtures and existing dependencies. The initial staging test lacked the dependency lookup path; setting test-only NODE_PATH to the existing backend node_modules fixed the harness, without installing packages or changing PM2 configuration.
+
+Post-install backend archive SHA f3edc67cd0b729a7ede3f6230a9c0573de9eedd7dc4eae101708282d614dfccf was also downloaded and its active SQLite restored with integrity/FK PASS. The private no-policy INFO advisories remain intentional service-only boundaries. The existing leaked-password-protection WARN remains open; it was not silently disabled or counted as fixed.
+
+Supabase's current official password-security documentation lists leaked-password protection as Pro-and-above: https://supabase.com/docs/guides/auth/password-security . No plan upgrade or new charge was made under the owner's zero-additional-budget constraint.
+
+After the required pause, real GDPR retrieval succeeded through preview/backend/storage at 18:04:24 UTC, adding immutable version d1e50d1c-b8bd-4de8-ac26-0c14f7c0c9c7 and 99 source sections. Model output did not pass legal validation; no unverified legal conclusion was accepted or charged. The original rejection did not retain a diagnostic category, so its exact cause must not be guessed. A follow-up adds bounded category-only diagnostics in the protected evaluation archive, explicit JSON/reference-placement instructions and whitespace-only quote canonicalisation. Changed wording, numbers, punctuation, invented authorities and unsupported quotes remain rejected; rejected raw case/model bodies are not logged.
+
+Functional head 37451209b2ef8c53d77b461e7e60e2f76e446403 passes exact-head CI (75 app tests, existing 24 Postgres tests, build/typecheck/audit), with preview dpl_82p1oKZP723w9AjEmUP6Y7ReSh3u Ready. The repeated BG source test at 18:09:13 UTC returned provider Retry-After 1572 seconds (no request before 18:35:25 UTC). This does not verify the revised legal output contract. Reliable free-provider capacity and an accepted real source-grounded legal answer remain release blockers; the complete maintenance branch remains draft/unpromoted.
+
+Final targeted snapshot SHA 72d01352a641f554090e02a8c0f939f5c0ca5c77bcdafa83b10e9fe55d2f761c preserves 16 evaluation attempts, 9 immutable knowledge versions / 3470 sections, 11 unchanged profiles and the original four client requests. Exact offline restore and the three ROLLBACK checks pass. Earlier 11-run and 15-run checkpoint exports remain preserved. No client credits, passwords, plans, roles or real consultant assignments were changed. Actual UI evidence and bounded deployment/backup/test records are retained in the task outputs; the signed-in stable admin tab remains available for continuation.
+
+## 2026-11-25 — disabled free-provider pilot candidate
+
+Owner requested a free primary/reserve approach with a limited initial audience.
+Prepared fixed Groq/Cloudflare GPT-OSS 120B adapters with actual model provenance
+through conversation, calculations, legal research and report paths. Feature
+switches default to legacy/customer-disabled; explicit administrator evaluation
+audience is server-owned. No new provider inference, key creation, paid account,
+environment change or customer-data forwarding occurred in this phase.
+
+The additive inference-budget migration is prepared locally, not applied to the
+hosted database yet. It provides service-only global reservations, one provider
+lease, UTC daily/minute limits and durable Retry-After. Missing storage refuses an
+inference call. Conservative full-input bounds avoid silently dropping evidence;
+failed requests retain reserved budget. These controls do not prove a provider
+account is free or guarantee capacity. Free-plan confirmation flags stay false.
+
+Local application tests (81), four new admission/ROLLBACK tests, the prior full
+27-test Postgres run, typecheck and production build pass. The updated targeted
+restore helper also restores the historical 16-run snapshot exactly with the new
+schema present, retaining all three original ROLLBACK acceptances. Details and
+activation/data-processing gates are in vera-free-pilot.md. Real-provider quality
+acceptance and activation remain pending.
+
+Cloudflare account access and verified email are observed; its owner used the
+personal GitHub-related email rather than the initially proposed company email.
+The account's billing/free-plan status and scoped API credential are unverified.
+Owner explicitly approved Groq Console's read-only GitHub profile/email/org
+permissions. GitHub authorization succeeded, but Groq sign-up returned errors on
+two normal attempts. Prepared the already authorized company email for a manual
+email login instead; no account success or API connectivity is claimed.
+
+### 25 November — Cloudflare-only maintenance preview connection
+
+Owner stopped the failing Groq login route and approved a Workers AI token for
+the single Momchil account, stored as a server-only Vercel Secret scoped to
+maintenance/2026-10-24 Preview. Dashboard confirms Workers Free; no paid upgrade
+or billing method added. Groq stays disabled, customer flag stays false. Only
+synthetic administrator evaluations use the new provider.
+
+Applied additive hosted budget migration 20261125175329; service-role ROLLBACK
+test passed for concurrency, cooldown, owned leases and restricted grants.
+Existing private application snapshot restored exactly before activation. Current
+profile fingerprint remains 62126c1b4909072b566f0ac37bd0077d, 11 profiles and four
+customer requests. No customer question was used.
+
+Preview dpl_9sGTQRmt9jX2ht6kAENb6RfUMMK3 (c0c7f9d) READY. Actual greeting,
+correction, vague-intake and topic-switch tests return Cloudflare gpt-oss-120b.
+Gross margin is verified 25% without inference. Official BG legal output was
+rejected by prose_format validation; legal quality is still not accepted. Do not
+describe the six-run suite as fully passing. First readback: 5 provider attempts,
+1852 conservatively reserved units, no active lease; not actual billed usage.
+
+Targeted post-test application snapshot, all 22 historical evaluations and budget
+row restore exactly; SHA 5adbc1b6f288fcd04428832c60a54d1a251e5c0a88d381b70c0963ebe85e0df1.
+All three existing ROLLBACK acceptances pass. Unchanged 3470 knowledge sections
+were verified against hosted content by order-independent PostgreSQL JSONB hash
+f68e4913a6951dcd874613704d1f5fff; all other application tables freshly exported.
+Detailed non-secret activation record is in outputs/VANCORE-cloudflare-activation-20261125.md
+outside the repository. Preserve customer isolation, quotas and immutable drafts.
+
+### 26 November — Vera secretary and public enquiries
+
+Owner approved a temporary secretary-only product: public enquiry preparation
+without registration, with existing account history retained behind sign-in.
+Implemented a six-step BG/EN reviewed intake and strict same-origin bounded
+public route to the existing DigitalOcean administrator Enquiries inbox. No AI
+provider is used. New client conversation/analysis generation is paused before
+storage/quota calls; archived conversation/report access remains authenticated.
+See vera-secretary.md for data handling, mail-off status, backup and recovery.
+New meaningful API tests verify public submission, explicit sharing, hostile
+requests, failed/uncertain confirmation and paused generation with retained reads.
+Publication and real browser acceptance are recorded after verification.

@@ -14,8 +14,8 @@ const practices = [
   },
   {
     number: '03',
-    title: 'AI-Powered Diagnostics',
-    desc: 'Our proprietary analyzer runs financial, tax, HR, operations, legal, and marketing diagnostics in minutes. Human consultants interpret and contextualize.',
+    title: 'Guided Enquiries',
+    desc: 'Vera helps you describe your situation and send a reviewed enquiry to our team without an account. Automated business and legal analysis is temporarily paused.',
   },
   {
     number: '04',

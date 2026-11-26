@@ -6,6 +6,7 @@ import { supabaseAdmin } from './supabase';
 import { setVeraCookie } from './vera-cookie';
 import { answerVera } from './vera-answers';
 import { analyseVera, analysisText, type CaseEvidence } from './vera-analysis';
+import { VERA_ANALYSIS_PAUSED } from './vera-availability';
 const uuid = (value: unknown): value is string => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'private, no-store' } });
 class DatabaseFailure extends Error { constructor(public code?: string) { super('Vera storage unavailable'); } }
@@ -71,11 +72,13 @@ export async function POST(request: NextRequest) {
     if (body.action === 'handoff' && (!uuid(body.analysisId) || body.shareWithTeam !== true || typeof body.message !== 'string' || body.message.length > 2000)) return json({ error: 'Choose a report and explicitly agree to share it with the team.' }, 400);
     if (body.action === 'cancel_handoff' && !uuid(body.handoffId)) return json({ error: 'A handoff identifier is required.' }, 400);
     const identity = await owner(request); if (identity.denied) return identity.denied;
+    if (VERA_ANALYSIS_PAUSED && ['open', 'message', 'analysis'].includes(body.action)) return json({ error: 'Automated Vera analysis is temporarily paused. Your saved history remains available. Send an enquiry at /ai-analyst.', state: 'paused' }, 503);
     if (!['message', 'analysis'].includes(body.action)) return publicResult(await rpc(identity, body.action, body.conversationId, body.analysisId || body.handoffId || null, { notes: body.notes, expectedVersion: body.expectedVersion, message: body.message, shareWithTeam: body.shareWithTeam }), identity);
     const message = body.action === 'analysis' ? 'Prepare the structured AI draft assessment for this case using its stored evidence and case notes.' : body.message.trim();
     const started = await rpc(identity, 'begin', body.conversationId, body.requestId, { message, expectedVersion: body.expectedVersion, kind: body.action === 'analysis' ? 'analysis' : 'conversation' });
     if (started.state !== 'generate') return publicResult(started, identity);
-    const answer = body.action === 'analysis' ? await analyseVera(started.history, started.message, started.caseMemory as CaseEvidence) : await answerVera(started.history, started.message, started.caseMemory);
+    const transport={sourceAuthorization:request.headers.get('authorization')};
+    const answer = body.action === 'analysis' ? await analyseVera(started.history, started.message, started.caseMemory as CaseEvidence,transport) : await answerVera(started.history, started.message, started.caseMemory,transport);
     const completed = await rpc(identity, 'finish', body.conversationId, body.requestId, { lease: started.lease, ...answer });
     return publicResult(completed, identity);
   } catch (error) { return failure(error); }

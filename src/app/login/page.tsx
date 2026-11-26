@@ -80,8 +80,8 @@ function LoginForm() {
       // Also set a cookie for 30 days
       document.cookie = 'vancore_remember=1; max-age=' + (30 * 24 * 60 * 60) + '; path=/';
 
-      if (searchParams.get('next') === '/ai-analyst') {
-        window.location.href = '/ai-analyst';
+      if (['/ai-analyst', '/vera-history'].includes(searchParams.get('next') || '')) {
+        window.location.href = searchParams.get('next') === '/vera-history' ? '/vera-history' : '/ai-analyst';
       } else if (data.redirectTo) {
         window.location.href = data.redirectTo;
       } else if (data.user?.role === 'admin') {
