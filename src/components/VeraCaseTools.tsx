@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { VERA_ANALYSIS_PAUSED } from '@/lib/vera-availability';
 import { authenticatedFetch } from '@/lib/authenticated-fetch';
 import { downloadVeraBrief } from '@/lib/vera-download';
 import type { VeraState } from '@/lib/vera-types';
@@ -28,8 +29,8 @@ export default function VeraCaseTools({ data, blocked, draftBlocked, analysisPen
       <label htmlFor="vera-case-notes" className="block text-sm">Your case notes</label><textarea id="vera-case-notes" rows={4} maxLength={6000} className={field} value={notes} disabled={blocked} onChange={event => { setNotes(event.target.value); const changed = event.target.value !== (data.caseNotes || ''); setDirty(changed); onDirty(changed); }} />
       <button className={button} disabled={blocked || !dirty || draftBlocked || !!data.conversation?.pending} onClick={() => void act({ action: 'memory', conversationId: data.conversation?.id, notes, expectedVersion: data.conversation?.version })}>Save case notes</button>{dirty && <span className="text-xs text-amber-200 ml-3">Unsaved notes</span>}
     </section>
-    <section className="space-y-3"><h3 className="font-semibold">Structured assessment</h3><p className="text-xs text-[#b5b5b5]">Generate an AI draft with evidence, missing information, hypotheses, risks and proposed actions. This is an AI question under your plan. Failed or limited generation does not use a question. Consultant review is separate.</p>
-      <button className={button} disabled={blocked || dirty || draftBlocked || !!data.conversation?.pending || data.quota?.allowed === false || !data.requests.some(item => item.status === 'complete')} onClick={generate}>{analysisPending ? 'Retry the same report request' : data.quota?.unlimited ? 'Generate AI assessment' : 'Generate AI assessment · 1 question'}</button>
+    <section className="space-y-3"><h3 className="font-semibold">Structured assessment</h3><p className="text-xs text-[#b5b5b5]">New automated assessments are temporarily paused. Existing saved assessments and consultant reviews remain available below.</p>
+      <button className={button} disabled={VERA_ANALYSIS_PAUSED || blocked || dirty || draftBlocked || !!data.conversation?.pending || data.quota?.allowed === false || !data.requests.some(item => item.status === 'complete')} onClick={generate}>{analysisPending ? 'Retry the same report request' : data.quota?.unlimited ? 'Generate AI assessment' : 'Generate AI assessment · 1 question'}</button>
       {analysisPending && !blocked && !data.conversation?.pending && <button className="text-sm underline ml-3" onClick={discardAnalysis}>Discard report retry</button>}
       {!!analyses.length && <p className="text-xs text-[#b5b5b5]">Up to 20 recent saved assessments. Source versions stay fixed.</p>}
       {analyses.map(item => <div className="border-t border-white/10 py-2 text-sm space-y-1" key={item.id}><p>{item.title} · source version {item.source_version}</p><div className="flex gap-4"><button className="underline" disabled={reading || blocked} onClick={() => void read(item.id)}>View assessment</button><button className="underline" disabled={blocked} onClick={() => void download(item.id)}>Download assessment</button></div></div>)}

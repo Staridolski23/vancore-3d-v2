@@ -98,10 +98,10 @@ export default function ContactPage() {
                 <div className="h-px bg-[#e5e5e5]" />
                 <div>
                   <div className="text-[10px] font-sans font-semibold tracking-[0.2em] text-[#6b6b6b] uppercase mb-1">
-                    AI Analyst
+                    Vera
                   </div>
                   <a href="/ai-analyst" className="inline-flex items-center gap-2 hover:text-[#991930]">
-                    Try Vera — our free AI analyst <span aria-hidden>→</span>
+                    Prepare an enquiry with Vera — no account needed <span aria-hidden>→</span>
                   </a>
                 </div>
               </div>

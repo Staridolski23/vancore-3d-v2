@@ -9,7 +9,7 @@ export default function AIAnalyst() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           <div>
             <div className="text-[#991930] text-xs font-sans font-semibold tracking-[0.2em] uppercase mb-5">
-              — AI ANALYST
+              — VERA
             </div>
             <div className="flex items-center gap-4 mb-4">
               <VeraAvatar className="w-14 h-14" />
@@ -18,10 +18,10 @@ export default function AIAnalyst() {
               </h2>
             </div>
             <p className="font-display text-xl md:text-2xl text-[#111] italic mb-5">
-              Our AI does the preliminary work, so we don&apos;t waste yours.
+              Your first conversation with VANCORE.
             </p>
             <p className="font-sans text-sm text-[#6b6b6b] leading-relaxed max-w-md">
-              Vera is our AI business analyst. She explores your business problem with focused questions. You can save a preliminary conversation brief and contact our team for a human review.
+              Vera is our virtual assistant. Describe your needs, review a short summary, and send it to our team. No account is needed. Automated analysis is temporarily paused.
             </p>
             <a href="/ai-analyst" className="inline-flex">
               <button className="btn-hover inline-flex items-center gap-2 mt-8 px-5 py-3 bg-[#991930] text-white text-sm font-sans font-medium">
@@ -65,7 +65,7 @@ export default function AIAnalyst() {
               <div className="flex gap-3">
                 <VeraAvatar className="w-6 h-6 shrink-0" />
                 <div className="rounded-2xl rounded-tl-sm bg-[#f7f6f2] border border-[#e5e5e5] px-4 py-3 text-sm text-[#111]">
-                  Tell me — is this a recent shift, or has it been chronic? And how many functions does the firefighting touch?
+                  What would you like to change? I can include your goal in an enquiry for our team.
                 </div>
               </div>
             </div>

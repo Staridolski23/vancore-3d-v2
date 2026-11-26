@@ -277,3 +277,17 @@
 - Actual preview preserved the existing authenticated client and its four questions. Synthetic case notes saved without charge. The first real structured-report request returned a limited, uncharged response; no invalid report was saved. Vercel's authenticated runtime log confirms the provider returned no final answer. The connector still lacks team scope, so the existing authenticated dashboard was used for the read-only log check.
 - Provider correction keeps the same :free model and 45-second call/60-second route bound, with a separate assessment budget (8192), JSON-object mode and low reasoning effort. Chat keeps its existing 4096 budget. Supported controls were verified against the live public Nous model catalog and the vendor model card; no paid model fallback is introduced. Truncated outputs are rejected; diagnostics log bounded reason/token counts only, never reasoning or raw responses. Assessments use user evidence/notes rather than recycling earlier AI conclusions. Actual corrected-provider acceptance remains pending at this entry.
 - A second actual report attempt was refused immediately with provider HTTP 429, so it did not exercise the new completion budget. The ledger confirms two limited/uncharged report requests and the original one charged conversation answer; the account remains at four questions. Added redacted classification/Retry-After diagnostics without logging upstream messages, credentials, case content or reasoning. No automatic retry, alternate account or paid-model switch is used.
+
+
+### 26 November — Vera secretary and public enquiries
+
+Owner approved a temporary secretary-only product: public enquiry preparation
+without registration, with existing account history retained behind sign-in.
+Implemented a six-step BG/EN reviewed intake and strict same-origin bounded
+public route to the existing DigitalOcean administrator Enquiries inbox. No AI
+provider is used. New client conversation/analysis generation is paused before
+storage/quota calls; archived conversation/report access remains authenticated.
+See vera-secretary.md for data handling, mail-off status, backup and recovery.
+New meaningful API tests verify public submission, explicit sharing, hostile
+requests, failed/uncertain confirmation and paused generation with retained reads.
+Publication and real browser acceptance are recorded after verification.

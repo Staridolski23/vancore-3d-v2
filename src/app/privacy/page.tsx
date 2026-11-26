@@ -5,7 +5,8 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-white text-[#111]">
       <main className="max-w-4xl mx-auto px-6 py-20">
         <h1 className="font-display text-4xl md:text-5xl text-[#111] leading-[1.05] mb-8">Privacy Policy</h1>
-        <p className="text-sm text-[#6b6b6b] mb-8">Last updated: June 2026</p>
+        <p className="text-sm text-[#6b6b6b] mb-8">Enquiry workflow updated: 26 November 2026</p>
+        <section className="border-l-2 border-[#991930] pl-5 mb-8 text-sm text-[#333] leading-relaxed"><h2 className="text-lg font-semibold mb-3">Public enquiries through Vera</h2><p>No account is required. Your draft stays in the open page until you choose to send it. After you review and approve the summary, your contact details and enquiry are stored in the VANCORE team’s enquiry inbox to respond to your request. This workflow does not use a generative AI provider and does not subscribe you to marketing. Closing or reloading the page discards an unsent draft. Existing account conversations remain private behind sign-in. To request access, correction or deletion of an enquiry, contact hello@vancoresys.com.</p></section>
 
         <div className="space-y-8 text-sm text-[#333] leading-relaxed">
           <section>

@@ -359,7 +359,7 @@ function ClientPortalBody() {
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 bg-white/5 rounded-lg text-center">
                 <div className="text-xl font-bold text-white">{veraQuota ? (veraQuota.unlimited ? '∞' : veraQuota.remaining) : '—'}</div>
-                <div className="text-[10px] text-[#6b6b6b] uppercase">Questions available</div>
+                <div className="text-[10px] text-[#6b6b6b] uppercase">Saved question allowance</div>
               </div>
               <div className="p-3 bg-white/5 rounded-lg text-center">
                 <div className="text-xl font-bold text-white">—</div>
@@ -567,7 +567,7 @@ function ClientPortalBody() {
               <div className="text-4xl mb-3">💬</div>
               <p className="text-sm text-[#6b6b6b] mb-4">No portal messages yet.</p>
               <a href="/ai-analyst" className="px-4 py-2 bg-[#991930] text-white text-sm font-medium rounded-lg hover:bg-[#a83d1f] transition-colors">
-                Start an AI Analysis
+                Send an enquiry with Vera
               </a>
             </div>}
           </div>
